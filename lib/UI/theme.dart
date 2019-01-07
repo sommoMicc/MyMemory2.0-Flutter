@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class LetsMemoryColors {
   LetsMemoryColors._(); //Per evitare che la classe venga istanziata
 
-  static const MaterialColor primary = Colors.pink;
+  static const Color background = const Color(0xFF1B4DCA);
   static const Color textOnPrimary = Colors.white;
 
   static const Color backgroundGradientEnd = const Color(0xFFF9683A);

@@ -16,25 +16,20 @@ class LetsMemoryMainButton extends StatefulWidget {
 class LetsMemoryMainButtonState extends State<LetsMemoryMainButton> {
   bool _pressed = false;
 
-  LetsMemoryMainButtonState();  
-
   void _onTapDown(TapDownDetails details) {
-    setState(() => {
-      _pressed: true
+    setState(()  {
+      _pressed = true;
     });
-    print("TAP DOWN");
   }
 
   void _onTapUp(TapUpDetails details) {
-    setState(() => {
-      _pressed: false
+    setState(() {
+      _pressed = false;
     });
-    print("TAP UP");
   }
 
   void _onTapCancel() {
     this._onTapUp(null);
-    print("TAP CANCEL");
   }
 
   @override
@@ -88,7 +83,7 @@ class _LetsMemoryMainButtonContainer extends StatelessWidget {
           child: Text(this.text,
             style: TextStyle(
               fontSize: LetsMemoryDimensions.cardFont,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
               color: this.textColor
             )
           ),

@@ -7,7 +7,7 @@ class LetsMemoryHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: LetsMemoryColors.primary,
+      color: LetsMemoryColors.background,
       child: Stack(
         children: <Widget>[
           Center(
@@ -17,7 +17,7 @@ class LetsMemoryHomePage extends StatelessWidget {
               children: <Widget>[
                 LetsMemoryLogo(),
                 Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard)),
-                LetsMemoryMainButton(text: "Singleplayer", backgroundColor: Colors.blue[500], shadowColor: Colors.blue[900]),
+                LetsMemoryMainButton(text: "Singleplayer", backgroundColor: Colors.green[500], shadowColor: Colors.green[900]),
                 Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard)),
                 LetsMemoryMainButton(text: "Multiplayer", backgroundColor: Colors.purple[500], shadowColor: Colors.purple[900]),
               ],

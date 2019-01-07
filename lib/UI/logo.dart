@@ -9,9 +9,7 @@ final Matrix4 rightRotation = Matrix4.rotationZ(0.174533);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black,
-      child: Column(
+    return Column(
         children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -36,7 +34,6 @@ final Matrix4 rightRotation = Matrix4.rotationZ(0.174533);
             ],
           )
         ],
-      )
     );
   }
 
