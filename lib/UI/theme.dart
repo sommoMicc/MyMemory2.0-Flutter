@@ -8,12 +8,15 @@ class LetsMemoryColors {
 
   static const Color backgroundGradientEnd = const Color(0xFFF9683A);
   static const Color backgroundGradientStart = const Color(0xFF9E51B5);
+
+  static const Color standardCardShadow = const Color(0xFFA9B8E1);
+  static const Color standardCardBackground = Colors.white;
 }
 
 class LetsMemoryDimensions {
   static const double bigTitle = 50.0;
 
-  static const double cardFont = 30.0;
+  static const double cardFont = 35.0;
   static const double standardCard = cardFont * 1.5;
   static const double cardRadius = standardCard / 3;
   static const double cardBorder = cardFont / 10;
