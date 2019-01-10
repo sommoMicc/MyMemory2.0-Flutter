@@ -39,11 +39,11 @@ class LetsMemoryLogoState extends State<LetsMemoryLogo>  with SingleTickerProvid
     rightRotationValue = LetsMemoryLogo.RIGHT_ROTATION_VALUE;
 
     controller = AnimationController(
-      duration: const Duration(milliseconds: 1600),
+      duration: const Duration(milliseconds: 1500),
       vsync: this
     );
 
-    curve = CurvedAnimation(parent: controller, curve: Curves.easeInOut);
+    curve = CurvedAnimation(parent: controller, curve: Curves.bounceInOut);
 
     animation = Tween(begin: -2*pi, end: 0.0)
       .animate(curve)
