@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/scheduler/ticker.dart';
 import './lets_memory_static_card.dart';
 import './theme.dart';
+import 'dart:math';
 
 class LetsMemoryLogo extends StatefulWidget {
 
@@ -30,7 +30,7 @@ class LetsMemoryLogoState extends State<LetsMemoryLogo>  with SingleTickerProvid
   double leftRotationValue;
   double rightRotationValue;
 
-  @override
+  CurvedAnimation curve;
   void initState() {
     super.initState();
     reverseAnimation = false;
@@ -39,14 +39,17 @@ class LetsMemoryLogoState extends State<LetsMemoryLogo>  with SingleTickerProvid
     rightRotationValue = LetsMemoryLogo.RIGHT_ROTATION_VALUE;
 
     controller = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 1600),
       vsync: this
     );
-    animation = Tween(begin: LetsMemoryLogo.LEFT_ROTATION_VALUE, end: LetsMemoryLogo.RIGHT_ROTATION_VALUE)
-      .animate(controller)
+
+    curve = CurvedAnimation(parent: controller, curve: Curves.easeInOut);
+
+    animation = Tween(begin: -2*pi, end: 0.0)
+      .animate(curve)
       ..addListener(() {
         setState(() {
-          leftRotationValue = animation.value;
+          leftRotationValue = LetsMemoryLogo.LEFT_ROTATION_VALUE + animation.value;
           rightRotationValue = -1*leftRotationValue;
         });
       });
@@ -71,8 +74,10 @@ class LetsMemoryLogoState extends State<LetsMemoryLogo>  with SingleTickerProvid
   }
 
   void _onTap() {
-    reverseAnimation ? controller.reverse() : controller.forward();
-    reverseAnimation = !reverseAnimation;
+    if(!controller.isAnimating) {
+      reverseAnimation ? controller.reverse() : controller.forward();
+      reverseAnimation = !reverseAnimation;
+    }
   }
 
   @override
