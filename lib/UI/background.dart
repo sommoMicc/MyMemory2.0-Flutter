@@ -11,35 +11,35 @@ class LetsMemoryBackground extends StatelessWidget {
     final double bigCircleRadius = MediaQuery.of(context).size.width * 1.5;
     final double smallCircleRadius = MediaQuery.of(context).size.width;
 
-    Widget background = Positioned(
-      child: Container(
-        width: bigCircleRadius,
-        height: bigCircleRadius,
-        decoration: new BoxDecoration(
-          color: const Color(0xFF143DA5),
-          shape: BoxShape.circle,
-        )
+    List<Widget> backgroundArts = <Widget>[
+      Positioned(
+        child: Container(
+          width: bigCircleRadius,
+          height: bigCircleRadius,
+          decoration: new BoxDecoration(
+            color: LetsMemoryColors.darkestBackground,
+            shape: BoxShape.circle,
+          )
+        ),
+        top: -bigCircleRadius/4,
+        left: -bigCircleRadius/4,
       ),
-      top: -bigCircleRadius/4,
-      left: -bigCircleRadius/4,
-    );
+      Positioned(
+        child: Container(
+          width: smallCircleRadius,
+          height: smallCircleRadius,
+          decoration: new BoxDecoration(
+            color: LetsMemoryColors.darkerBackground,
+            shape: BoxShape.circle,
+          )
+        ),
+        bottom: 0,
+        right: -smallCircleRadius/2,
+      )
+    ];
 
-    Widget background2 = Positioned(
-      child: Container(
-        width: smallCircleRadius,
-        height: smallCircleRadius,
-        decoration: new BoxDecoration(
-          color: const Color(0xFF2A4DA5),
-          shape: BoxShape.circle,
-        )
-      ),
-      bottom: 0,
-      right: -smallCircleRadius/2,
-    );
-
-    this.children.insert(0,background2);
-    this.children.insert(1,background);
-
+    backgroundArts.forEach((art)=> this.children.insert(0,art));
+    
     return Material(
       color: LetsMemoryColors.background,
       child: Stack(

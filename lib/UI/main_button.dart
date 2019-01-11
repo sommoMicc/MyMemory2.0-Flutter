@@ -5,7 +5,9 @@ class LetsMemoryMainButton extends StatefulWidget {
   final Color backgroundColor, shadowColor, textColor;
   final String text;
 
-  LetsMemoryMainButton({this.backgroundColor, this.shadowColor, this.text, this.textColor = Colors.white});
+  final VoidCallback callback;
+
+  LetsMemoryMainButton({this.backgroundColor, this.shadowColor, this.text, this.callback, this.textColor = Colors.white});
 
   @override
   State<StatefulWidget> createState() {
@@ -38,6 +40,7 @@ class LetsMemoryMainButtonState extends State<LetsMemoryMainButton> {
       onTapDown: _onTapDown,
       onTapUp: _onTapUp,
       onTapCancel: _onTapCancel,
+      onTap: widget.callback,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[

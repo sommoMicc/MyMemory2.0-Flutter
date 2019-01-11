@@ -43,7 +43,7 @@ class LetsMemoryLogoState extends State<LetsMemoryLogo>  with SingleTickerProvid
       vsync: this
     );
 
-    curve = CurvedAnimation(parent: controller, curve: Curves.bounceInOut);
+    curve = CurvedAnimation(parent: controller, curve: Curves.bounceIn);
 
     animation = Tween(begin: -2*pi, end: 0.0)
       .animate(curve)
