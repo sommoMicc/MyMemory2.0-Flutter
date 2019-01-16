@@ -4,11 +4,15 @@ import './theme.dart';
 class LetsMemoryStaticCard extends StatelessWidget {
   final String letter;
   final Color textColor;
-  final Matrix4 rotation;
+  Matrix4 rotation;
 
   final bool pressed;
 
-  LetsMemoryStaticCard({this.letter, this.textColor = Colors.white, this.rotation, this.pressed = false});
+  LetsMemoryStaticCard({this.letter, this.textColor = Colors.white, this.rotation, this.pressed = false}) {
+    if(this.rotation == null) {
+      this.rotation = Matrix4.identity();
+    }
+  }
 
  @override
   Widget build(BuildContext context) {

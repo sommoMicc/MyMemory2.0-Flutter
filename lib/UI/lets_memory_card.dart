@@ -6,13 +6,11 @@ class LetsMemoryCard extends StatefulWidget {
   final Color textColor;
   final Matrix4 rotation;
 
-  final bool pressed;
-
-  LetsMemoryCard({this.letter, this.textColor = Colors.white, this.rotation, this.pressed = false});
+  LetsMemoryCard({this.letter, this.textColor = Colors.white, this.rotation});
 
   @override
   State<StatefulWidget> createState() {
-    return LetsMemoryCardState(pressed: this.pressed);
+    return LetsMemoryCardState();
   }
 }
 
@@ -21,8 +19,13 @@ class LetsMemoryCardState extends State<LetsMemoryCard> {
   bool tapable;
   bool pressed;
 
-  LetsMemoryCardState({this.tapable=true,this.covered=false,this.pressed=false});
+  LetsMemoryCardState({this.tapable=true,this.covered=false});
 
+  @override
+  void initState() {
+    super.initState();
+    this.pressed = false;
+  }
 
   void _onTapDown(TapDownDetails details) {
     setState(()  {
@@ -50,7 +53,7 @@ class LetsMemoryCardState extends State<LetsMemoryCard> {
         letter: widget.letter,
         textColor: widget.textColor,
         rotation: widget.rotation,
-        pressed: widget.pressed
+        pressed: this.pressed
       )
     );
   }
