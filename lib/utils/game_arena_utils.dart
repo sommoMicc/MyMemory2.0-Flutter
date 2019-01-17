@@ -16,16 +16,21 @@ class GameArenaUtils {
 
     Random randomInstance = Random();
 
-    for(int i=0;i<listSize;i++) {
+    for(int i=0;i<listSize/2;i++) {
       Color cardColor = Color(
         (randomInstance.nextDouble() * 0xFFFFFF).toInt() << 0)
         .withOpacity(1.0);
       int chosenSymbolIndex = randomInstance.nextInt(availableSymbols.length);
-      cardList.add(LetsMemoryCard(
-        letter: availableSymbols.removeAt(chosenSymbolIndex),
-        textColor: cardColor,
-      ));
+      String chosenLetter = availableSymbols.removeAt(chosenSymbolIndex);
+      //Aggiungo la carta due volte (perché mi serve una coppia!)
+      for(int j=0;j<2;j++)
+        cardList.add(LetsMemoryCard(
+          letter: chosenLetter,
+          textColor: cardColor,
+        ));
     }
+
+    cardList.shuffle();
 
     return cardList;
   }

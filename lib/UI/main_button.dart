@@ -44,20 +44,12 @@ class LetsMemoryMainButtonState extends State<LetsMemoryMainButton> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Stack(
-            alignment: Alignment.topCenter,
-            children: <Widget>[
-              _LetsMemoryMainButtonContainer(
-                backgroundColor: widget.shadowColor, 
-                text: widget.text, 
-                height: LetsMemoryDimensions.standardCard + 4
-              ),
-              _LetsMemoryMainButtonContainer(
-                backgroundColor: _pressed ? widget.shadowColor : widget.backgroundColor,
-                text: widget.text,
-                height: LetsMemoryDimensions.standardCard
-              )
-          ])
+          _LetsMemoryMainButtonContainer(
+            backgroundColor: _pressed ? widget.shadowColor : widget.backgroundColor,
+            shadowColor: widget.shadowColor,
+            text: widget.text,
+            height: LetsMemoryDimensions.standardCard
+          )
         ]),
       );    
   }
@@ -65,11 +57,11 @@ class LetsMemoryMainButtonState extends State<LetsMemoryMainButton> {
 
 class _LetsMemoryMainButtonContainer extends StatelessWidget {
 
-  final Color backgroundColor, textColor;
+  final Color backgroundColor, textColor, shadowColor;
   final String text;
   final double height;
 
-  _LetsMemoryMainButtonContainer({this.backgroundColor, this.text, this.height, this.textColor = Colors.white});
+  _LetsMemoryMainButtonContainer({this.backgroundColor, this.shadowColor, this.text, this.height, this.textColor = Colors.white});
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +70,14 @@ class _LetsMemoryMainButtonContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: this.backgroundColor,
         borderRadius: BorderRadius.circular(LetsMemoryDimensions.cardRadius),
+        boxShadow: [
+          BoxShadow(
+            color: this.shadowColor,
+            offset: Offset(0, 4.0),
+            blurRadius: 0.0,
+            spreadRadius: 0
+          )
+        ]
         //border: Border.all(color: this.textColor, width: LetsMemoryDimensions.cardBorder)
       ),
       child: Center(
