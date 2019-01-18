@@ -4,31 +4,36 @@ import './theme.dart';
 class LetsMemoryStaticCard extends StatelessWidget {
   final String letter;
   final Color textColor;
-  Matrix4 rotation;
+  final Matrix4 rotation;
 
   final bool pressed;
+  final Color backgroundColor, shadowColor;
 
-  LetsMemoryStaticCard({this.letter, this.textColor = Colors.white, this.rotation, this.pressed = false}) {
-    if(this.rotation == null) {
-      this.rotation = Matrix4.identity();
-    }
-  }
-
- @override
+  LetsMemoryStaticCard({this.backgroundColor, this.shadowColor, this.letter, this.textColor = Colors.white, this.rotation, this.pressed = false});
+    
+  @override
   Widget build(BuildContext context) {
+    //Così posso fare un override semplice dei colori senza violare la regola
+    //che tutti i campi di uno StatelessWidget devono essere final
+    //L'espressione "a = b ?? c" equivale a "a = (b == null) ? c : b"
+    Color background = this.backgroundColor ?? LetsMemoryColors.standardCardBackground;
+    Color shadow = this.shadowColor ?? LetsMemoryColors.standardCardShadow;
+
     return Transform(
       alignment: FractionalOffset.center, // set transform origin
-      transform: this.rotation,
+      transform: this.rotation == null ? Matrix4.identity() : this.rotation,
       child: Container(
-        height: LetsMemoryDimensions.standardCard,
-        width: LetsMemoryDimensions.standardCard,
+        constraints: new BoxConstraints(
+          minHeight: LetsMemoryDimensions.standardCard,
+          minWidth: LetsMemoryDimensions.standardCard,
+        ),
         decoration: BoxDecoration(
           color: this.pressed ?
-            LetsMemoryColors.standardCardShadow : LetsMemoryColors.standardCardBackground,
+            shadow : background,
           borderRadius: BorderRadius.circular(LetsMemoryDimensions.cardRadius),
           boxShadow: [
             BoxShadow(
-              color: LetsMemoryColors.standardCardShadow,
+              color: shadow,
               offset: Offset(0, 4.0),
               blurRadius: 0.0,
               spreadRadius: 0

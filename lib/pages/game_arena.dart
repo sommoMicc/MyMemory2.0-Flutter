@@ -83,9 +83,13 @@ class _BottomSheet extends StatelessWidget {
         children: <Widget>[
           Text("Coppie trovate: ",style: _getTextStyle()),
           Padding(padding: EdgeInsets.only(left: LetsMemoryDimensions.standardCard/2)),
-          LetsMemoryStaticCard(
-            letter: this._cardsFound.toString(),
-            textColor: Colors.black,
+          Container(
+            child: LetsMemoryStaticCard(
+              letter: this._cardsFound.toString(),
+              textColor: Colors.black,
+            ),
+            height: LetsMemoryDimensions.standardCard,
+            width: LetsMemoryDimensions.standardCard,
           ),
           Padding(padding: EdgeInsets.only(left: LetsMemoryDimensions.standardCard/4)),
           Text(" / "+this._totalCards.toString(),style: _getTextStyle()),

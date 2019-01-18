@@ -1,4 +1,6 @@
 import '../UI/lets_memory_card.dart';
+import '../UI/lets_memory_flipable_card.dart';
+
 import 'dart:math';
 import 'package:flutter/material.dart';
 
@@ -8,8 +10,8 @@ class GameArenaUtils {
     "M","N","O","P","Q","R","S","T","U","V","W","X",
     "Y","Z"
   ];
-  static List<LetsMemoryCard> generateCardList(int listSize) {
-    List<LetsMemoryCard> cardList = [];
+  static List<Widget> generateCardList(int listSize) {
+    List<Widget> cardList = [];
 
     List<String> availableSymbols = [];
     availableSymbols.addAll(GameArenaUtils.symbols);
@@ -23,11 +25,16 @@ class GameArenaUtils {
       int chosenSymbolIndex = randomInstance.nextInt(availableSymbols.length);
       String chosenLetter = availableSymbols.removeAt(chosenSymbolIndex);
       //Aggiungo la carta due volte (perché mi serve una coppia!)
-      for(int j=0;j<2;j++)
-        cardList.add(LetsMemoryCard(
+      for(int j=0;j<2;j++) {
+        /*cardList.add(LetsMemoryCard(
+          letter: chosenLetter,
+          textColor: cardColor,
+        ));*/
+        cardList.add(LetsMemoryFlipableCard(
           letter: chosenLetter,
           textColor: cardColor,
         ));
+      }
     }
 
     cardList.shuffle();
