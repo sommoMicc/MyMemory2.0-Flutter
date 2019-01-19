@@ -6,10 +6,16 @@ class LetsMemoryFlipableCard extends StatefulWidget {
   final Color textColor;
   final Matrix4 rotation;
 
-  LetsMemoryFlipableCard({this.letter, this.textColor = Colors.white, this.rotation});
+  final _LetsMemoryFlipableCardState state;
+
+  LetsMemoryFlipableCard({this.letter, this.textColor = Colors.white, this.rotation})
+   : state = _LetsMemoryFlipableCardState();
 
   @override
-  State<StatefulWidget> createState() => _LetsMemoryFlipableCardState();
+  State<StatefulWidget> createState() => state;
+
+  void hide() => state.hide();
+  void reveal() => state.reveal();
 }
 
 class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with TickerProviderStateMixin {
@@ -48,8 +54,19 @@ class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with Ti
       else
         _controller.forward();
     });
-
   }
+
+  void hide() {
+    if (this.revealed)
+        _controller.reverse();
+  }
+  
+  void reveal() {
+    if (!this.revealed)
+        _controller.forward();
+  }
+
+  get revealed => (_controller.isCompleted || _controller.velocity > 0);
 
   void _onTap() {
     toggleFlip();

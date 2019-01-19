@@ -10,8 +10,8 @@ class GameArenaUtils {
     "M","N","O","P","Q","R","S","T","U","V","W","X",
     "Y","Z"
   ];
-  static List<Widget> generateCardList(int listSize) {
-    List<Widget> cardList = [];
+  static List<LetsMemoryFlipableCard> generateCardList(int listSize) {
+    List<LetsMemoryFlipableCard> cardList = [];
 
     List<String> availableSymbols = [];
     availableSymbols.addAll(GameArenaUtils.symbols);

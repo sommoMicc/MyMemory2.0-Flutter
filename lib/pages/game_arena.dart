@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../UI/background.dart';
 import '../UI/theme.dart';
+import '../UI/lets_memory_flipable_card.dart';
 import '../UI/lets_memory_static_card.dart';
 import '../utils/game_arena_utils.dart';
+import 'dart:async';
 
 class LetsMemoryGameArena extends StatefulWidget {
   final double cardsPadding = LetsMemoryDimensions.standardCard / 2;
@@ -16,7 +18,7 @@ class LetsMemoryGameArena extends StatefulWidget {
 class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   int cardsFound;
 
-  List<Widget> cards = GameArenaUtils.generateCardList(3*4);
+  List<LetsMemoryFlipableCard> cards = GameArenaUtils.generateCardList(3*4);
 
   @override
   void initState() {
@@ -26,6 +28,11 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
 
   @override
   Widget build(BuildContext context) {
+    Timer(Duration(seconds: 5), ()  {
+      cards.forEach((card) {
+        card.reveal();
+      });
+    });
     return LetsMemoryBackground(
       children: <Widget>[
         Padding(
@@ -44,6 +51,16 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
           left: 0,
           right: 0,
           child: _BottomSheet(this.cardsFound, (this.cards.length / 2).floor()),
+        ),
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          top: 0,
+          child: Container(
+            color: Color(0xBB000000),
+            child: Center(child:Text("Inizio partita in ",style: TextStyle(color: Colors.white),)),
+          ),
         )
       ]
     );
