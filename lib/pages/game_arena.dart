@@ -17,6 +17,9 @@ class LetsMemoryGameArena extends StatefulWidget {
 
 class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   int cardsFound;
+  
+  int secondsToStartGame;
+  Timer startGameTimer;
 
   List<LetsMemoryFlipableCard> cards = GameArenaUtils.generateCardList(3*4);
 
@@ -24,15 +27,34 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   void initState() {
     super.initState();
     cardsFound = 0;
+    secondsToStartGame = 3;
+
+    startGameTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if(secondsToStartGame == 0) {
+        startGameTimer.cancel();
+        beginGame();
+        return;
+      }
+      setState(() {
+        secondsToStartGame--;      
+      });
+    });
+  }
+
+  void beginGame() {
+    cards.forEach((card) {
+      card.reveal();
+    });
+    
+    Timer(Duration(seconds: 3),() {
+      cards.forEach((card) {
+        card.hide();
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    Timer(Duration(seconds: 5), ()  {
-      cards.forEach((card) {
-        card.reveal();
-      });
-    });
     return LetsMemoryBackground(
       children: <Widget>[
         Padding(
@@ -52,17 +74,56 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
           right: 0,
           child: _BottomSheet(this.cardsFound, (this.cards.length / 2).floor()),
         ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          top: 0,
-          child: Container(
-            color: Color(0xBB000000),
-            child: Center(child:Text("Inizio partita in ",style: TextStyle(color: Colors.white),)),
+        _StartGameOverlay(secondsToStartGame)
+      ]
+    );
+  }
+}
+
+class _StartGameOverlay extends StatelessWidget {
+  final int secondsToStartGame;
+
+  _StartGameOverlay(this.secondsToStartGame);
+
+  @override
+  Widget build(BuildContext context) {
+    return Visibility(
+      visible: secondsToStartGame > 0,
+      child: Positioned(
+        bottom: 0,
+        left: 0,
+        right: 0,
+        top: 0,
+        child: Container(
+          color: Color(0xEE000000),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  "Inizio partita in ",
+                  style: LetsmemoryStyles.mainTitle
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    LetsMemoryStaticCard(
+                      letter: secondsToStartGame.toString(),
+                      textColor: Colors.black
+                    ),
+                    Text(
+                      " secondi",
+                      style: LetsmemoryStyles.mainTitle
+                    )
+                  ]
+                ),
+              ]  
+            )
           ),
         )
-      ]
+      )
     );
   }
 }
