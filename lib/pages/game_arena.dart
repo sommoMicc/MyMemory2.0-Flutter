@@ -21,6 +21,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   int secondsToStartGame;
   Timer startGameTimer;
 
+  LetsMemoryFlipableCard lastCardSelected;
   List<LetsMemoryFlipableCard> cards = GameArenaUtils.generateCardList(3*4);
 
   @override
@@ -39,6 +40,10 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
         secondsToStartGame--;      
       });
     });
+
+    cards.forEach((card) {
+      card.setOnTapCallback(this.onCardTap);
+    });
   }
 
   void beginGame() {
@@ -51,6 +56,32 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
         card.hide();
       });
     });
+  }
+
+  void endGame() {
+    print("GIOCO FINITO!");
+  }
+
+  void onCardTap(LetsMemoryFlipableCard cardTapped) {
+    if(this.lastCardSelected != null) {
+      if(this.lastCardSelected == cardTapped) {
+        lastCardSelected.makeAsFound();
+        cardTapped.makeAsFound();
+
+        setState(() {
+          cardsFound++;
+          if(cardsFound*2 == cards.length) endGame();
+        });
+      }
+      else {
+        lastCardSelected.hide();
+        cardTapped.hide();
+      }
+      lastCardSelected = null;
+    }
+    else {
+      this.lastCardSelected = cardTapped;
+    }
   }
 
   @override
@@ -95,7 +126,7 @@ class _StartGameOverlay extends StatelessWidget {
         right: 0,
         top: 0,
         child: Container(
-          color: Color(0xEE000000),
+          color: Color(0xBB000000),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

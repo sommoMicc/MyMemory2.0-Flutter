@@ -16,6 +16,21 @@ class LetsMemoryFlipableCard extends StatefulWidget {
 
   void hide() => state.hide();
   void reveal() => state.reveal();
+
+  void makeAsFound() => state.makeAsFound();
+  bool get found => state.found;
+
+  void setOnTapCallback(Function callback) => state.onTapCallback = callback;
+
+  @override
+  bool operator==(dynamic card) {
+    return card.letter == this.letter;
+  } 
+
+  @override
+  int get hashCode {
+    return letter.hashCode * 3 * textColor.hashCode;
+  }
 }
 
 class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with TickerProviderStateMixin {
@@ -24,11 +39,23 @@ class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with Ti
   Animation<double> _backScale;
 
   bool _pressed;
+  bool _found;
+
+  Function onTapCallback;
+
+  bool get found => _found;
+  
+  void makeAsFound() {
+    setState(() {
+      this._found = true;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     this._pressed = false;
+    this._found = false;
 
     _controller = new AnimationController(
       vsync: this,
@@ -69,19 +96,25 @@ class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with Ti
   get revealed => (_controller.isCompleted || _controller.velocity > 0);
 
   void _onTap() {
-    toggleFlip();
+    if(!_found && !revealed) {
+      reveal();
+      if(this.onTapCallback != null)
+        this.onTapCallback(widget);
+    }
   }
 
    void _onTapDown(TapDownDetails details) {
-    setState(()  {
-      _pressed = true;
-    });
+     if(!_found)
+      setState(()  {
+        _pressed = true;
+      });
   }
 
   void _onTapUp(TapUpDetails details) {
-    setState(() {
-      _pressed = false;
-    });
+    if(!_found)
+      setState(() {
+        _pressed = false;
+      });
   }
 
   void _onTapCancel() {
@@ -105,7 +138,7 @@ class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with Ti
                 letter: widget.letter,
                 textColor: widget.textColor,
                 rotation: widget.rotation,
-                pressed:_pressed
+                pressed:_pressed || found
               ),
               animation: _backScale,
               builder: (BuildContext context, Widget child) {
@@ -142,5 +175,5 @@ class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with Ti
         ),
       ),
     );
-  }
+  } 
 }
