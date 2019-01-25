@@ -20,15 +20,22 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   
   int secondsToStartGame;
   Timer startGameTimer;
+  //Booleano che indica se c'è un'operazione in corso che sta usando un 
+  //timer, in modo tale da evitare problemi di concorrenza
+  bool timerGoing;
 
   LetsMemoryFlipableCard lastCardSelected;
+  int cardsRevealed;
+
   List<LetsMemoryFlipableCard> cards = GameArenaUtils.generateCardList(3*4);
 
   @override
   void initState() {
     super.initState();
     cardsFound = 0;
+    cardsRevealed = 0;
     secondsToStartGame = 3;
+    timerGoing = true;
 
     startGameTimer = Timer.periodic(Duration(seconds: 1), (timer) {
       if(secondsToStartGame == 0) {
@@ -55,6 +62,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
       cards.forEach((card) {
         card.hide();
       });
+      timerGoing = false;
     });
   }
 
@@ -63,24 +71,32 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   }
 
   void onCardTap(LetsMemoryFlipableCard cardTapped) {
-    if(this.lastCardSelected != null) {
-      if(this.lastCardSelected == cardTapped) {
-        lastCardSelected.makeAsFound();
-        cardTapped.makeAsFound();
+    if(cardsRevealed < 2) { 
+      cardTapped.reveal();
+      cardsRevealed++;
+            
+      if(lastCardSelected != null) {
+        Timer(Duration(seconds: 1),() {
+          if(lastCardSelected == cardTapped) {
+            lastCardSelected.makeAsFound();
+            cardTapped.makeAsFound();
 
-        setState(() {
-          cardsFound++;
-          if(cardsFound*2 == cards.length) endGame();
+            setState(() {
+              cardsFound++;
+              if(cardsFound*2 == cards.length) endGame();
+            });
+          }
+          else {
+            lastCardSelected.hide();
+            cardTapped.hide();
+          }
+          lastCardSelected = null;
+          cardsRevealed = 0;
         });
       }
       else {
-        lastCardSelected.hide();
-        cardTapped.hide();
+        lastCardSelected = cardTapped;
       }
-      lastCardSelected = null;
-    }
-    else {
-      this.lastCardSelected = cardTapped;
     }
   }
 
@@ -89,7 +105,12 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
     return LetsMemoryBackground(
       children: <Widget>[
         Padding(
-          padding: EdgeInsets.all(widget.cardsPadding),
+          padding: EdgeInsets.only(
+            left: widget.cardsPadding,
+            right: widget.cardsPadding,
+            bottom: widget.cardsPadding,
+            top: 60.0
+          ),
           child: GridView.count(
             mainAxisSpacing: widget.cardsPadding,
             crossAxisSpacing: widget.cardsPadding,
@@ -98,7 +119,8 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
             shrinkWrap:false,
             children: cards,
           ),
-        ), 
+        ),
+          
         Positioned(
           bottom: 0,
           left: 0,
@@ -185,7 +207,12 @@ class _BottomSheet extends StatelessWidget {
           topRight: Radius.circular(LetsMemoryDimensions.cardRadius)
         )
       ),
-      padding: EdgeInsets.all(LetsMemoryDimensions.standardCard/8),
+      padding: EdgeInsets.only(
+        left: LetsMemoryDimensions.standardCard/8,
+        right: LetsMemoryDimensions.standardCard/8,
+        top: LetsMemoryDimensions.standardCard/8,
+        bottom: LetsMemoryDimensions.standardCard/2,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         

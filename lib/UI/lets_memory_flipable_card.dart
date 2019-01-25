@@ -97,7 +97,7 @@ class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with Ti
 
   void _onTap() {
     if(!_found && !revealed) {
-      reveal();
+      //reveal();
       if(this.onTapCallback != null)
         this.onTapCallback(widget);
     }
