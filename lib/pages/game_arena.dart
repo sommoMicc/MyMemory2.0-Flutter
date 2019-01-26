@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../pages/game_result.dart';
 import '../UI/background.dart';
 import '../UI/theme.dart';
 import '../UI/lets_memory_flipable_card.dart';
@@ -67,7 +68,10 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   }
 
   void endGame() {
-    print("GIOCO FINITO!");
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LetsMemoryGameResult()),
+    );
   }
 
   void onCardTap(LetsMemoryFlipableCard cardTapped) {
@@ -76,23 +80,29 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
       cardsRevealed++;
             
       if(lastCardSelected != null) {
-        Timer(Duration(seconds: 1),() {
-          if(lastCardSelected == cardTapped) {
-            lastCardSelected.makeAsFound();
-            cardTapped.makeAsFound();
+        if(lastCardSelected == cardTapped) {
+          lastCardSelected.makeAsFound();
+          cardTapped.makeAsFound();
 
-            setState(() {
-              cardsFound++;
-              if(cardsFound*2 == cards.length) endGame();
-            });
-          }
-          else {
+          setState(() {
+            cardsFound++;
+            if(cardsFound*2 == cards.length) endGame();
+            
+            lastCardSelected = null;
+            cardsRevealed = 0;
+          });
+        }
+        else {
+          Timer(Duration(seconds: 1),() {
             lastCardSelected.hide();
             cardTapped.hide();
-          }
-          lastCardSelected = null;
-          cardsRevealed = 0;
-        });
+            
+            lastCardSelected = null;
+            cardsRevealed = 0;
+          });
+
+        }
+
       }
       else {
         lastCardSelected = cardTapped;

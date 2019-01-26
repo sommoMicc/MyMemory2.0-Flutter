@@ -28,7 +28,7 @@ class LetsmemoryStyles {
   static const TextStyle mainTitle = const TextStyle(
     color: LetsMemoryColors.textOnPrimary,
     fontSize: LetsMemoryDimensions.bigTitle,
-    fontWeight: FontWeight.bold
+    fontWeight: FontWeight.bold,
   );
 
 }

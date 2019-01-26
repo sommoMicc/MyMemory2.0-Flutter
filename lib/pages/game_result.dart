@@ -1,29 +1,28 @@
 import 'package:flutter/material.dart';
+import '../UI/main_button.dart';
+import '../UI/background.dart';
+import '../UI/theme.dart';
+import '../pages/game_arena.dart';
+import '../pages/home_page.dart';
 
-import './../UI/theme.dart';
-import './../UI/logo.dart';
-import './../UI/main_button.dart';
-import './../UI/background.dart';
-
-import './game_arena.dart';
-
-class LetsMemoryHomePage extends StatelessWidget {
+class LetsMemoryGameResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    MediaQueryData mediaQuery = MediaQuery.of(context);
-    print("Altezza: " + mediaQuery.size.height.toString()+" , Larghezza: "+mediaQuery.size.width.toString());
-
     return LetsMemoryBackground(
       children: <Widget>[
-        Center(
+        Container(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              LetsMemoryLogo(),
+              Text(
+                "Match completato\n🤪", 
+                style: LetsmemoryStyles.mainTitle,
+                textAlign: TextAlign.center
+              ),
               Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard*3/2)),
               LetsMemoryMainButton(
-                text: "Singleplayer",
+                text: "Nuova partita",
                 backgroundColor: Colors.green[500],
                 shadowColor: Colors.green[900],
                 callback: () {
@@ -33,13 +32,22 @@ class LetsMemoryHomePage extends StatelessWidget {
                   );
                 }),
               Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard)),
-              LetsMemoryMainButton(text: "Multiplayer", backgroundColor: Colors.purple[500], shadowColor: Colors.purple[900]),
+              LetsMemoryMainButton(
+                text: "Torna alla home",
+                backgroundColor: Colors.purple[500],
+                shadowColor: Colors.purple[900],
+                callback: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => LetsMemoryHomePage()),
+                  );
+                },
+              ),
             ],
-          ),
+          )
         )
       ],
-    ); 
-    
+    );
   }
-}
 
+}
