@@ -256,4 +256,3 @@ class _BottomSheet extends StatelessWidget {
     );
   }
 }
-

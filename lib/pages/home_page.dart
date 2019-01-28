@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
-import './../UI/theme.dart';
-import './../UI/logo.dart';
-import './../UI/main_button.dart';
-import './../UI/background.dart';
+import '../utils/storage_helper.dart';
+
+import '../UI/theme.dart';
+import '../UI/logo.dart';
+import '../UI/main_button.dart';
+import '../UI/background.dart';
 
 import './game_arena.dart';
 
@@ -29,9 +31,19 @@ class LetsMemoryHomePage extends StatelessWidget {
                     context,
                     MaterialPageRoute(builder: (context) => LetsMemoryGameArena()),
                   );
-                }),
+                }
+              ),
               Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard)),
-              LetsMemoryMainButton(text: "Multiplayer", backgroundColor: Colors.purple[500], shadowColor: Colors.purple[900]),
+              LetsMemoryMainButton(
+                text: "Multiplayer",
+                backgroundColor: Colors.purple[500],
+                shadowColor: Colors.purple[900],
+                callback: () {
+                  StorageHelper().getUsername().then((String username) {
+                    print(username);
+                  });
+                }
+              ),
             ],
           ),
         )
