@@ -10,8 +10,6 @@ import './game_arena.dart';
 class LetsMemoryHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    MediaQueryData mediaQuery = MediaQuery.of(context);
-    print("Altezza: " + mediaQuery.size.height.toString()+" , Larghezza: "+mediaQuery.size.width.toString());
 
     return LetsMemoryBackground(
       children: <Widget>[

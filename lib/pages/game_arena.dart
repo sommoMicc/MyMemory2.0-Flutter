@@ -6,6 +6,7 @@ import '../UI/lets_memory_flipable_card.dart';
 import '../UI/lets_memory_static_card.dart';
 import '../utils/game_arena_utils.dart';
 import 'dart:async';
+import 'dart:math';
 
 class LetsMemoryGameArena extends StatefulWidget {
   final double cardsPadding = LetsMemoryDimensions.standardCard / 2;
@@ -112,6 +113,9 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
 
   @override
   Widget build(BuildContext context) {
+    MediaQueryData mediaQuery = MediaQuery.of(context);
+    double aspectRatioCorrection = pow(2,mediaQuery.size.height/mediaQuery.size.width) - 3.0;
+
     return LetsMemoryBackground(
       children: <Widget>[
         Padding(
@@ -119,12 +123,12 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
             left: widget.cardsPadding,
             right: widget.cardsPadding,
             bottom: widget.cardsPadding,
-            top: 60.0
+            top: 60.0 * aspectRatioCorrection
           ),
           child: GridView.count(
             mainAxisSpacing: widget.cardsPadding,
             crossAxisSpacing: widget.cardsPadding,
-            primary: true,
+            primary: false,
             crossAxisCount: 3,
             shrinkWrap:false,
             children: cards,
@@ -135,7 +139,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
           bottom: 0,
           left: 0,
           right: 0,
-          child: _BottomSheet(this.cardsFound, (this.cards.length / 2).floor()),
+          child: _BottomSheet(this.cardsFound, (this.cards.length / 2).floor(), aspectRatioCorrection),
         ),
         _StartGameOverlay(secondsToStartGame)
       ]
@@ -194,8 +198,9 @@ class _StartGameOverlay extends StatelessWidget {
 class _BottomSheet extends StatelessWidget {
   final int _cardsFound;
   final int _totalCards;
+  final double _aspectRatio; 
 
-  _BottomSheet(this._cardsFound,this._totalCards);
+  _BottomSheet(this._cardsFound,this._totalCards,this._aspectRatio);
 
   @override
   Widget build(BuildContext context) {
@@ -221,7 +226,7 @@ class _BottomSheet extends StatelessWidget {
         left: LetsMemoryDimensions.standardCard/8,
         right: LetsMemoryDimensions.standardCard/8,
         top: LetsMemoryDimensions.standardCard/8,
-        bottom: LetsMemoryDimensions.standardCard/2,
+        bottom: LetsMemoryDimensions.standardCard/2 * max(_aspectRatio, 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
