@@ -7,6 +7,7 @@ import '../UI/logo.dart';
 import '../UI/main_button.dart';
 import '../UI/background.dart';
 
+import './login.dart';
 import './game_arena.dart';
 
 class LetsMemoryHomePage extends StatelessWidget {
@@ -40,7 +41,13 @@ class LetsMemoryHomePage extends StatelessWidget {
                 shadowColor: Colors.purple[900],
                 callback: () {
                   StorageHelper().getUsername().then((String username) {
-                    print(username);
+                    Widget nextPage = username != null ? 
+                      LetsMemoryLoginPage() : LetsMemoryLoginPage();
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => nextPage),
+                    );
                   });
                 }
               ),

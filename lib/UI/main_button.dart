@@ -48,6 +48,7 @@ class LetsMemoryMainButtonState extends State<LetsMemoryMainButton> {
             backgroundColor: _pressed ? widget.shadowColor : widget.backgroundColor,
             shadowColor: widget.shadowColor,
             text: widget.text,
+            textColor: widget.textColor,
             height: LetsMemoryDimensions.standardCard
           )
         ]),
