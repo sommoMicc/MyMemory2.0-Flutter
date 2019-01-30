@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../UI/background.dart';
 import '../UI/theme.dart';
 import '../UI/lets_memory_flipable_card.dart';
+import '../UI/lets_memory_card.dart';
 import '../UI/lets_memory_static_card.dart';
 import '../utils/game_arena_utils.dart';
 import 'dart:async';
@@ -57,7 +58,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   @override
   void dispose() {
     super.dispose();
-    
+
     if(startGameTimer.isActive)
       startGameTimer.cancel();
 
@@ -203,64 +204,128 @@ class _StartGameOverlay extends StatelessWidget {
   }
 }
 
-class _BottomSheet extends StatelessWidget {
+class _BottomSheet extends StatefulWidget {
   final int _cardsFound;
   final int _totalCards;
   final double _aspectRatio; 
 
   _BottomSheet(this._cardsFound,this._totalCards,this._aspectRatio);
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: BoxConstraints(
-          maxHeight: LetsMemoryDimensions.standardCard * 2,
-      ),
-      decoration: BoxDecoration(
-        boxShadow: [
-          new BoxShadow(
-            color: Colors.green[900],
-            offset: Offset(0, -10.0),
-            blurRadius: 1.0
-          )
-        ],
-        color: Colors.green[700],
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(LetsMemoryDimensions.cardRadius),
-          topRight: Radius.circular(LetsMemoryDimensions.cardRadius)
-        )
-      ),
-      padding: EdgeInsets.only(
-        left: LetsMemoryDimensions.standardCard/8,
-        right: LetsMemoryDimensions.standardCard/8,
-        top: LetsMemoryDimensions.standardCard/8,
-        bottom: LetsMemoryDimensions.standardCard/2 * max(_aspectRatio, 1),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        
-        children: <Widget>[
-          Text("Coppie trovate: ",style: _getTextStyle()),
-          Padding(padding: EdgeInsets.only(left: LetsMemoryDimensions.standardCard/2)),
-          Container(
-            child: LetsMemoryStaticCard(
-              letter: this._cardsFound.toString(),
-              textColor: Colors.black,
-            ),
-            height: LetsMemoryDimensions.standardCard,
-            width: LetsMemoryDimensions.standardCard,
-          ),
-          Padding(padding: EdgeInsets.only(left: LetsMemoryDimensions.standardCard/4)),
-          Text(" / "+this._totalCards.toString(),style: _getTextStyle()),
-        ],
-      ),
-    );
-  }
 
-  static TextStyle _getTextStyle() {
+  static TextStyle getTextStyle() {
     return TextStyle(
       color: Colors.white,
       fontWeight: FontWeight.bold
+    );
+  }
+
+  @override
+  State<StatefulWidget> createState() {
+    return _BottomSheetState();
+  }
+}
+
+class _BottomSheetState extends State<_BottomSheet> with SingleTickerProviderStateMixin {
+  AnimationController _animationController;
+  Animation _backgroundColorTween;
+  Animation _shadowColorTween;
+  bool pressed;
+  
+  @override
+  void initState() {
+    super.initState();
+    pressed = false;
+
+    _animationController = AnimationController(
+      vsync: this, 
+      duration: Duration(milliseconds: 1200),
+    );
+    _backgroundColorTween = ColorTween(begin: Colors.green[700], end: Colors.deepOrange[700])
+      .animate(_animationController);
+    _shadowColorTween = ColorTween(begin: Colors.green[900], end: Colors.deepOrange[900])
+      .animate(_animationController);
+
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _onTapDown(TapDownDetails details) {
+    setState(()  {
+      pressed = true;
+    });
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    setState(() {
+      pressed = false;
+      if (_animationController.status == AnimationStatus.completed) {
+        _animationController.reverse();
+      } else {
+        _animationController.forward();
+      }
+    });
+  }
+
+  void _onTapCancel() {
+    this._onTapUp(null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _onTapCancel,
+      child: AnimatedBuilder(
+        animation: _backgroundColorTween,
+        builder: (context, child) => Container(
+          constraints: BoxConstraints(
+            maxHeight: LetsMemoryDimensions.standardCard * 2,
+          ),
+          decoration: BoxDecoration(
+            boxShadow: [
+              new BoxShadow(
+                color: _shadowColorTween.value,
+                offset: Offset(0, -10.0),
+                blurRadius: 1.0
+              )
+            ],
+            color: pressed ? _shadowColorTween.value : _backgroundColorTween.value,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(LetsMemoryDimensions.cardRadius),
+              topRight: Radius.circular(LetsMemoryDimensions.cardRadius)
+            )
+          ),
+          padding: EdgeInsets.only(
+            left: LetsMemoryDimensions.standardCard/8,
+            right: LetsMemoryDimensions.standardCard/8,
+            top: LetsMemoryDimensions.standardCard/8,
+            bottom: LetsMemoryDimensions.standardCard/2 * max(widget._aspectRatio, 1),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            
+            children: <Widget>[
+              Text("Coppie trovate: ",style: _BottomSheet.getTextStyle()),
+              Padding(padding: EdgeInsets.only(left: LetsMemoryDimensions.standardCard/2)),
+              Container(
+                child: LetsMemoryCard(
+                  letter: widget._cardsFound.toString(),
+                  textColor: Colors.black,
+                ),
+                height: LetsMemoryDimensions.standardCard,
+                width: LetsMemoryDimensions.standardCard,
+              ),
+              Padding(padding: EdgeInsets.only(left: LetsMemoryDimensions.standardCard/4)),
+              Text(" / "+widget._totalCards.toString(),style: _BottomSheet.getTextStyle()),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
