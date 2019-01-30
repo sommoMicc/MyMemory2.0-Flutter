@@ -69,10 +69,11 @@ class LetsMemorySignupPage extends StatelessWidget {
                 backgroundColor: Colors.cyan[600],
                 shadowColor: Colors.cyan[900],
                 callback: () {
-                  Navigator.push(
+                  Navigator.pushReplacementNamed(context, "/login");
+                  /*Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => LetsMemoryLoginPage()),
-                  );
+                  );*/
                 }
               ),
             ],

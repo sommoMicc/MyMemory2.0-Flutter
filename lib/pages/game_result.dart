@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../UI/main_button.dart';
 import '../UI/background.dart';
 import '../UI/theme.dart';
-import '../pages/game_arena.dart';
-import '../pages/home_page.dart';
 
 class LetsMemoryGameResult extends StatelessWidget {
   @override
@@ -26,10 +24,7 @@ class LetsMemoryGameResult extends StatelessWidget {
                 backgroundColor: Colors.green[500],
                 shadowColor: Colors.green[900],
                 callback: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LetsMemoryGameArena()),
-                  );
+                  Navigator.pushReplacementNamed(context, "/singleplayer");
                 }),
               Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard)),
               LetsMemoryMainButton(
@@ -37,10 +32,7 @@ class LetsMemoryGameResult extends StatelessWidget {
                 backgroundColor: Colors.purple[500],
                 shadowColor: Colors.purple[900],
                 callback: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LetsMemoryHomePage()),
-                  );
+                  Navigator.pushReplacementNamed(context, "/");
                 },
               ),
             ],

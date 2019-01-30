@@ -7,9 +7,6 @@ import '../UI/logo.dart';
 import '../UI/main_button.dart';
 import '../UI/background.dart';
 
-import './login.dart';
-import './game_arena.dart';
-
 class LetsMemoryHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -28,10 +25,7 @@ class LetsMemoryHomePage extends StatelessWidget {
                 backgroundColor: Colors.green[500],
                 shadowColor: Colors.green[900],
                 callback: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LetsMemoryGameArena()),
-                  );
+                  Navigator.pushNamed(context, "/singleplayer");
                 }
               ),
               Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard)),
@@ -41,13 +35,7 @@ class LetsMemoryHomePage extends StatelessWidget {
                 shadowColor: Colors.purple[900],
                 callback: () {
                   StorageHelper().getUsername().then((String username) {
-                    Widget nextPage = username != null ? 
-                      LetsMemoryLoginPage() : LetsMemoryLoginPage();
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => nextPage),
-                    );
+                    Navigator.pushNamed(context,"/login");
                   });
                 }
               ),

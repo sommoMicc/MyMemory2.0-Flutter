@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../pages/game_result.dart';
 import '../UI/background.dart';
 import '../UI/theme.dart';
 import '../UI/lets_memory_flipable_card.dart';
@@ -21,7 +20,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   int cardsFound;
   
   int secondsToStartGame;
-  Timer startGameTimer;
+  Timer startGameTimer, cardsHideTimer;
   //Booleano che indica se c'è un'operazione in corso che sta usando un 
   //timer, in modo tale da evitare problemi di concorrenza
   bool timerGoing;
@@ -55,12 +54,24 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
     });
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    
+    if(startGameTimer.isActive)
+      startGameTimer.cancel();
+
+    if(cardsHideTimer != null && cardsHideTimer.isActive)
+      cardsHideTimer.cancel();
+    
+  }
+
   void beginGame() {
     cards.forEach((card) {
       card.reveal();
     });
     
-    Timer(Duration(seconds: 3),() {
+    cardsHideTimer = Timer(Duration(seconds: 3),() {
       cards.forEach((card) {
         card.hide();
       });
@@ -69,10 +80,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   }
 
   void endGame() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => LetsMemoryGameResult()),
-    );
+    Navigator.pushReplacementNamed(context, "/gameresult");
   }
 
   void onCardTap(LetsMemoryFlipableCard cardTapped) {
