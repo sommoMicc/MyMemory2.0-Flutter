@@ -46,9 +46,10 @@ class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with Ti
   bool get found => _found;
   
   void makeAsFound() {
-    setState(() {
-      this._found = true;
-    });
+    if(this.mounted)
+      setState(() {
+        this._found = true;
+      });
   }
 
   @override
@@ -74,18 +75,26 @@ class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with Ti
     );
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+
   void toggleFlip() {
-    setState(() {
-      if (_controller.isCompleted || _controller.velocity > 0)
-        _controller.reverse();
-      else
-        _controller.forward();
-    });
+    if(this.mounted)
+      setState(() {
+        if (_controller.isCompleted || _controller.velocity > 0)
+          _controller.reverse();
+        else
+          _controller.forward();
+      });
   }
 
   void hide() {
     if (this.revealed)
-        _controller.reverse();
+      _controller.reverse();
   }
   
   void reveal() {
@@ -96,7 +105,7 @@ class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with Ti
   get revealed => (_controller.isCompleted || _controller.velocity > 0);
 
   void _onTap() {
-    if(!_found && !revealed) {
+    if(!_found && !revealed && mounted) {
       //reveal();
       if(this.onTapCallback != null)
         this.onTapCallback(widget);
@@ -104,14 +113,14 @@ class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with Ti
   }
 
    void _onTapDown(TapDownDetails details) {
-     if(!_found)
+     if(!_found && mounted)
       setState(()  {
         _pressed = true;
       });
   }
 
   void _onTapUp(TapUpDetails details) {
-    if(!_found)
+    if(!_found && mounted)
       setState(() {
         _pressed = false;
       });
