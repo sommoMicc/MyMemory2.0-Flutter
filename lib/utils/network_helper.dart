@@ -10,18 +10,34 @@ class NetworkHelper {
   static final int PORT = 8080;
 
   static Future<Message> doSignUp(String username, String email) async {
+    print("Daje chiamato dosignup");
+
     final response = await http.post(
       _buildURL()+"/signup",
       body: {
-        "username": username,
-        "email": email
+        "username": username??"",
+        "email": email??""
       }
     );
     if (response.statusCode == 200) {
-      // If server returns an OK response, parse the JSON
       return Message.fromJSON(json.decode(response.body));
     } else {
-      // If that response was not OK, throw an error.
+      throw Exception('Comunicazione fallita');
+    }
+  }
+
+  static Future<Message> doLogin(String email) async {
+    print("Daje chiamato doLogin");
+
+    final response = await http.post(
+      _buildURL()+"/login",
+      body: {
+        "email": email??""
+      }
+    );
+    if (response.statusCode == 200) {
+      return Message.fromJSON(json.decode(response.body));
+    } else {
       throw Exception('Comunicazione fallita');
     }
   }

@@ -3,11 +3,25 @@ import 'package:flutter/material.dart';
 import '../UI/theme.dart';
 import '../UI/background.dart';
 import '../UI/main_button.dart';
+import '../UI/dialog.dart';
 
-import './login.dart';
+import '../utils/network_helper.dart';
+import '../models/message.dart';
 
-class LetsMemorySignupPage extends StatelessWidget {
+
+
+class LetsMemorySignupPage extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return _LetsMemorySignupState();
+  }
+}
+class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
   static final _smallTextStyle = TextStyle(color: Colors.white);
+
+  String emailValue;
+  String usernameValue;
+
   @override
   Widget build(BuildContext context) {
     return LetsMemoryBackground(
@@ -26,6 +40,9 @@ class LetsMemorySignupPage extends StatelessWidget {
                   TextField(
                     keyboardType: TextInputType.emailAddress,
                     autofocus: false,
+                    onChanged: (text) {
+                      this.emailValue = text.trim();
+                    },
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.all(20.0),
                       fillColor: Colors.white,
@@ -40,6 +57,9 @@ class LetsMemorySignupPage extends StatelessWidget {
                   TextField(
                     keyboardType: TextInputType.text,
                     autofocus: false,
+                    onChanged: (text) {
+                      this.usernameValue = text.trim();
+                    },
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.all(20.0),
                       fillColor: Colors.white,
@@ -58,7 +78,55 @@ class LetsMemorySignupPage extends StatelessWidget {
                 textColor: Colors.black,
                 shadowColor: Colors.lightGreenAccent[700],
                 callback: () {
-                  
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext context) {
+                      return LetsMemoryDialog.progress("Registrazione in corso", 
+                        "L'operazione di registrazione è in corso e terminerà tra " +
+                        "qualche secondo...");
+                    },
+                  );
+                    NetworkHelper.doSignUp(usernameValue??"", emailValue??"").then((Message signupResult) {
+                    Navigator.of(context).pop();
+                    if(signupResult.status == "success") {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: true,
+                        builder: (BuildContext context) {
+                          return LetsMemoryDialog.success(
+                            textContent: "Registrazione completata con succcesso. "+
+                                  "Per effettuare il login, apri "+
+                                  "il link che ti è appena stato inviato via mail"
+                          );
+                        },
+                      );
+                    }
+                    else {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: true,
+                        builder: (BuildContext context) {
+                          return LetsMemoryDialog.error(
+                            textContent: "Errore nella procedura di registrazione:\n\n"+
+                              signupResult.message
+                          );
+                        }
+                      );
+
+                    }
+                  }).catchError((e) {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: true,
+                      builder: (BuildContext context) {
+                        return LetsMemoryDialog.error(
+                          textContent: "Errore nella procedura di login:\n\n"+
+                            e.toString()
+                        );
+                      }
+                    );
+                  });
                 }
               ),
               Padding(padding: EdgeInsets.only(top: 30)),

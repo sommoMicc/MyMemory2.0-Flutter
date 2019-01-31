@@ -3,11 +3,21 @@ import 'package:flutter/material.dart';
 import '../UI/theme.dart';
 import '../UI/background.dart';
 import '../UI/main_button.dart';
+import '../UI/dialog.dart';
 
-import './signup.dart';
+import '../utils/network_helper.dart';
+import '../models/message.dart';
 
-class LetsMemoryLoginPage extends StatelessWidget {
+class LetsMemoryLoginPage extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return _LetsMemoryLoginPageState();
+  }  
+}
+class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
   static final _smallTextStyle = TextStyle(color: Colors.white);
+  String emailValue;
+
   @override
   Widget build(BuildContext context) {
     return LetsMemoryBackground(
@@ -25,6 +35,9 @@ class LetsMemoryLoginPage extends StatelessWidget {
                   Padding(padding: EdgeInsets.only(top:10)),
                   TextField(
                     keyboardType: TextInputType.emailAddress,
+                    onChanged: (text) {
+                      this.emailValue = text.trim();
+                    },
                     autofocus: false,
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.all(20.0),
@@ -44,7 +57,58 @@ class LetsMemoryLoginPage extends StatelessWidget {
                 textColor: Colors.black,
                 shadowColor: Colors.lightGreenAccent[700],
                 callback: () {
-                  
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext context) {
+                      // return object of type Dialog
+                      return LetsMemoryDialog.progress(
+                          "Login in corso. Attendere",
+                           "L'operazione dovrebbe concludersi in pochi secondi"
+                        );
+                    },
+                  );
+                  NetworkHelper.doLogin(emailValue??"").then((Message signupResult) {
+                    Navigator.of(context).pop();
+                    if(signupResult.status == "success") {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: true,
+                        builder: (BuildContext context) {
+                          return LetsMemoryDialog.success(
+                            textContent: "Un'ultimo sforzo! "+
+                                  "Per terminare il login, apri "+
+                                  "il link che ti è appena stato inviato via mail"
+                          );
+                        },
+                      );
+                    }
+                    else {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: true,
+                        builder: (BuildContext context) {
+                          return LetsMemoryDialog.error(
+                            textContent: "Errore nella procedura di login:\n\n"+
+                              signupResult.message
+                          );
+                        }
+                      );
+
+                    }
+                  }).catchError((e) {
+                    Navigator.of(context).pop();
+                    showDialog(
+                      context: context,
+                      barrierDismissible: true,
+                      builder: (BuildContext context) {
+                        return LetsMemoryDialog.error(
+                          textContent: "Errore nella procedura di login:\n\n"+
+                            e.toString()
+                        );
+                      }
+                    );
+                    });
                 }
               ),
               Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard)),
