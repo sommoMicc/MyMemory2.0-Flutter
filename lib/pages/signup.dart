@@ -116,6 +116,7 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
 
                     }
                   }).catchError((e) {
+                    Navigator.of(context).pop();
                     showDialog(
                       context: context,
                       barrierDismissible: true,
