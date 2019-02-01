@@ -77,7 +77,7 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                         barrierDismissible: true,
                         builder: (BuildContext context) {
                           return LetsMemoryDialog.success(
-                            textContent: "Un'ultimo sforzo! "+
+                            textContent: "Un ultimo sforzo! "+
                                   "Per terminare il login, apri "+
                                   "il link che ti è appena stato inviato via mail"
                           );
