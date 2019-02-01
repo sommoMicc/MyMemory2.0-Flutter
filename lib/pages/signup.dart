@@ -87,10 +87,10 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
                         "qualche secondo...");
                     },
                   );
-                    NetworkHelper.doSignUp(usernameValue??"", emailValue??"").then((Message signupResult) {
+                    NetworkHelper.doSignUp(usernameValue??"", emailValue??"").then((Message signupResult) async {
                     Navigator.of(context).pop();
                     if(signupResult.status == "success") {
-                      showDialog(
+                      await showDialog(
                         context: context,
                         barrierDismissible: true,
                         builder: (BuildContext context) {
@@ -103,7 +103,7 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
                       );
                     }
                     else {
-                      showDialog(
+                      await showDialog(
                         context: context,
                         barrierDismissible: true,
                         builder: (BuildContext context) {
@@ -113,11 +113,11 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
                           );
                         }
                       );
-
                     }
-                  }).catchError((e) {
+                    Navigator.popUntil(context, ModalRoute.withName("/"));
+                  }).catchError((e) async {
                     Navigator.of(context).pop();
-                    showDialog(
+                    await showDialog(
                       context: context,
                       barrierDismissible: true,
                       builder: (BuildContext context) {
@@ -127,6 +127,7 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
                         );
                       }
                     );
+                    Navigator.popUntil(context, ModalRoute.withName("/"));
                   });
                 }
               ),

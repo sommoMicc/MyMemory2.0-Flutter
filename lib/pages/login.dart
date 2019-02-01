@@ -35,6 +35,7 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                   Padding(padding: EdgeInsets.only(top:10)),
                   TextField(
                     keyboardType: TextInputType.emailAddress,
+                    autocorrect: false,
                     onChanged: (text) {
                       this.emailValue = text.trim();
                     },
@@ -56,7 +57,7 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                 backgroundColor: Colors.lightGreenAccent,
                 textColor: Colors.black,
                 shadowColor: Colors.lightGreenAccent[700],
-                callback: () {
+                callback: ()  {
                   showDialog(
                     context: context,
                     barrierDismissible: false,
@@ -68,10 +69,10 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                         );
                     },
                   );
-                  NetworkHelper.doLogin(emailValue??"").then((Message signupResult) {
+                  NetworkHelper.doLogin(emailValue??"").then((Message signupResult) async {
                     Navigator.of(context).pop();
                     if(signupResult.status == "success") {
-                      showDialog(
+                      await showDialog(
                         context: context,
                         barrierDismissible: true,
                         builder: (BuildContext context) {
@@ -84,7 +85,7 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                       );
                     }
                     else {
-                      showDialog(
+                      await showDialog(
                         context: context,
                         barrierDismissible: true,
                         builder: (BuildContext context) {
@@ -94,11 +95,11 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                           );
                         }
                       );
-
                     }
-                  }).catchError((e) {
+                    Navigator.popUntil(context, ModalRoute.withName("/"));
+                  }).catchError((e) async {
                     Navigator.of(context).pop();
-                    showDialog(
+                    await showDialog(
                       context: context,
                       barrierDismissible: true,
                       builder: (BuildContext context) {
@@ -108,6 +109,7 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                         );
                       }
                     );
+                    Navigator.popUntil(context, ModalRoute.withName("/"));
                   });
                 }
               ),

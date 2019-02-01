@@ -94,6 +94,7 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> {
 
   void handleLink(String link, BuildContext context) {
     print(link);
+    Navigator.of(context, rootNavigator: true).pop();
     if(link != null) {
       List<String> linkPieces = link.split("/login/do?t=");
       if(linkPieces.length < 2) {
