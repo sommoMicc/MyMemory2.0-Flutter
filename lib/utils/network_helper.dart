@@ -4,6 +4,8 @@ import 'dart:convert'; //per JSON
 import './storage_helper.dart';
 import '../models/message.dart';
 
+import 'dart:io' show Platform;
+
 class NetworkHelper {
   static final String PROTOCOL = "https";
   static final String WEB_DOMAIN = "tagliabuemichele.homepc.it";
@@ -16,7 +18,8 @@ class NetworkHelper {
       _buildURL()+"/signup",
       body: {
         "username": username??"",
-        "email": email??""
+        "email": email??"",
+        "platform": Platform.isIOS ? "IOS":"ANDROID"
       }
     );
     if (response.statusCode == 200) {
@@ -32,7 +35,8 @@ class NetworkHelper {
     final response = await http.post(
       _buildURL()+"/login",
       body: {
-        "email": email??""
+        "email": email??"",
+        "platform": Platform.isIOS ? "IOS":"ANDROID"
       }
     );
     if (response.statusCode == 200) {
