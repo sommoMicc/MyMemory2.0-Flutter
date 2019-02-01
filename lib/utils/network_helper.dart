@@ -7,7 +7,7 @@ import '../models/message.dart';
 class NetworkHelper {
   static final String PROTOCOL = "https";
   static final String WEB_DOMAIN = "tagliabuemichele.homepc.it";
-  static final int PORT = 8080;
+  static final int PORT = 443;
 
   static Future<Message> doSignUp(String username, String email) async {
     print("Daje chiamato dosignup");
