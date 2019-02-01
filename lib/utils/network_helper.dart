@@ -46,6 +46,34 @@ class NetworkHelper {
     }
   }
 
+  static Future<Message> finishLogin(String token) async {
+    print("Daje chiamato finishLogin");
+
+    final response = await http.post(
+      _buildURL()+"/finishLogin",
+      body: {
+        "token": token??"",
+        "platform": Platform.isIOS ? "IOS":"ANDROID"
+      }
+    );
+    if (response.statusCode == 200) {
+      Message responseMessage = await Message.fromJSON(json.decode(response.body));
+      if(responseMessage.status == "success") {
+        if(responseMessage.data != null) {
+          StorageHelper().setToken(responseMessage.data['token']);
+          StorageHelper().setUsername(responseMessage.data['username']);
+
+          print(await StorageHelper().getToken());
+          print(await StorageHelper().getUsername());
+
+        }
+      }
+      return responseMessage;
+    } else {
+      throw Exception('Comunicazione fallita');
+    }
+  }
+
   static String _buildURL() {
     return PROTOCOL+"://"+WEB_DOMAIN+":"+PORT.toString();
   }

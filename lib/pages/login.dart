@@ -108,7 +108,7 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                         );
                       }
                     );
-                    });
+                  });
                 }
               ),
               Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard)),
