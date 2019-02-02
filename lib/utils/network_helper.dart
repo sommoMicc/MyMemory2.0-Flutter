@@ -9,7 +9,9 @@ import 'dart:io' show Platform;
 class NetworkHelper {
   static final String PROTOCOL = "https";
   static final String WEB_DOMAIN = "tagliabuemichele.homepc.it";
-  static final int PORT = 443;
+  static final String PORT = "443";
+  
+  static final String ADDRESS = PROTOCOL+"://"+WEB_DOMAIN;
 
   static Future<Message> doSignUp(String username, String email) async {
     print("Daje chiamato dosignup");
