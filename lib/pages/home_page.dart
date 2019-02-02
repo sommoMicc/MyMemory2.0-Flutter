@@ -94,7 +94,13 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> {
 
   void handleLink(String link, BuildContext context) {
     print(link);
-    Navigator.of(context).maybePop();
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      "/",
+      (route) => route.isCurrent
+        ? route.settings.name == "/"
+          ? false
+          : true
+        : true);
     if(link != null) {
       List<String> linkPieces = link.split("/login/do?t=");
       if(linkPieces.length < 2) {
@@ -103,6 +109,7 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> {
           barrierDismissible: true,
           builder: (BuildContext context) {
             return LetsMemoryDialog.error(
+              context: context,
               textContent: "Il link che hai premuto non è valido"
             );
           }
@@ -130,6 +137,7 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> {
             barrierDismissible: true,
             builder: (BuildContext context) {
               return LetsMemoryDialog.success(
+                context: context,
                 textContent: "Congratulazioni! "+
                       "Login completato con successo. "+
                       "Sei pronto a giocare!"
@@ -143,6 +151,7 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> {
             barrierDismissible: true,
             builder: (BuildContext context) {
               return LetsMemoryDialog.error(
+                context: context,
                 textContent: "Errore nella procedura di login:\n\n"+
                   message.message
               );
@@ -157,6 +166,7 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> {
           barrierDismissible: true,
           builder: (BuildContext context) {
             return LetsMemoryDialog.error(
+              context: context,
               textContent: "Errore nella procedura di login:\n\n"+
                 e.toString()
             );

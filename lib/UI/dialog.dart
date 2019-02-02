@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../UI/theme.dart';
+import '../UI/main_button.dart';
 
 class LetsMemoryDialog {
-  static AlertDialog success({String textContent}) {
+  static AlertDialog success({BuildContext context, String textContent}) {
     return AlertDialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(LetsMemoryDimensions.cardRadius)
@@ -20,9 +21,21 @@ class LetsMemoryDialog {
           Text(textContent)
         ],
       ),
+      actions: <Widget>[
+        LetsMemoryMainButton(
+          textColor: Colors.black,
+          backgroundColor: Colors.lightGreen[500],
+          shadowColor: Colors.lightGreen[900],
+          mini: true,
+          text: "OK",
+          callback: () {
+            Navigator.pop(context);
+          },
+        )
+      ],
     );
   } 
-  static AlertDialog error({String textContent}) {
+  static AlertDialog error({BuildContext context, String textContent}) {
     return AlertDialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(LetsMemoryDimensions.cardRadius)
@@ -40,6 +53,19 @@ class LetsMemoryDialog {
           Text(textContent)
         ],
       ),
+      actions: <Widget>[
+        LetsMemoryMainButton(
+          textColor: Colors.black,
+          backgroundColor: Colors.lightGreen[500],
+          shadowColor: Colors.lightGreen[900],
+          text: "OK",
+          mini: true,
+          callback: () {
+            Navigator.pop(context);
+          },
+        )
+      ],
+
     );
   } 
 

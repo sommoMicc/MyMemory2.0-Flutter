@@ -4,10 +4,10 @@ import './theme.dart';
 class LetsMemoryMainButton extends StatefulWidget {
   final Color backgroundColor, shadowColor, textColor;
   final String text;
-
+  final bool mini;
   final VoidCallback callback;
 
-  LetsMemoryMainButton({this.backgroundColor, this.shadowColor, this.text, this.callback, this.textColor = Colors.white});
+  LetsMemoryMainButton({this.backgroundColor, this.shadowColor, this.text, this.callback, this.textColor = Colors.white, this.mini=false});
 
   @override
   State<StatefulWidget> createState() {
@@ -49,7 +49,8 @@ class LetsMemoryMainButtonState extends State<LetsMemoryMainButton> {
             shadowColor: widget.shadowColor,
             text: widget.text,
             textColor: widget.textColor,
-            height: LetsMemoryDimensions.standardCard
+            height: LetsMemoryDimensions.standardCard,
+            mini: widget.mini
           )
         ]),
       );    
@@ -61,13 +62,14 @@ class _LetsMemoryMainButtonContainer extends StatelessWidget {
   final Color backgroundColor, textColor, shadowColor;
   final String text;
   final double height;
+  final bool mini;
 
-  _LetsMemoryMainButtonContainer({this.backgroundColor, this.shadowColor, this.text, this.height, this.textColor = Colors.white});
+  _LetsMemoryMainButtonContainer({this.backgroundColor, this.shadowColor, this.text, this.height, this.textColor = Colors.white, this.mini});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: this.height,
+      height: mini ? this.height * 2 / 3 : this.height,
       decoration: BoxDecoration(
         color: this.backgroundColor,
         borderRadius: BorderRadius.circular(LetsMemoryDimensions.cardRadius),
@@ -86,8 +88,9 @@ class _LetsMemoryMainButtonContainer extends StatelessWidget {
           padding: EdgeInsets.only(left: LetsMemoryDimensions.cardFont, right: LetsMemoryDimensions.cardFont),
           child: Text(this.text,
             style: TextStyle(
-              fontSize: LetsMemoryDimensions.cardFont,
-              fontWeight: FontWeight.w900,
+              fontSize: mini ? LetsMemoryDimensions.cardFont * 2 / 3 
+                : LetsMemoryDimensions.cardFont,
+              fontWeight: mini ? FontWeight.w500 : FontWeight.w900,
               color: this.textColor
             )
           ),

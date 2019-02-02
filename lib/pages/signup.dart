@@ -95,6 +95,7 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
                         barrierDismissible: true,
                         builder: (BuildContext context) {
                           return LetsMemoryDialog.success(
+                            context: context,
                             textContent: "Registrazione completata con succcesso. "+
                                   "Per effettuare il login, apri "+
                                   "il link che ti è appena stato inviato via mail"
@@ -108,6 +109,7 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
                         barrierDismissible: true,
                         builder: (BuildContext context) {
                           return LetsMemoryDialog.error(
+                            context: context,
                             textContent: "Errore nella procedura di registrazione:\n\n"+
                               signupResult.message
                           );
@@ -122,6 +124,7 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
                       barrierDismissible: true,
                       builder: (BuildContext context) {
                         return LetsMemoryDialog.error(
+                          context: context,
                           textContent: "Errore nella procedura di login:\n\n"+
                             e.toString()
                         );
