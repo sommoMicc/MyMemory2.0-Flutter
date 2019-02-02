@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../UI/theme.dart';
-import '../UI/background.dart';
-import '../UI/main_button.dart';
-import '../UI/dialog.dart';
+import '../../UI/theme.dart';
+import '../../UI/background.dart';
+import '../../UI/main_button.dart';
+import '../../UI/dialog.dart';
 
-import '../utils/network_helper.dart';
-import '../models/message.dart';
+import '../../utils/network_helper.dart';
+import '../../models/message.dart';
 
 class LetsMemoryLoginPage extends StatefulWidget {
   @override
@@ -124,7 +124,7 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                 backgroundColor: Colors.cyan[600],
                 shadowColor: Colors.cyan[900],
                 callback: () {
-                  Navigator.pushReplacementNamed(context, "/signup");
+                  Navigator.pushReplacementNamed(context, "/multiplayer/signup");
                 }
               ),
             ],

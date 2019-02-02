@@ -25,7 +25,7 @@ class LetsMemoryHomePage extends StatefulWidget {
   }
   
 }
-class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> implements SocketListener {
+class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> {
   StreamSubscription _sub;
 
   @override
@@ -33,44 +33,18 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> implements Sock
     super.initState();
     initUniLinks(context);
   }
-  @override
-  Widget build(BuildContext context) {
-    SocketHelper.currentSocketListener = this;
 
-    return LetsMemoryBackground(
-      children: <Widget>[
-        Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              LetsMemoryLogo(),
-              Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard*3/2)),
-              LetsMemoryMainButton(
-                text: "Singleplayer",
-                backgroundColor: Colors.green[500],
-                shadowColor: Colors.green[900],
-                callback: () {
-                  Navigator.pushNamed(context, "/singleplayer");
-                }
-              ),
-              Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard)),
-              LetsMemoryMainButton(
-                text: "Multiplayer",
-                backgroundColor: Colors.purple[500],
-                shadowColor: Colors.purple[900],
-                callback: () {
-                  StorageHelper().getUsername().then((String username) async {
-                    Navigator.pushNamed(context,"/login");
-                  });
-                }
-              ),
-            ],
-          ),
-        )
-      ],
-    ); 
-    
+  @override
+  void dispose() {
+    super.dispose();
+    _sub.cancel();
+  }
+
+  @override
+  Widget build(BuildContext context) {    
+    return Scaffold(
+      body: _LetsMemoryHomePageInner()
+    );
   }
 
 
@@ -148,6 +122,7 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> implements Sock
               );
             },
           );
+          SocketHelper().connect();
         }
         else {
           showDialog(
@@ -180,18 +155,125 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> implements Sock
     }
   }
 
+}
+
+class _LetsMemoryHomePageInner extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return _LetsMemoryHomePageInnerState();
+  }
+
+} 
+class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
+  implements SocketListener {
+
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => SocketHelper().connect());
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    SocketHelper().currentSocketListener = this;
+    SocketHelper().connect();
+
+    return LetsMemoryBackground(
+      children: <Widget>[
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              LetsMemoryLogo(),
+              Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard*3/2)),
+              LetsMemoryMainButton(
+                text: "Singleplayer",
+                backgroundColor: Colors.green[500],
+                shadowColor: Colors.green[900],
+                callback: () {
+                  Navigator.pushNamed(context, "/singleplayer");
+                }
+              ),
+              Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard)),
+              LetsMemoryMainButton(
+                text: "Multiplayer",
+                backgroundColor: Colors.purple[500],
+                shadowColor: Colors.purple[900],
+                callback: () {
+                  StorageHelper().getToken().then((String token) async {
+                    if(token != null && token.length > 0) {
+                      Navigator.pushNamed(context,"/multiplayer/findmatch");
+                    }
+                    else {
+                      Navigator.pushNamed(context,"/multiplayer/login");
+                    }
+                  });
+                }
+              ),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
   @override
   void onLoginResult(bool success, String username) {
     if(success) {
-      print("Login effettuato con successo!!");
+      Scaffold.of(context).showSnackBar(
+        _createSnackBar("Bentornato "+username, success) 
+      );
     }
     else {
-      print("Errore nel login");
+      Scaffold.of(context).showSnackBar(
+       _createSnackBar("Impossibile effettuare il login. Credenziali errate.", success) 
+      );
     }
   }
 
-  
+  SnackBar _createSnackBar(String text, bool success) {
+    return SnackBar(
+      content: _LetsMemorySnackbar(text,success)
+    );
+  }
+}
 
+class _LetsMemorySnackbar extends StatelessWidget {
+  final String _text;
+  final bool _success;
+
+  _LetsMemorySnackbar(this._text,this._success);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Container(
+          height: 10,
+          width: 10,
+          decoration: BoxDecoration(
+            color: this._success ? Colors.green : Colors.red,
+            borderRadius: BorderRadius.circular(10),
+          )
+        ),
+        Padding(padding: EdgeInsets.only(left: 10)),
+        Text(_text, 
+          style: TextStyle(
+            fontSize: LetsMemoryDimensions.mainButtonFont * 2 / 3
+          ),
+          textAlign: TextAlign.center
+        )
+      ]
+    );
+
+  }
 }
 
 

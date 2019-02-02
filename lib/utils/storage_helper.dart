@@ -29,4 +29,9 @@ class StorageHelper {
   void setUsername(String username) {
     _storage.write(key: _keyUsername, value: username);
   }
+
+  void logout() {
+    _storage.delete(key: _keyUsername);
+    _storage.delete(key: _keyToken);
+  }
 }

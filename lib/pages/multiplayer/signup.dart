@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../UI/theme.dart';
-import '../UI/background.dart';
-import '../UI/main_button.dart';
-import '../UI/dialog.dart';
+import '../../UI/theme.dart';
+import '../../UI/background.dart';
+import '../../UI/main_button.dart';
+import '../../UI/dialog.dart';
 
-import '../utils/network_helper.dart';
-import '../models/message.dart';
+import '../../utils/network_helper.dart';
+import '../../models/message.dart';
 
 
 
@@ -142,7 +142,7 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
                 backgroundColor: Colors.cyan[600],
                 shadowColor: Colors.cyan[900],
                 callback: () {
-                  Navigator.pushReplacementNamed(context, "/login");
+                  Navigator.pushReplacementNamed(context, "/multiplayer/login");
                   /*Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => LetsMemoryLoginPage()),

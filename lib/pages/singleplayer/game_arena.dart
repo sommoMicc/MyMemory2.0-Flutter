@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import '../UI/background.dart';
-import '../UI/theme.dart';
-import '../UI/lets_memory_flipable_card.dart';
-import '../UI/lets_memory_card.dart';
-import '../UI/lets_memory_static_card.dart';
-import '../utils/game_arena_utils.dart';
+
+import '../../UI/background.dart';
+import '../../UI/theme.dart';
+import '../../UI/lets_memory_flipable_card.dart';
+import '../../UI/lets_memory_card.dart';
+import '../../UI/lets_memory_static_card.dart';
+
+import '../../utils/game_arena_utils.dart';
+
 import 'dart:async';
 import 'dart:math';
 
@@ -81,7 +84,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   }
 
   void endGame() {
-    Navigator.pushReplacementNamed(context, "/gameresult");
+    Navigator.pushReplacementNamed(context, "/singleplayer/gameresult");
   }
 
   void onCardTap(LetsMemoryFlipableCard cardTapped) {

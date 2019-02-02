@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 
-import './utils/socket_helper.dart';
-
 import './pages/home_page.dart';
-import './pages/login.dart';
-import './pages/signup.dart';
-import './pages/game_arena.dart';
-import './pages/game_result.dart';
+
+import './pages/multiplayer/login.dart';
+import './pages/multiplayer/signup.dart';
+import './pages/multiplayer/find_match.dart';
+
+import './pages/singleplayer/game_arena.dart';
+import './pages/singleplayer/game_result.dart';
 
 
-void main() {
-  SocketHelper();
-  
+void main() {  
   runApp(  
     MaterialApp(
       title: "Let's Memory!",
       initialRoute: '/',
       routes: {
         '/': (context) => LetsMemoryHomePage(),
-        '/login': (context) => LetsMemoryLoginPage(),
-        '/signup': (context) => LetsMemorySignupPage(),
+        '/multiplayer/login': (context) => LetsMemoryLoginPage(),
+        '/multiplayer/signup': (context) => LetsMemorySignupPage(),
+        '/multiplayer/findmatch': (context) => LetsMemoryFindMatch(),
         '/singleplayer': (context) => LetsMemoryGameArena(),
-        '/gameresult': (context) => LetsMemoryGameResult()
+        '/singleplayer/gameresult': (context) => LetsMemoryGameResult()
       },
     )
   );
