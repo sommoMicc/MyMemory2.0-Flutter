@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../utils/storage_helper.dart';
 import '../utils/network_helper.dart';
+import '../utils/socket_helper.dart';
+
+import '../models/socket_listener.dart';
 
 import '../UI/theme.dart';
 import '../UI/logo.dart';
@@ -22,7 +25,7 @@ class LetsMemoryHomePage extends StatefulWidget {
   }
   
 }
-class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> {
+class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> implements SocketListener {
   StreamSubscription _sub;
 
   @override
@@ -32,6 +35,7 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> {
   }
   @override
   Widget build(BuildContext context) {
+    SocketHelper.currentSocketListener = this;
 
     return LetsMemoryBackground(
       children: <Widget>[
@@ -173,6 +177,16 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> {
           }
         );
       });
+    }
+  }
+
+  @override
+  void onLoginResult(bool success, String username) {
+    if(success) {
+      print("Login effettuato con successo!!");
+    }
+    else {
+      print("Errore nel login");
     }
   }
 
