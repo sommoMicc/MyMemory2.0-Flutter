@@ -18,20 +18,20 @@ class StorageHelper {
     return await _storage.read(key: _keyToken);
   }
 
-  void setToken(String token) {
-    _storage.write(key: _keyToken, value: token);
+  void setToken(String token) async {
+    await _storage.write(key: _keyToken, value: token);
   }
 
   Future<String> getUsername() async {
     return await _storage.read(key: _keyUsername);
   }
 
-  void setUsername(String username) {
-    _storage.write(key: _keyUsername, value: username);
+  void setUsername(String username) async {
+    await _storage.write(key: _keyUsername, value: username);
   }
 
-  void logout() {
-    _storage.delete(key: _keyUsername);
-    _storage.delete(key: _keyToken);
+  void logout() async {
+    await _storage.delete(key: _keyUsername);
+    await _storage.delete(key: _keyToken);
   }
 }

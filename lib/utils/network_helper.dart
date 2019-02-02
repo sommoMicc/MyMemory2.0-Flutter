@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert'; //per JSON
 
 import './storage_helper.dart';
+import './socket_helper.dart';
 import '../models/message.dart';
 
 import 'dart:io' show Platform;
@@ -62,12 +63,13 @@ class NetworkHelper {
       Message responseMessage = await Message.fromJSON(json.decode(response.body));
       if(responseMessage.status == "success") {
         if(responseMessage.data != null) {
-          StorageHelper().setToken(responseMessage.data['token']);
-          StorageHelper().setUsername(responseMessage.data['username']);
+          await StorageHelper().setToken(responseMessage.data['token']);
+          await StorageHelper().setUsername(responseMessage.data['username']);
 
           print(await StorageHelper().getToken());
           print(await StorageHelper().getUsername());
 
+          SocketHelper().mightConnect();
         }
       }
       return responseMessage;

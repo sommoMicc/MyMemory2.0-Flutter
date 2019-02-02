@@ -17,19 +17,28 @@ class SocketHelper {
   }
   SocketHelper._internal(): isConnectionInitiated = false;
 
-  void connect() async{
+  void mightConnect() async {
+    //Inizializzo il socket solo se ho già un token (quindi ho già fatto il login via HTTP)
+    String token = await StorageHelper().getToken();
+    if(token != null && token.length > 0) {
+      connect();
+      print("Inizializzata connessione con connect");
+    }
+    else {
+      print("Token non presente o nullo");
+    }
+  }
+
+  void connect() {
     if(!isConnectionInitiated) {
-      //Inizializzo il socket solo se ho già un token (quindi ho già fatto il login via HTTP)
-      String token = await StorageHelper().getToken();
-      if(token != null && token.length > 0) {
-        _socket = IO.io(NetworkHelper.ADDRESS, <String, dynamic>{'transports': ['websocket']});
-        _socket.on("connect",(_) async {
-          print("Connected");
-          _doLogin();
-        });
-    
-        _socket.on("loginResponse",_onLoginResponse);
-      }
+      _socket = IO.io(NetworkHelper.ADDRESS, <String, dynamic>{'transports': ['websocket']});
+      _socket.on("connect",(_) async {
+        print("Connected");
+        _doLogin();
+      });
+  
+      _socket.on("loginResponse",_onLoginResponse);
+      
     }
     isConnectionInitiated = true;
   }

@@ -122,7 +122,6 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> {
               );
             },
           );
-          SocketHelper().connect();
         }
         else {
           showDialog(
@@ -172,15 +171,13 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
   void initState() {
     super.initState();
     WidgetsBinding.instance
-        .addPostFrameCallback((_) => SocketHelper().connect());
+        .addPostFrameCallback((_) => SocketHelper().mightConnect());
 
   }
 
   @override
   Widget build(BuildContext context) {
-
     SocketHelper().currentSocketListener = this;
-    SocketHelper().connect();
 
     return LetsMemoryBackground(
       children: <Widget>[
@@ -238,7 +235,8 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
 
   SnackBar _createSnackBar(String text, bool success) {
     return SnackBar(
-      content: _LetsMemorySnackbar(text,success)
+      content: _LetsMemorySnackbar(text,success),
+      duration: Duration(seconds: 3),
     );
   }
 }
