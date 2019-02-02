@@ -48,9 +48,11 @@ class _LetsMemoryFindMatchState extends State<LetsMemoryFindMatch> {
                     borderRadius:BorderRadius.circular(LetsMemoryDimensions.cardRadius)
                   ),
                   hintText: "Username...",
-                  suffixIcon: Icon(
-                    Icons.search,
-                    size: LetsMemoryDimensions.standardCard,
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.search),
+                    onPressed: () {
+                      debugPrint('Vai di ricerca');
+                    }
                   ),
                 ),
               ),
