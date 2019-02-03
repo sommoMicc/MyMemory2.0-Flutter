@@ -5,10 +5,12 @@ import 'storage_helper.dart';
 
 import '../models/socket_listener.dart';
 import '../models/message.dart';
+import '../models/online_user.dart';
 
 class SocketHelper {
   IO.Socket _socket;
-  SocketListener currentSocketListener;
+  SocketLoginListener currentSocketListener;
+  SocketSearchListener currentSocketSearchListener;
   bool isConnectionInitiated;
 
   static final SocketHelper _singleton = SocketHelper._internal();
@@ -39,6 +41,9 @@ class SocketHelper {
   
       _socket.on("loginResponse",_onLoginResponse);
       _socket.on("searchResult",_onSearchResult);
+
+      _socket.on("userConnected",_onUserConnected);
+      _socket.on("userDisconnected",_onUserDisconnected);
       
     }
     isConnectionInitiated = true;
@@ -70,13 +75,27 @@ class SocketHelper {
 
   void _onSearchResult(dynamic data) {
     print("Search Result:");
-    print(data);
     Message response = Message.fromJSON(data);
     if(response.status == "success") {
+      List<OnlineUser> users = [];
+      List<dynamic> results = response.data['users'];
+      results.forEach((onlineUserJSON) {
+        users.add(OnlineUser.fromJSON(onlineUserJSON));
+      });
+      currentSocketSearchListener.onSearchResult(users);
       //currentSocketListener.onLoginResult(true, response.message);
     }
     else {
       //currentSocketListener.onLoginResult(false, null);
     }
+  }
+
+
+  void _onUserConnected(dynamic username) {
+    print("Utente connesso: "+username);
+  }
+
+  void _onUserDisconnected(dynamic username) {
+    print("Utente disconnesso: "+username);
   }
 }

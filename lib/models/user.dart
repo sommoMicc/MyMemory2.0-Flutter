@@ -1,3 +1,4 @@
+//Identifica l'utente attualmente loggato
 class User {
   String username;
   String token;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:letsmemory/models/online_user.dart';
 
 import '../utils/storage_helper.dart';
 import '../utils/network_helper.dart';
@@ -164,7 +165,7 @@ class _LetsMemoryHomePageInner extends StatefulWidget {
 
 } 
 class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
-  implements SocketListener {
+  implements SocketLoginListener {
 
 
   @override
