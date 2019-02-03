@@ -134,8 +134,13 @@ implements SocketListener {
   }
 
   @override
-  void onBeginGame(String username) {
+  void onBeginGame(List<dynamic> cards) {
     //Ci pensa la homepage!
+  }
+
+  @override
+  void onAdversaryLeft() {
+    // TODO: implement onAdversaryLeft
   }
 
 }

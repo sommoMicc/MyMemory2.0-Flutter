@@ -105,4 +105,39 @@ class MultiplayerHelper {
       }
     );
   }
+
+
+  void showAdversaryLeftDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(LetsMemoryDimensions.cardRadius)
+          ),
+          title: new Text("Maledizione!"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text("Il tuo avversario ha abbandonato la sfida! \n😱😱")
+            ],
+          ),
+          actions: <Widget>[
+            LetsMemoryMainButton(
+              textColor: Colors.black,
+              backgroundColor: Colors.lightGreen[500],
+              shadowColor: Colors.lightGreen[900],
+              mini: true,
+              text: "Ho capito",
+              callback: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      }
+    );
+    Navigator.pushReplacementNamed(context, "/");
+  }
 }

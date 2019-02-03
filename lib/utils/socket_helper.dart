@@ -7,6 +7,8 @@ import '../models/socket_listener.dart';
 import '../models/message.dart';
 import '../models/online_user.dart';
 
+import '../UI/lets_memory_flipable_card.dart';
+
 class SocketHelper {
   IO.Socket _socket;
   List<SocketListener> currentSocketListener = [];
@@ -50,6 +52,7 @@ class SocketHelper {
       _socket.on("challengeDenided",_onChallengeDenided);
 
       _socket.on("beginGame",_onBeginGame);
+      _socket.on("adversaryLeft",_onAdversaryLeft);
       
     }
     isConnectionInitiated = true;
@@ -171,10 +174,26 @@ class SocketHelper {
   }
 
   void _onBeginGame(dynamic data) {
+    Message message = Message.fromJSON(data);
+
+    if(message.status == "success") {
+      List<LetsMemoryFlipableCard> cards = [];
+      List<dynamic> cardsDynamicList = message.data['cards'];
+      cardsDynamicList.forEach((cardJSON) {
+        cards.add(LetsMemoryFlipableCard.fromJSON(cardJSON));
+      });
+
+      currentSocketListener.forEach((listener) {
+        if(listener.isMounted())
+          listener.onBeginGame(cards);
+      });
+    }
+  }
+
+  void _onAdversaryLeft(dynamic data) {
     currentSocketListener.forEach((listener) {
       if(listener.isMounted())
-        listener.onBeginGame(data.toString());
+        listener.onAdversaryLeft();
     });
-
   }
 }

@@ -264,15 +264,20 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
   }
 
   @override
-  void onBeginGame(String username) {
+  void onBeginGame(List<dynamic> cards) {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
         builder: (BuildContext context) => 
-          LetsMemoryMultiplayerGameArena(username)
+          LetsMemoryMultiplayerGameArena(cards)
         ),
       ModalRoute.withName('/')
     );
+  }
+
+  @override
+  void onAdversaryLeft() {
+    MultiplayerHelper().showAdversaryLeftDialog(context);
   }
 }
 

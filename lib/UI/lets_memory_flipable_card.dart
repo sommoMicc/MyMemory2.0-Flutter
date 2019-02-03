@@ -31,6 +31,13 @@ class LetsMemoryFlipableCard extends StatefulWidget {
   int get hashCode {
     return letter.hashCode * 3 * textColor.hashCode;
   }
+
+  factory LetsMemoryFlipableCard.fromJSON(Map<String, dynamic> json) {
+    return LetsMemoryFlipableCard(
+      letter: json['letter'],
+      textColor: Color(json['color']).withOpacity(1.0)
+    );
+  }
 }
 
 class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with TickerProviderStateMixin {

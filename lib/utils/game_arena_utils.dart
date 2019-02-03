@@ -1,4 +1,3 @@
-import '../UI/lets_memory_card.dart';
 import '../UI/lets_memory_flipable_card.dart';
 
 import 'dart:math';
