@@ -35,13 +35,16 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> {
   @override
   void initState() {
     super.initState();
-    initUniLinks(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      initUniLinks(context);
+    });
+
   }
 
   @override
   void dispose() {
-    super.dispose();
     _sub.cancel();
+    super.dispose();
   }
 
   @override
@@ -53,30 +56,24 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> {
 
 
   void initUniLinks(BuildContext context) async {
-    // ... check initialLink
     try {
       String initialLink = await getInitialLink();
-      if(initialLink != null)
+      if(initialLink != null) {
         handleLink(initialLink, context);
+      }
     }
      on PlatformException {
+       print("Platform exception");
     }
-    _sub = getLinksStream().listen((String link) {
-      handleLink(link, context);
-    }, onError: (err) {
-      // Handle exception by warning the user their action did not succeed
-    });
+    if(_sub == null)
+      _sub = getLinksStream().listen((String link) {
+        handleLink(link, context);
+      }, onError: (err) {
+        // Handle exception by warning the user their action did not succeed
+      });
   }
 
   void handleLink(String link, BuildContext context) {
-    print(link);
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      "/",
-      (route) => route.isCurrent
-        ? route.settings.name == "/"
-          ? false
-          : true
-        : true);
     if(link != null) {
       List<String> linkPieces = link.split("/login/do?t=");
       if(linkPieces.length < 2) {
@@ -169,9 +166,10 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
   void initState() {
     super.initState();
     SocketHelper().addSocketListener(this);
-
     WidgetsBinding.instance
-        .addPostFrameCallback((_) => SocketHelper().mightConnect());
+      .addPostFrameCallback((_) {
+        SocketHelper().mightConnect();
+      });
 
   }
 
@@ -247,7 +245,6 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
 
   @override
   bool isMounted() {
-    print("HomePage mounted? "+ ((this.mounted) ? "Si" : "No"));
     return this.mounted;
   }
 
