@@ -196,4 +196,8 @@ class SocketHelper {
         listener.onAdversaryLeft();
     });
   }
+
+  void leaveGame() {
+    _socket.emit("leaveGame");
+  }
 }

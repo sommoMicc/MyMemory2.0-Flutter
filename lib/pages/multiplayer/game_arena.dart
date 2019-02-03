@@ -5,6 +5,9 @@ import '../../UI/theme.dart';
 import '../../UI/lets_memory_flipable_card.dart';
 import '../../UI/lets_memory_static_card.dart';
 import '../../UI/lets_memory_card.dart';
+import '../../UI/main_button.dart';
+
+import '../../utils/socket_helper.dart';
 
 import 'dart:async';
 import 'dart:math';
@@ -59,6 +62,52 @@ class _LetsMemoryMultiplayerGameArenaState extends State<LetsMemoryMultiplayerGa
     cards.forEach((card) {
       card.setOnTapCallback(this.onCardTap);
     });
+  }
+
+  Future<bool> _onWillPop() async {
+    bool shoudQuit = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(LetsMemoryDimensions.cardRadius)
+        ),
+        title: new Text("Conferma!"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text("Vuoi veramente sfidare abbandonare la sfida?")
+          ],
+        ),
+        actions: <Widget>[
+          LetsMemoryMainButton(
+            textColor: Colors.black,
+            backgroundColor: Colors.lightGreen[500],
+            shadowColor: Colors.lightGreen[900],
+            mini: true,
+            text: "Si",
+            callback: () {
+              Navigator.pop(context,true);
+            },
+          ),
+          LetsMemoryMainButton(
+            textColor: Colors.white,
+            backgroundColor: Colors.red[500],
+            shadowColor: Colors.red[900],
+            mini: true,
+            text: "No",
+            callback: () {
+              Navigator.pop(context,false);
+            },
+          )
+        ],
+      ),
+    ) ?? false;
+
+    if(shoudQuit) {
+      SocketHelper().leaveGame();
+    }
+
+    return shoudQuit;
   }
 
   @override
@@ -131,33 +180,36 @@ class _LetsMemoryMultiplayerGameArenaState extends State<LetsMemoryMultiplayerGa
     MediaQueryData mediaQuery = MediaQuery.of(context);
     double aspectRatioCorrection = pow(2,mediaQuery.size.height/mediaQuery.size.width) - 3.0;
 
-    return LetsMemoryBackground(
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.only(
-            left: widget.cardsPadding,
-            right: widget.cardsPadding,
-            bottom: widget.cardsPadding,
-            top: 60.0 * aspectRatioCorrection
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: LetsMemoryBackground(
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(
+              left: widget.cardsPadding,
+              right: widget.cardsPadding,
+              bottom: widget.cardsPadding,
+              top: 60.0 * aspectRatioCorrection
+            ),
+            child: GridView.count(
+              mainAxisSpacing: widget.cardsPadding,
+              crossAxisSpacing: widget.cardsPadding,
+              primary: false,
+              crossAxisCount: 3,
+              shrinkWrap:false,
+              children: cards,
+            ),
           ),
-          child: GridView.count(
-            mainAxisSpacing: widget.cardsPadding,
-            crossAxisSpacing: widget.cardsPadding,
-            primary: false,
-            crossAxisCount: 3,
-            shrinkWrap:false,
-            children: cards,
+            
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _BottomSheet(this.cardsFound, (this.cards.length / 2).floor(), aspectRatioCorrection),
           ),
-        ),
-          
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: _BottomSheet(this.cardsFound, (this.cards.length / 2).floor(), aspectRatioCorrection),
-        ),
-        _StartGameOverlay(secondsToStartGame)
-      ]
+          _StartGameOverlay(secondsToStartGame)
+        ]
+      )
     );
   }
 }
