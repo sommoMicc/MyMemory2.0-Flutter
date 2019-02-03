@@ -4,6 +4,7 @@ import 'package:letsmemory/models/online_user.dart';
 import '../utils/storage_helper.dart';
 import '../utils/network_helper.dart';
 import '../utils/socket_helper.dart';
+import '../utils/multiplayer_helper.dart';
 
 import '../models/socket_listener.dart';
 
@@ -12,6 +13,8 @@ import '../UI/logo.dart';
 import '../UI/main_button.dart';
 import '../UI/background.dart';
 import '../UI/dialog.dart';
+
+import './multiplayer/game_arena.dart';
 
 import 'dart:async';
 
@@ -165,20 +168,27 @@ class _LetsMemoryHomePageInner extends StatefulWidget {
 
 } 
 class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
-  implements SocketLoginListener {
+  implements SocketListener {
 
 
   @override
   void initState() {
     super.initState();
+    SocketHelper().addSocketListener(this);
+
     WidgetsBinding.instance
         .addPostFrameCallback((_) => SocketHelper().mightConnect());
 
   }
 
   @override
+  void dispose() {
+    SocketHelper().removeSocketListener(this);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    SocketHelper().currentSocketListener = this;
 
     return LetsMemoryBackground(
       children: <Widget>[
@@ -240,6 +250,39 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
       duration: Duration(seconds: 3),
     );
   }
+
+  @override
+  bool isMounted() {
+    print("HomePage mounted? "+ ((this.mounted) ? "Si" : "No"));
+    return this.mounted;
+  }
+
+  @override
+  void onSearchResult(List<OnlineUser> users) {
+    // do nothing
+  }
+
+  @override
+  void onChallengeReceived(String username) {
+    MultiplayerHelper().processIncomingChallenge(context, username);
+  }
+
+  @override
+  void onChallengeDenided(String username) {
+    MultiplayerHelper().showChallengeDenidedDialog(context, username);
+  }
+
+  @override
+  void onBeginGame(String username) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => 
+          LetsMemoryMultiplayerGameArena(username)
+        ),
+      ModalRoute.withName('/')
+    );
+  }
 }
 
 class _LetsMemorySnackbar extends StatelessWidget {
@@ -271,7 +314,6 @@ class _LetsMemorySnackbar extends StatelessWidget {
         )
       ]
     );
-
   }
 }
 

@@ -3,6 +3,8 @@ import 'package:letsmemory/models/online_user.dart';
 
 import '../../UI/theme.dart';
 import '../../UI/background.dart';
+import '../../UI/main_button.dart';
+import '../../UI/dialog.dart';
 
 import '../../utils/socket_helper.dart';
 
@@ -28,7 +30,7 @@ class _LetsMemoryFindMatchInner extends StatefulWidget {
   }
 }
 class _LetsMemoryFindMatchInnerState extends State<_LetsMemoryFindMatchInner> 
-implements SocketSearchListener {
+implements SocketListener {
   List<OnlineUser> searchResult;
   String searchQuery;
 
@@ -38,7 +40,13 @@ implements SocketSearchListener {
     searchQuery = "";
     searchResult = [];
     WidgetsBinding.instance
-        .addPostFrameCallback((_) => SocketHelper().currentSocketSearchListener = this);
+        .addPostFrameCallback((_) => SocketHelper().addSocketListener(this));
+  }
+
+  @override
+  void dispose() {
+    SocketHelper().removeSocketListener(this);
+    super.dispose();
   }
 
   Widget build(BuildContext context) {
@@ -103,6 +111,33 @@ implements SocketSearchListener {
       this.searchResult = users;
     });
   }
+
+  @override
+  bool isMounted() {
+    print("FindMatch mounted? "+ ((this.mounted) ? "Si" : "No"));
+    return this.mounted;
+  }
+
+  @override
+  void onLoginResult(bool success, String username) {
+    // do nothing
+  }
+
+  @override
+  void onChallengeReceived(String username) {
+    //Ci pensa la homepage!
+  }
+
+  @override
+  void onChallengeDenided(String username) {
+    //Ci pensa la homepage!
+  }
+
+  @override
+  void onBeginGame(String username) {
+    //Ci pensa la homepage!
+  }
+
 }
 
 class _LetsMemorySearchResult extends StatefulWidget {
@@ -141,12 +176,77 @@ class _LetsMemorySearchResultState extends State<_LetsMemorySearchResult> {
     this._onTapUp(null);
   }
 
+  void _onTap() async {
+    if(widget.isOnline) {
+      bool confirm = await showDialog(
+        barrierDismissible: true,
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(LetsMemoryDimensions.cardRadius)
+            ),
+            title: new Text("Conferma!"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text("Vuoi veramente sfidare "+widget.username+"?")
+              ],
+            ),
+            actions: <Widget>[
+              LetsMemoryMainButton(
+                textColor: Colors.black,
+                backgroundColor: Colors.lightGreen[500],
+                shadowColor: Colors.lightGreen[900],
+                mini: true,
+                text: "Si",
+                callback: () {
+                  Navigator.pop(context,true);
+                },
+              ),
+              LetsMemoryMainButton(
+                textColor: Colors.white,
+                backgroundColor: Colors.red[500],
+                shadowColor: Colors.red[900],
+                mini: true,
+                text: "No",
+                callback: () {
+                  Navigator.pop(context,false);
+                },
+              )
+            ],
+          );
+
+        }
+      ) ?? false;
+
+      if(confirm) {
+        SocketHelper().sendChallenge(widget.username);
+        Scaffold.of(context).showSnackBar(SnackBar(
+          content: Text("In attesa che "+widget.username+" accetti la sfida"),
+        ));
+      }
+    }
+    else {
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return LetsMemoryDialog.error(
+            context: context,
+            textContent: "Impossibile sfidare un utente offline!"
+          );
+        }
+      );
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: _onTapDown,
       onTapUp: _onTapUp,
       onTapCancel: _onTapCancel,
+      onTap: _onTap,
       child: Container(
         decoration: BoxDecoration(
           color: this.pressed ? Colors.grey : Colors.white,

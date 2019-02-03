@@ -9,8 +9,9 @@ import '../models/online_user.dart';
 
 class SocketHelper {
   IO.Socket _socket;
-  SocketLoginListener currentSocketListener;
-  SocketSearchListener currentSocketSearchListener;
+  List<SocketListener> currentSocketListener = [];
+  List<OnlineUser> searchResults;
+
   bool isConnectionInitiated;
 
   static final SocketHelper _singleton = SocketHelper._internal();
@@ -44,6 +45,11 @@ class SocketHelper {
 
       _socket.on("userConnected",_onUserConnected);
       _socket.on("userDisconnected",_onUserDisconnected);
+
+      _socket.on("wannaChallenge",_onChallengeReceived);
+      _socket.on("challengeDenided",_onChallengeDenided);
+
+      _socket.on("beginGame",_onBeginGame);
       
     }
     isConnectionInitiated = true;
@@ -56,15 +62,34 @@ class SocketHelper {
     }
   }
 
+  void addSocketListener(SocketListener listener) {
+    print("Chiamato addSocketListener");
+    currentSocketListener.add(listener);
+    print("Ora la lista ha "+currentSocketListener.length.toString()+" elementi");
+  }
+
+  void removeSocketListener(SocketListener listener) {
+    print("Chiamato removeSocketListener");
+    currentSocketListener.remove(listener);
+    print("Ora la lista ha "+currentSocketListener.length.toString()+" elementi");
+  }
+
   void _onLoginResponse(dynamic data) {
     print(data);
     Message response = Message.fromJSON(data);
     if(response.status == "success") {
-      currentSocketListener.onLoginResult(true, response.message);
+      currentSocketListener.forEach((listener) {
+        print("Itero su listener");
+        if(listener.isMounted())
+          listener.onLoginResult(true, response.message);
+      });
     }
     else {
       StorageHelper().logout();
-      currentSocketListener.onLoginResult(false, null);
+      currentSocketListener.forEach((listener) {
+        if(listener.isMounted())
+          listener.onLoginResult(false, null);
+      });
     }
   }
 
@@ -77,25 +102,79 @@ class SocketHelper {
     print("Search Result:");
     Message response = Message.fromJSON(data);
     if(response.status == "success") {
-      List<OnlineUser> users = [];
+      searchResults = [];
       List<dynamic> results = response.data['users'];
       results.forEach((onlineUserJSON) {
-        users.add(OnlineUser.fromJSON(onlineUserJSON));
+        searchResults.add(OnlineUser.fromJSON(onlineUserJSON));
       });
-      currentSocketSearchListener.onSearchResult(users);
-      //currentSocketListener.onLoginResult(true, response.message);
+
+      _notifySearchResultChanged();
     }
     else {
       //currentSocketListener.onLoginResult(false, null);
     }
   }
 
+  void _notifySearchResultChanged() {
+      currentSocketListener.forEach((listener) {
+        if(listener.isMounted())
+          listener.onSearchResult(searchResults);
+      });
+  }
+
 
   void _onUserConnected(dynamic username) {
     print("Utente connesso: "+username);
+    for(int i=0;i<searchResults.length;i++) {
+      if(username == searchResults[i].username) {
+        searchResults[i].isOnline = true;
+      }
+    }
+    _notifySearchResultChanged();
   }
 
   void _onUserDisconnected(dynamic username) {
     print("Utente disconnesso: "+username);
+    for(int i=0;i<searchResults.length;i++) {
+      if(username == searchResults[i].username) {
+        searchResults[i].isOnline = false;
+      }
+    }
+    _notifySearchResultChanged();
+  }
+
+  void _onChallengeReceived(dynamic username) {
+    currentSocketListener.forEach((listener) {
+      if(listener.isMounted())
+        listener.onChallengeReceived(username);
+    });
+  }
+
+  void _onChallengeDenided(dynamic username) {
+    print("Ricevuto challenge denided");
+    currentSocketListener.forEach((listener) {
+      if(listener.isMounted())
+        listener.onChallengeDenided(username);
+    });
+  }
+
+  void acceptChallenge(String username) {
+    _socket.emit("challengeAccepted",username);
+  }
+
+  void denyChallenge(String username) {
+    _socket.emit("challengeDenided",username);
+  }
+
+  void sendChallenge(String username) {
+    _socket.emit("sendChallenge",username);
+  }
+
+  void _onBeginGame(dynamic data) {
+    currentSocketListener.forEach((listener) {
+      if(listener.isMounted())
+        listener.onBeginGame(data.toString());
+    });
+
   }
 }
