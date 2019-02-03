@@ -52,26 +52,20 @@ class _LetsMemoryHomePageState extends State<LetsMemoryHomePage> {
   }
 
 
-  Future<Null> initUniLinks(BuildContext context) async {
+  void initUniLinks(BuildContext context) async {
     // ... check initialLink
     try {
       String initialLink = await getInitialLink();
       if(initialLink != null)
         handleLink(initialLink, context);
-      // Parse the link and warn the user, if it is not correct,
-      // but keep in mind it could be `null`.
-    } on PlatformException {
-      // Handle exception by warning the user their action did not succeed
-      // return?
     }
-    // Attach a listener to the stream
+     on PlatformException {
+    }
     _sub = getLinksStream().listen((String link) {
       handleLink(link, context);
     }, onError: (err) {
       // Handle exception by warning the user their action did not succeed
     });
-
-    // NOTE: Don't forget to call _sub.cancel() in dispose()
   }
 
   void handleLink(String link, BuildContext context) {
