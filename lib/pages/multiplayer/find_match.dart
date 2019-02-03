@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../UI/theme.dart';
 import '../../UI/background.dart';
+import '../../utils/socket_helper.dart';
 
 class LetsMemoryFindMatch extends StatefulWidget {
   @override
@@ -51,7 +52,7 @@ class _LetsMemoryFindMatchState extends State<LetsMemoryFindMatch> {
                   suffixIcon: IconButton(
                     icon: Icon(Icons.search),
                     onPressed: () {
-                      debugPrint('Vai di ricerca');
+                      SocketHelper().searchUsers(searchQuery);
                     }
                   ),
                 ),

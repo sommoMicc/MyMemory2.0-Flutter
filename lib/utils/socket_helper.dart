@@ -38,6 +38,7 @@ class SocketHelper {
       });
   
       _socket.on("loginResponse",_onLoginResponse);
+      _socket.on("searchResult",_onSearchResult);
       
     }
     isConnectionInitiated = true;
@@ -59,6 +60,23 @@ class SocketHelper {
     else {
       StorageHelper().logout();
       currentSocketListener.onLoginResult(false, null);
+    }
+  }
+
+  void searchUsers(String query) {
+    print("Do search");
+    _socket.emit("search",query);
+  }
+
+  void _onSearchResult(dynamic data) {
+    print("Search Result:");
+    print(data);
+    Message response = Message.fromJSON(data);
+    if(response.status == "success") {
+      //currentSocketListener.onLoginResult(true, response.message);
+    }
+    else {
+      //currentSocketListener.onLoginResult(false, null);
     }
   }
 }
