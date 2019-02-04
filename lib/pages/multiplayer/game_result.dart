@@ -12,8 +12,10 @@ class LetsMemoryMultiplayerGameResult extends StatelessWidget {
   Widget build(BuildContext context) {
     return LetsMemoryBackground(
       children: <Widget>[
-        Container(
+        Align(
+          alignment: Alignment.bottomCenter,
           child: Column(
+            mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
@@ -36,6 +38,7 @@ class LetsMemoryMultiplayerGameResult extends StatelessWidget {
             ],
           )
         )
+        
       ],
     );
   }

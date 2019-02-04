@@ -129,8 +129,8 @@ implements GameSocketListener {
     }
     else {
       text = (winnerUsername != widget.adversaryName) ?
-        "OH NO!! Hai perso\n😩😩😩" :
-        "Congratulazioni, hai vinto!! \n🏆🏆🏆🏆";
+        "OH NO!!\nHai perso\n😩😩😩" :
+        "Congratulazioni,\nhai vinto!! \n🏆🏆🏆🏆";
     }
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(

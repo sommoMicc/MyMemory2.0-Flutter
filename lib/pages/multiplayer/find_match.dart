@@ -107,7 +107,8 @@ implements SocketListener {
                     (searchQuery ?? "").length > 0 ?
                       "Nessun risultato corrispondente ai parametri di ricerca" :
                       "Inserisci lo username dell'utente che vuoi sfidare e premi "+
-                      "sull'icona dellla lente",
+                      "sull'icona dellla lente. Per sfidarlo, premi poi sulla carta "+
+                      "contenente il suo nome",
 
                     style: TextStyle(
                       color: Colors.white
