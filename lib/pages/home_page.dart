@@ -207,7 +207,20 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
                 callback: () {
                   StorageHelper().getToken().then((String token) async {
                     if(token != null && token.length > 0) {
-                      Navigator.pushNamed(context,"/multiplayer/findmatch");
+                      if(SocketHelper().isConnected)
+                        Navigator.pushNamed(context,"/multiplayer/findmatch");
+                      else
+                        showDialog(
+                          context: context,
+                          barrierDismissible: true,
+                          builder: (BuildContext context) {
+                            return LetsMemoryDialog.error(
+                              context: context,
+                              textContent: "Connessione ad internet assente. Impossibile "+
+                              "proseguire con la modalità multigiocatore!"
+                            );
+                          }
+                        );
                     }
                     else {
                       Navigator.pushNamed(context,"/multiplayer/login");
@@ -249,11 +262,6 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
   }
 
   @override
-  void onSearchResult(List<OnlineUser> users) {
-    // do nothing
-  }
-
-  @override
   void onChallengeReceived(String username) {
     MultiplayerHelper().processIncomingChallenge(context, username);
   }
@@ -264,12 +272,12 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
   }
 
   @override
-  void onBeginGame(List<dynamic> cards) {
+  void onBeginGame(int number, String adversary, List<dynamic> cards) {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
         builder: (BuildContext context) => 
-          LetsMemoryMultiplayerGameArena(cards)
+          LetsMemoryMultiplayerGameArena(number,adversary,cards)
         ),
       ModalRoute.withName('/')
     );
@@ -278,6 +286,18 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
   @override
   void onAdversaryLeft() {
     MultiplayerHelper().showAdversaryLeftDialog(context);
+  }
+
+  @override
+  void onDisconnect() {
+    Scaffold.of(context).showSnackBar(
+      _createSnackBar("Connessione persa :(", false)
+    );
+  }
+
+  @override
+  void onSearchResult(List<OnlineUser> users) {
+    // TODO: implement onSearchResult
   }
 }
 

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:letsmemory/models/online_user.dart';
+
+import '../../models/socket_listener.dart';
 
 import '../../UI/background.dart';
 import '../../UI/theme.dart';
@@ -14,7 +17,10 @@ import 'dart:math';
 
 class LetsMemoryMultiplayerGameArena extends StatefulWidget {
   final List<LetsMemoryFlipableCard> cards;
-  LetsMemoryMultiplayerGameArena(this.cards);
+  final int playerNumber;
+  final String adversaryName;
+
+  LetsMemoryMultiplayerGameArena(this.playerNumber,this.adversaryName,this.cards);
   
   final double cardsPadding = LetsMemoryDimensions.standardCard / 2;
   @override
@@ -24,7 +30,8 @@ class LetsMemoryMultiplayerGameArena extends StatefulWidget {
 
 }
 
-class _LetsMemoryMultiplayerGameArenaState extends State<LetsMemoryMultiplayerGameArena> {
+class _LetsMemoryMultiplayerGameArenaState extends State<LetsMemoryMultiplayerGameArena>
+implements SocketListener {
   int cardsFound;
   
   int secondsToStartGame;
@@ -39,11 +46,34 @@ class _LetsMemoryMultiplayerGameArenaState extends State<LetsMemoryMultiplayerGa
   List<LetsMemoryFlipableCard> cards ;
 
   @override
+  bool isMounted() {
+    return this.mounted;
+  }
+
+  @override
+  void onDisconnect() {
+    Navigator.pushReplacementNamed(context, "/");
+  }
+
+  @override
+  void onAdversaryLeft() { }
+  @override
+  void onBeginGame(int playerNumber, String adversaryName, List<LetsMemoryFlipableCard> cards) { }
+  @override
+  void onChallengeDenided(String username) {}
+  @override
+  void onChallengeReceived(String username) {}
+  @override
+  void onLoginResult(bool success, String username) {}
+  @override
+  void onSearchResult(List<OnlineUser> users) {}
+
+  @override
   void initState() {
     super.initState();
     cardsFound = 0;
     cardsRevealed = 0;
-    secondsToStartGame = 3;
+    secondsToStartGame = 5;
     timerGoing = true;
     
     cards = widget.cards;
@@ -62,6 +92,8 @@ class _LetsMemoryMultiplayerGameArenaState extends State<LetsMemoryMultiplayerGa
     cards.forEach((card) {
       card.setOnTapCallback(this.onCardTap);
     });
+
+    SocketHelper().addSocketListener(this);
   }
 
   Future<bool> _onWillPop() async {
@@ -113,6 +145,7 @@ class _LetsMemoryMultiplayerGameArenaState extends State<LetsMemoryMultiplayerGa
   @override
   void dispose() {
     super.dispose();
+    SocketHelper().removeSocketListener(this);
 
     if(startGameTimer.isActive)
       startGameTimer.cancel();
@@ -207,7 +240,7 @@ class _LetsMemoryMultiplayerGameArenaState extends State<LetsMemoryMultiplayerGa
             right: 0,
             child: _BottomSheet(this.cardsFound, (this.cards.length / 2).floor(), aspectRatioCorrection),
           ),
-          _StartGameOverlay(secondsToStartGame)
+          _StartGameOverlay(widget.adversaryName,secondsToStartGame)
         ]
       )
     );
@@ -216,8 +249,8 @@ class _LetsMemoryMultiplayerGameArenaState extends State<LetsMemoryMultiplayerGa
 
 class _StartGameOverlay extends StatelessWidget {
   final int secondsToStartGame;
-
-  _StartGameOverlay(this.secondsToStartGame);
+  final String adversaryName;
+  _StartGameOverlay(this.adversaryName,this.secondsToStartGame);
 
   @override
   Widget build(BuildContext context) {
@@ -236,9 +269,23 @@ class _StartGameOverlay extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  "Inizio partita in ",
-                  style: LetsmemoryStyles.mainTitle
+                  "La partita contro  ",
+                  style: LetsmemoryStyles.smallTitle,
+                  textAlign: TextAlign.center,
                 ),
+                Padding(padding: EdgeInsets.only(top: 10)),
+                Text(
+                  this.adversaryName,
+                  style: LetsmemoryStyles.mediumTitle,
+                  textAlign: TextAlign.center,
+                ),
+                Padding(padding: EdgeInsets.only(top: 10)),
+                Text(
+                  "inizierà tra ",
+                  style: LetsmemoryStyles.smallTitle,
+                  textAlign: TextAlign.center,
+                ),
+                Padding(padding: EdgeInsets.only(top: 10)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -249,7 +296,7 @@ class _StartGameOverlay extends StatelessWidget {
                     ),
                     Text(
                       " secondi",
-                      style: LetsmemoryStyles.mainTitle
+                      style: LetsmemoryStyles.smallTitle
                     )
                   ]
                 ),
@@ -283,32 +330,28 @@ class _BottomSheet extends StatefulWidget {
   }
 }
 
-class _BottomSheetState extends State<_BottomSheet> with SingleTickerProviderStateMixin {
-  AnimationController _animationController;
-  Animation _backgroundColorTween;
-  Animation _shadowColorTween;
+class _BottomSheetState extends State<_BottomSheet> {  
   bool pressed;
-  
+  bool myTurn;
+
+  Color backgroundColor;
+  Color shadowColor;
+
   @override
   void initState() {
     super.initState();
     pressed = false;
+    myTurn = false;
 
-    _animationController = AnimationController(
-      vsync: this, 
-      duration: Duration(milliseconds: 1200),
-    );
-    _backgroundColorTween = ColorTween(begin: Colors.green[700], end: Colors.deepOrange[700])
-      .animate(_animationController);
-    _shadowColorTween = ColorTween(begin: Colors.green[900], end: Colors.deepOrange[900])
-      .animate(_animationController);
-
+    backgroundColor = myTurn ? Colors.green[700] : Colors.deepOrange[700];
+    shadowColor = myTurn ? Colors.green[900] : Colors.deepOrange[900];
   }
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
+  void updateBackgroundColor() {
+    setState((){
+      backgroundColor = myTurn ? Colors.green[700] : Colors.deepOrange[700];
+      shadowColor = myTurn ? Colors.green[900] : Colors.deepOrange[900];
+    });
   }
 
   void _onTapDown(TapDownDetails details) {
@@ -320,11 +363,6 @@ class _BottomSheetState extends State<_BottomSheet> with SingleTickerProviderSta
   void _onTapUp(TapUpDetails details) {
     setState(() {
       pressed = false;
-      if (_animationController.status == AnimationStatus.completed) {
-        _animationController.reverse();
-      } else {
-        _animationController.forward();
-      }
     });
   }
 
@@ -338,21 +376,19 @@ class _BottomSheetState extends State<_BottomSheet> with SingleTickerProviderSta
       onTapDown: _onTapDown,
       onTapUp: _onTapUp,
       onTapCancel: _onTapCancel,
-      child: AnimatedBuilder(
-        animation: _backgroundColorTween,
-        builder: (context, child) => Container(
+      child: Container(
           constraints: BoxConstraints(
             maxHeight: LetsMemoryDimensions.standardCard * 2,
           ),
           decoration: BoxDecoration(
             boxShadow: [
               new BoxShadow(
-                color: _shadowColorTween.value,
+                color: shadowColor,
                 offset: Offset(0, -10.0),
                 blurRadius: 1.0
               )
             ],
-            color: pressed ? _shadowColorTween.value : _backgroundColorTween.value,
+            color: pressed ? shadowColor: backgroundColor,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(LetsMemoryDimensions.cardRadius),
               topRight: Radius.circular(LetsMemoryDimensions.cardRadius)
@@ -368,22 +404,40 @@ class _BottomSheetState extends State<_BottomSheet> with SingleTickerProviderSta
             mainAxisAlignment: MainAxisAlignment.center,
             
             children: <Widget>[
-              Text("Coppie trovate: ",style: _BottomSheet.getTextStyle()),
-              Padding(padding: EdgeInsets.only(left: LetsMemoryDimensions.standardCard/2)),
-              Container(
-                child: LetsMemoryCard(
-                  letter: widget._cardsFound.toString(),
-                  textColor: Colors.black,
-                ),
-                height: LetsMemoryDimensions.standardCard,
-                width: LetsMemoryDimensions.standardCard,
+              Column(
+                children: <Widget>[
+                  Text("Io: ",style: _BottomSheet.getTextStyle()),
+                  Padding(padding: EdgeInsets.only(left: LetsMemoryDimensions.standardCard/2)),
+                  Container(
+                    child: LetsMemoryCard(
+                      letter: widget._cardsFound.toString(),
+                      textColor: Colors.black,
+                    ),
+                    height: LetsMemoryDimensions.standardCard,
+                    width: LetsMemoryDimensions.standardCard,
+                  ),
+                ],
               ),
-              Padding(padding: EdgeInsets.only(left: LetsMemoryDimensions.standardCard/4)),
-              Text(" / "+widget._totalCards.toString(),style: _BottomSheet.getTextStyle()),
+              Padding(padding: EdgeInsets.only(left: LetsMemoryDimensions.standardCard)),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Text("Avversario: ",style: _BottomSheet.getTextStyle()),
+                  Padding(padding: EdgeInsets.only(left: LetsMemoryDimensions.standardCard/2)),
+                  Container(
+                    child: LetsMemoryCard(
+                      letter: widget._cardsFound.toString(),
+                      textColor: Colors.black,
+                    ),
+                    height: LetsMemoryDimensions.standardCard,
+                    width: LetsMemoryDimensions.standardCard,
+                  ),
+                ],
+              ),
             ],
           ),
         ),
-      ),
     );
   }
 }

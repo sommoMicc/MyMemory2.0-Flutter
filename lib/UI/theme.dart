@@ -15,6 +15,8 @@ class LetsMemoryColors {
 
 class LetsMemoryDimensions {
   static const double bigTitle = 50.0;
+  static const double mediumTitle = 40.0;
+  static const double smallTitle = 30.0;
 
   static const double cardFont = 35.0;
   static const double standardCard = cardFont * 1.5;
@@ -28,6 +30,18 @@ class LetsmemoryStyles {
   static const TextStyle mainTitle = const TextStyle(
     color: LetsMemoryColors.textOnPrimary,
     fontSize: LetsMemoryDimensions.bigTitle,
+    fontWeight: FontWeight.bold,
+  );
+
+  static const TextStyle mediumTitle = const TextStyle(
+    color: LetsMemoryColors.textOnPrimary,
+    fontSize: LetsMemoryDimensions.smallTitle,
+    fontWeight: FontWeight.bold,
+  );
+
+  static const TextStyle smallTitle = const TextStyle(
+    color: LetsMemoryColors.textOnPrimary,
+    fontSize: LetsMemoryDimensions.smallTitle,
     fontWeight: FontWeight.bold,
   );
 

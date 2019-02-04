@@ -8,6 +8,7 @@ import '../models/message.dart';
 import '../models/online_user.dart';
 
 import '../UI/lets_memory_flipable_card.dart';
+import 'dart:async';
 
 class SocketHelper {
   IO.Socket _socket;
@@ -15,6 +16,9 @@ class SocketHelper {
   List<OnlineUser> searchResults;
 
   bool isConnectionInitiated;
+  bool isConnected;
+
+  Timer reconnectTimer;
 
   static final SocketHelper _singleton = SocketHelper._internal();
   factory SocketHelper() {
@@ -38,7 +42,11 @@ class SocketHelper {
     if(!isConnectionInitiated) {
       _socket = IO.io(NetworkHelper.ADDRESS, <String, dynamic>{'transports': ['websocket']});
       _socket.on("connect",(_) async {
+        if(reconnectTimer != null) {
+          reconnectTimer.cancel();
+        }
         print("Connected");
+        isConnected = true;
         _doLogin();
       });
   
@@ -54,6 +62,7 @@ class SocketHelper {
       _socket.on("beginGame",_onBeginGame);
       _socket.on("adversaryLeft",_onAdversaryLeft);
       
+      _socket.on("disconnect",_onDisconnect);
     }
     isConnectionInitiated = true;
   }
@@ -173,7 +182,7 @@ class SocketHelper {
     _socket.emit("sendChallenge",username);
   }
 
-  void _onBeginGame(dynamic data) {
+  void _onBeginGame(dynamic data) async {
     Message message = Message.fromJSON(data);
 
     if(message.status == "success") {
@@ -183,9 +192,27 @@ class SocketHelper {
         cards.add(LetsMemoryFlipableCard.fromJSON(cardJSON));
       });
 
+      String currentUseranme = await StorageHelper().getUsername();
+      List<dynamic> players = message.data['players'];
+      
+      int playerNumber;
+      bool playerFound = false;
+      
+      for(playerNumber=0;playerNumber<players.length && 
+        !playerFound;playerNumber++) {
+        
+        if(players[playerNumber] == currentUseranme) {
+          playerFound = true;
+        }
+      }
+
       currentSocketListener.forEach((listener) {
         if(listener.isMounted())
-          listener.onBeginGame(cards);
+          listener.onBeginGame(
+            playerNumber+1,
+            players[(playerNumber-1) % players.length],
+            cards
+          );
       });
     }
   }
@@ -199,5 +226,19 @@ class SocketHelper {
 
   void leaveGame() {
     _socket.emit("leaveGame");
+  }
+
+  void _onDisconnect(dynamic data) {
+    print("Disconnesso!!");
+    isConnected = false;
+    currentSocketListener.forEach((listener) {
+      if(listener.isMounted())
+        listener.onDisconnect();
+    });
+
+    reconnectTimer = Timer.periodic(Duration(seconds: 5), (Timer timer) {
+      this.connect();
+    });
+
   }
 }
