@@ -9,6 +9,7 @@ import '../../UI/lets_memory_static_card.dart';
 import '../../UI/overlay.dart';
 
 import '../../utils/game_arena_utils.dart';
+import '../../utils/storage_helper.dart';
 
 import 'dart:async';
 import 'dart:math';
@@ -30,6 +31,16 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   //Booleano che indica se c'è un'operazione in corso che sta usando un 
   //timer, in modo tale da evitare problemi di concorrenza
   bool timerGoing;
+  bool gamesBegun;
+  //Gestisce il tutorial
+  bool tutorialMode;
+  bool tutorialVisible;
+  bool showTutorialOnCardTap;
+  String tutorialTitle;
+  String tutorialText;
+  String tutorialButton;
+  VoidCallback tutorialCallback;
+
 
   LetsMemoryFlipableCard lastCardSelected;
   int cardsRevealed;
@@ -41,22 +52,54 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
     super.initState();
     cardsFound = 0;
     cardsRevealed = 0;
-    secondsToStartGame = 3;
+    secondsToStartGame = 0;
     timerGoing = true;
-
-    startGameTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if(secondsToStartGame == 0) {
-        startGameTimer.cancel();
-        beginGame();
-        return;
-      }
-      setState(() {
-        secondsToStartGame--;      
-      });
-    });
+    gamesBegun = false;
 
     cards.forEach((card) {
       card.setOnTapCallback(this.onCardTap);
+    });
+    tutorialVisible = false;
+    tutorialMode = false;
+    showTutorialOnCardTap = false;
+    checkTutorialVisible();
+  }
+
+  void checkTutorialVisible() async {
+    tutorialVisible = await StorageHelper().getFirstLaunchSingleplayer();
+    if(tutorialVisible) {
+      setState(() {
+        tutorialMode = true;
+        tutorialVisible = true;
+        tutorialTitle = "Attenzione!";
+        tutorialText = "Ci sono 6 coppie di carte. Hai solo 3 secondi per memorizzarne la posizione. Sei pronto?";
+        tutorialButton = "Si";
+        tutorialCallback = () {
+          setState(() {
+            tutorialVisible = false;
+            startCountdown();
+          });
+        };
+      });
+    }
+    else {
+      startCountdown();
+    }
+  }
+
+  void startCountdown() {
+    setState(() {
+      secondsToStartGame = 3;
+      startGameTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+        if(secondsToStartGame == 0) {
+          startGameTimer.cancel();
+          beginGame();
+          return;
+        }
+        setState(() {
+          secondsToStartGame--;      
+        });
+      });
     });
   }
 
@@ -64,7 +107,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   void dispose() {
     super.dispose();
 
-    if(startGameTimer.isActive)
+    if(startGameTimer != null && startGameTimer.isActive)
       startGameTimer.cancel();
 
     if(cardsHideTimer != null && cardsHideTimer.isActive)
@@ -82,6 +125,21 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
         card.hide();
       });
       timerGoing = false;
+      gamesBegun = true;
+      if(tutorialMode) {
+        setState(() {
+          tutorialVisible = true;
+          tutorialTitle = "Hai memorizzato la disposizione?";
+          tutorialText = "Premi una carta col dito per scoprirla";
+          tutorialButton = "Va bene";
+          tutorialCallback = () {
+            setState(() {
+              tutorialVisible = false;
+              showTutorialOnCardTap = true;
+            });
+          };
+        });
+      }
     });
   }
 
@@ -90,6 +148,9 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   }
 
   void onCardTap(LetsMemoryFlipableCard cardTapped) {
+    if(!gamesBegun)
+      return;
+
     if(cardsRevealed < 2) { 
       cardTapped.reveal();
       cardsRevealed++;
@@ -98,6 +159,23 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
         if(lastCardSelected == cardTapped) {
           lastCardSelected.makeAsFound();
           cardTapped.makeAsFound();
+
+          if(showTutorialOnCardTap) {
+            setState(() {
+              tutorialVisible = true;
+              tutorialTitle = "Complimenti!";
+              tutorialText = "Trova tutte le coppie per terminare il gioco";
+              tutorialButton = "Ho capito!";
+              tutorialCallback = () {
+                setState(() {
+                  tutorialVisible = false;
+                  showTutorialOnCardTap = false;
+                  StorageHelper().setFirstLaunchSingleplayer(false);
+                  //Navigator.of(context).pop();
+                });
+              };
+            });
+          }
 
           setState(() {
             cardsFound++;
@@ -108,6 +186,20 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
           });
         }
         else {
+          if(showTutorialOnCardTap) {
+            setState(() {
+              tutorialVisible = true;
+              tutorialTitle = "Oh no!";
+              tutorialText = "Non è la carta giusta, riprova!";
+              tutorialButton = "Ce la farò";
+              tutorialCallback = () {
+                setState(() {
+                  tutorialVisible = false;
+                });
+              };
+            });
+          }
+
           Timer(Duration(seconds: 1),() {
             lastCardSelected.hide();
             cardTapped.hide();
@@ -120,6 +212,21 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
 
       }
       else {
+        if(showTutorialOnCardTap) {
+          setState(() {
+            tutorialVisible = true;
+            tutorialTitle = "Ben fatto!";
+            tutorialText = "Prova a trovare l'altra carta uguale";
+            tutorialButton = "Ok, ci provo!";
+            tutorialCallback = () {
+              setState(() {
+                tutorialVisible = false;
+                showTutorialOnCardTap = true;
+              });
+            };
+          });
+
+        }
         lastCardSelected = cardTapped;
       }
     }
@@ -155,7 +262,15 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
           right: 0,
           child: _BottomSheet(this.cardsFound, (this.cards.length / 2).floor(), aspectRatioCorrection),
         ),
-        _StartGameOverlay(secondsToStartGame)
+        _StartGameOverlay(secondsToStartGame),
+        LetsMemoryOverlay.withTitleAndButton(
+          visible: this.tutorialVisible,
+          title: tutorialTitle,
+          body: tutorialText,
+          buttonText: tutorialButton,
+          onTap: tutorialCallback,
+        )
+
       ]
     );
   }
@@ -173,7 +288,8 @@ class _StartGameOverlay extends StatelessWidget {
       children: <Widget>[
         Text(
           "Inizio partita in ",
-          style: LetsmemoryStyles.mainTitle
+          style: LetsmemoryStyles.mainTitle,
+          textAlign: TextAlign.center,
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -185,7 +301,8 @@ class _StartGameOverlay extends StatelessWidget {
             ),
             Text(
               " secondi",
-              style: LetsmemoryStyles.mainTitle
+              style: LetsmemoryStyles.mainTitle,
+              textAlign: TextAlign.center,
             )
           ]
         ),

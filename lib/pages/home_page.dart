@@ -13,6 +13,7 @@ import '../UI/logo.dart';
 import '../UI/main_button.dart';
 import '../UI/background.dart';
 import '../UI/dialog.dart';
+import '../UI/overlay.dart';
 
 import './multiplayer/game_arena.dart';
 
@@ -161,7 +162,8 @@ class _LetsMemoryHomePageInner extends StatefulWidget {
 class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
   implements SocketListener {
 
-
+  bool tutorialVisible;
+  
   @override
   void initState() {
     super.initState();
@@ -170,7 +172,17 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
       .addPostFrameCallback((_) {
         SocketHelper().mightConnect();
       });
+    tutorialVisible = false;
+    checkTutorialVisible();
+  }
 
+  void checkTutorialVisible() async {
+    tutorialVisible = await StorageHelper().getFirstLaunch();
+    if(tutorialVisible) {
+      setState(() {
+        tutorialVisible = true;
+      });
+    }
   }
 
   @override
@@ -230,6 +242,21 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
               ),
             ],
           ),
+        ),
+        LetsMemoryOverlay.withTitleAndButton(
+          visible: this.tutorialVisible,
+          title: "Benvenuto in LetsMemory!",
+          body: "Il gioco prevede due modalità:"+
+          " singleplayer, dove ti potrai esercitare e multiplayer, dove potrai "+
+          "mettere in pratica le tue abilità per avvincenti sfide con gli amici!",
+          buttonText: "Inziamo!",
+          onTap: () {
+            setState(() {
+              tutorialVisible = false;
+              StorageHelper().setFirstLaunch(false);
+              Navigator.pushNamed(context, "/singleplayer");
+            });
+          },
         )
       ],
     );
