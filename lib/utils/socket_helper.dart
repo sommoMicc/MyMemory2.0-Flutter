@@ -218,7 +218,7 @@ class SocketHelper {
         if(listener.isMounted())
           listener.onBeginGame(
             playerNumber+1,
-            players[(playerNumber-1) % players.length],
+            players[(playerNumber) % players.length],
             cards
           );
       });

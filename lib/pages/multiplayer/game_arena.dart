@@ -129,7 +129,7 @@ implements GameSocketListener {
       text = "Parità\n😱😱😱";
     }
     else {
-      text = (winnerUsername != widget.adversaryName) ?
+      text = (winnerUsername == widget.adversaryName) ?
         "OH NO!!\nHai perso\n😩😩😩" :
         "Congratulazioni,\nhai vinto!! \n🏆🏆🏆🏆";
     }
