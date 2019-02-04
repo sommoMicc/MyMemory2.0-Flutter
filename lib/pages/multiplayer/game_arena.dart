@@ -9,6 +9,7 @@ import '../../UI/lets_memory_flipable_card.dart';
 import '../../UI/lets_memory_static_card.dart';
 import '../../UI/lets_memory_card.dart';
 import '../../UI/main_button.dart';
+import '../../UI/overlay.dart';
 
 import '../../utils/socket_helper.dart';
 
@@ -31,14 +32,18 @@ class LetsMemoryMultiplayerGameArena extends StatefulWidget {
 }
 
 class _LetsMemoryMultiplayerGameArenaState extends State<LetsMemoryMultiplayerGameArena>
-implements SocketListener {
+implements GameSocketListener {
   int cardsFound;
   
   int secondsToStartGame;
-  Timer startGameTimer, cardsHideTimer;
+  Timer startGameTimer, cardsHideTimer, genericOverlayTimer;
   //Booleano che indica se c'è un'operazione in corso che sta usando un 
   //timer, in modo tale da evitare problemi di concorrenza
   bool timerGoing;
+
+  bool genericOverlayVisible;
+  String genericOverlayText;
+  bool myTurn;
 
   LetsMemoryFlipableCard lastCardSelected;
   int cardsRevealed;
@@ -56,17 +61,68 @@ implements SocketListener {
   }
 
   @override
-  void onAdversaryLeft() { }
+  void onAdversaryCardFlipped() {
+    // TODO: implement onAdversaryCardFlipped
+  }
+
   @override
-  void onBeginGame(int playerNumber, String adversaryName, List<LetsMemoryFlipableCard> cards) { }
+  void onAdversaryTurn() {
+    setState(() {
+      genericOverlayVisible = true;
+      myTurn = false;
+      genericOverlayText = "Turno dell'avversario";
+      _startGenericOverlayTimer();
+    });
+    print("on Adversary Turn");
+  }
+
   @override
-  void onChallengeDenided(String username) {}
-  @override
-  void onChallengeReceived(String username) {}
-  @override
-  void onLoginResult(bool success, String username) {}
-  @override
-  void onSearchResult(List<OnlineUser> users) {}
+  void onMyTurn() {
+    setState(() {
+      genericOverlayVisible = true;
+      myTurn = true;
+      genericOverlayText = "Tocca a te!";
+      _startGenericOverlayTimer();
+    });
+    print("on My Turn");
+  }
+
+  void _startGenericOverlayTimer() {
+    if(genericOverlayTimer != null)
+      genericOverlayTimer.cancel();
+
+    genericOverlayTimer = new Timer(Duration(seconds: 2),() {
+      setState(() {
+        genericOverlayVisible = false;
+      });
+    });
+  }
+
+  void _onSimpleOverlayTap() {
+    print("On simple overlay tap");
+    _hideGenericOverlay();
+  }
+
+  void _showGenericOverlay() {
+    if(genericOverlayTimer != null && genericOverlayTimer.isActive) {
+      genericOverlayTimer.cancel();
+    }
+    setState(() {
+      genericOverlayVisible = true;
+      _startGenericOverlayTimer();
+    });
+  }
+
+
+  void _hideGenericOverlay() {
+    if(genericOverlayTimer != null && genericOverlayTimer.isActive) {
+      genericOverlayTimer.cancel();
+    }
+    setState(() {
+      print("Hide Generic overlay sta nascondendo l'overlay");
+      genericOverlayVisible = false;
+    });
+  }
 
   @override
   void initState() {
@@ -75,7 +131,11 @@ implements SocketListener {
     cardsRevealed = 0;
     secondsToStartGame = 5;
     timerGoing = true;
-    
+
+    genericOverlayVisible = false;
+    genericOverlayText = "";
+    myTurn = widget.playerNumber % 2 == 0;
+
     cards = widget.cards;
 
     startGameTimer = Timer.periodic(Duration(seconds: 1), (timer) {
@@ -93,7 +153,7 @@ implements SocketListener {
       card.setOnTapCallback(this.onCardTap);
     });
 
-    SocketHelper().addSocketListener(this);
+    SocketHelper().currentGameListener = this;
   }
 
   Future<bool> _onWillPop() async {
@@ -145,13 +205,16 @@ implements SocketListener {
   @override
   void dispose() {
     super.dispose();
-    SocketHelper().removeSocketListener(this);
+    SocketHelper().currentGameListener = null;
 
     if(startGameTimer.isActive)
       startGameTimer.cancel();
 
     if(cardsHideTimer != null && cardsHideTimer.isActive)
       cardsHideTimer.cancel();
+
+    if(genericOverlayTimer != null && genericOverlayTimer.isActive)
+      genericOverlayTimer.cancel();
     
   }
 
@@ -238,9 +301,14 @@ implements SocketListener {
             bottom: 0,
             left: 0,
             right: 0,
-            child: _BottomSheet(this.cardsFound, (this.cards.length / 2).floor(), aspectRatioCorrection),
+            child: _BottomSheet(this.cardsFound, aspectRatioCorrection, this.myTurn, ()=>_showGenericOverlay()),
           ),
-          _StartGameOverlay(widget.adversaryName,secondsToStartGame)
+          _StartGameOverlay(widget.adversaryName,secondsToStartGame),
+          LetsMemoryOverlay.simple(
+            visible: this.genericOverlayVisible,
+            text: this.genericOverlayText,
+            onTap: _onSimpleOverlayTap,
+          )
         ]
       )
     );
@@ -254,67 +322,54 @@ class _StartGameOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Visibility(
+    return LetsMemoryOverlay(
       visible: secondsToStartGame > 0,
-      child: Positioned(
-        bottom: 0,
-        left: 0,
-        right: 0,
-        top: 0,
-        child: Container(
-          color: Color(0xBB000000),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  "La partita contro  ",
-                  style: LetsmemoryStyles.smallTitle,
-                  textAlign: TextAlign.center,
-                ),
-                Padding(padding: EdgeInsets.only(top: 10)),
-                Text(
-                  this.adversaryName,
-                  style: LetsmemoryStyles.mediumTitle,
-                  textAlign: TextAlign.center,
-                ),
-                Padding(padding: EdgeInsets.only(top: 10)),
-                Text(
-                  "inizierà tra ",
-                  style: LetsmemoryStyles.smallTitle,
-                  textAlign: TextAlign.center,
-                ),
-                Padding(padding: EdgeInsets.only(top: 10)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    LetsMemoryStaticCard(
-                      letter: secondsToStartGame.toString(),
-                      textColor: Colors.black
-                    ),
-                    Text(
-                      " secondi",
-                      style: LetsmemoryStyles.smallTitle
-                    )
-                  ]
-                ),
-              ]  
+      children: <Widget>[
+        Text(
+          "La partita contro  ",
+          style: LetsmemoryStyles.smallTitle,
+          textAlign: TextAlign.center,
+        ),
+        Padding(padding: EdgeInsets.only(top: 10)),
+        Text(
+          this.adversaryName,
+          style: LetsmemoryStyles.mediumTitle,
+          textAlign: TextAlign.center,
+        ),
+        Padding(padding: EdgeInsets.only(top: 10)),
+        Text(
+          "inizierà tra ",
+          style: LetsmemoryStyles.smallTitle,
+          textAlign: TextAlign.center,
+        ),
+        Padding(padding: EdgeInsets.only(top: 10)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            LetsMemoryStaticCard(
+              letter: secondsToStartGame.toString(),
+              textColor: Colors.black
+            ),
+            Text(
+              " secondi",
+              style: LetsmemoryStyles.smallTitle
             )
-          ),
-        )
-      )
+          ]
+        ),
+      ]  
     );
   }
 }
 
 class _BottomSheet extends StatefulWidget {
   final int _cardsFound;
-  final int _totalCards;
   final double _aspectRatio; 
+  final bool myTurn;
 
-  _BottomSheet(this._cardsFound,this._totalCards,this._aspectRatio);
+  final VoidCallback tapCallback;
+
+  _BottomSheet(this._cardsFound,this._aspectRatio,this.myTurn,this.tapCallback);
 
 
   static TextStyle getTextStyle() {
@@ -332,25 +387,25 @@ class _BottomSheet extends StatefulWidget {
 
 class _BottomSheetState extends State<_BottomSheet> {  
   bool pressed;
-  bool myTurn;
 
   Color backgroundColor;
   Color shadowColor;
+
+  _BottomSheetState();
 
   @override
   void initState() {
     super.initState();
     pressed = false;
-    myTurn = false;
 
-    backgroundColor = myTurn ? Colors.green[700] : Colors.deepOrange[700];
-    shadowColor = myTurn ? Colors.green[900] : Colors.deepOrange[900];
+    backgroundColor = widget.myTurn ? Colors.green[700] : Colors.deepOrange[700];
+    shadowColor = widget.myTurn ? Colors.green[900] : Colors.deepOrange[900];
   }
 
   void updateBackgroundColor() {
     setState((){
-      backgroundColor = myTurn ? Colors.green[700] : Colors.deepOrange[700];
-      shadowColor = myTurn ? Colors.green[900] : Colors.deepOrange[900];
+      backgroundColor = widget.myTurn ? Colors.green[700] : Colors.deepOrange[700];
+      shadowColor = widget.myTurn ? Colors.green[900] : Colors.deepOrange[900];
     });
   }
 
@@ -370,12 +425,17 @@ class _BottomSheetState extends State<_BottomSheet> {
     this._onTapUp(null);
   }
 
+  void _onTap() {
+    widget.tapCallback();
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: _onTapDown,
       onTapUp: _onTapUp,
       onTapCancel: _onTapCancel,
+      onTap: _onTap,
       child: Container(
           constraints: BoxConstraints(
             maxHeight: LetsMemoryDimensions.standardCard * 2,

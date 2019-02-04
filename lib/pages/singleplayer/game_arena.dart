@@ -6,6 +6,8 @@ import '../../UI/lets_memory_flipable_card.dart';
 import '../../UI/lets_memory_card.dart';
 import '../../UI/lets_memory_static_card.dart';
 
+import '../../UI/overlay.dart';
+
 import '../../utils/game_arena_utils.dart';
 
 import 'dart:async';
@@ -166,43 +168,28 @@ class _StartGameOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Visibility(
+    return LetsMemoryOverlay(
       visible: secondsToStartGame > 0,
-      child: Positioned(
-        bottom: 0,
-        left: 0,
-        right: 0,
-        top: 0,
-        child: Container(
-          color: Color(0xBB000000),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  "Inizio partita in ",
-                  style: LetsmemoryStyles.mainTitle
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    LetsMemoryStaticCard(
-                      letter: secondsToStartGame.toString(),
-                      textColor: Colors.black
-                    ),
-                    Text(
-                      " secondi",
-                      style: LetsmemoryStyles.mainTitle
-                    )
-                  ]
-                ),
-              ]  
+      children: <Widget>[
+        Text(
+          "Inizio partita in ",
+          style: LetsmemoryStyles.mainTitle
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            LetsMemoryStaticCard(
+              letter: secondsToStartGame.toString(),
+              textColor: Colors.black
+            ),
+            Text(
+              " secondi",
+              style: LetsmemoryStyles.mainTitle
             )
-          ),
-        )
-      )
+          ]
+        ),
+      ]  
     );
   }
 }

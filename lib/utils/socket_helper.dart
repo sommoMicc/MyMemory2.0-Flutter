@@ -13,6 +13,8 @@ import 'dart:async';
 class SocketHelper {
   IO.Socket _socket;
   List<SocketListener> currentSocketListener = [];
+  GameSocketListener currentGameListener;
+
   List<OnlineUser> searchResults;
 
   bool isConnectionInitiated;
@@ -24,7 +26,7 @@ class SocketHelper {
   factory SocketHelper() {
     return _singleton;
   }
-  SocketHelper._internal(): isConnectionInitiated = false;
+  SocketHelper._internal(): isConnectionInitiated = false, isConnected = false;
 
   void mightConnect() async {
     //Inizializzo il socket solo se ho già un token (quindi ho già fatto il login via HTTP)
@@ -63,6 +65,10 @@ class SocketHelper {
       _socket.on("adversaryLeft",_onAdversaryLeft);
       
       _socket.on("disconnect",_onDisconnect);
+
+      _socket.on("adversaryTurn",_onAdversaryTurn);
+      _socket.on("myTurn",_onMyTurn);
+      _socket.on("adversaryCardFlipped",_onAdversaryCardFlipped);
     }
     isConnectionInitiated = true;
   }
@@ -235,10 +241,28 @@ class SocketHelper {
       if(listener.isMounted())
         listener.onDisconnect();
     });
+    if(currentGameListener != null && currentGameListener.isMounted()) {
+      currentGameListener.onDisconnect();
+    }
 
     reconnectTimer = Timer.periodic(Duration(seconds: 5), (Timer timer) {
       this.connect();
     });
+  }
 
+  void _onAdversaryTurn(dynamic data) {
+    if(currentGameListener != null && currentGameListener.isMounted()) {
+      currentGameListener.onAdversaryTurn();
+    }
+  }
+  void _onMyTurn(dynamic data) {
+    if(currentGameListener != null && currentGameListener.isMounted()) {
+      currentGameListener.onMyTurn();
+    }
+  }
+  void _onAdversaryCardFlipped(dynamic data) {
+    if(currentGameListener != null && currentGameListener.isMounted()) {
+      currentGameListener.onAdversaryCardFlipped();
+    }
   }
 }

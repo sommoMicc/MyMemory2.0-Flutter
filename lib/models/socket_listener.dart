@@ -15,3 +15,13 @@ abstract class SocketListener {
   bool isMounted();
   void onDisconnect();
 }
+
+//Gestisce le dinamiche di gioco
+abstract class GameSocketListener {
+  bool isMounted();
+  void onDisconnect();
+
+  void onAdversaryTurn();
+  void onMyTurn();
+  void onAdversaryCardFlipped();
+}
