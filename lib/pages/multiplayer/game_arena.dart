@@ -47,6 +47,7 @@ implements GameSocketListener {
   bool genericOverlayVisible;
   String genericOverlayText;
   bool myTurn;
+  bool gameBegun;
 
   LetsMemoryFlipableCard lastCardSelected;
   LetsMemoryFlipableCard lastCardFoundByAdversary;
@@ -186,6 +187,7 @@ implements GameSocketListener {
     cardsRevealed = 0;
     secondsToStartGame = 5;
     timerGoing = true;
+    gameBegun = false;
 
     genericOverlayVisible = false;
     genericOverlayText = "";
@@ -287,6 +289,7 @@ implements GameSocketListener {
         card.hide();
       });
       timerGoing = false;
+      gameBegun = true;
     });
   }
 
@@ -295,6 +298,9 @@ implements GameSocketListener {
   }
 
   void onCardTap(LetsMemoryFlipableCard cardTapped) {
+    if(!gameBegun)
+      return;
+
     if(!myTurn) {
       _showGenericOverlay();
     }

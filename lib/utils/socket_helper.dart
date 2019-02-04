@@ -247,7 +247,9 @@ class SocketHelper {
     if(currentGameListener != null && currentGameListener.isMounted()) {
       currentGameListener.onDisconnect();
     }
-
+    if(reconnectTimer != null) {
+      reconnectTimer.cancel();
+    }
     reconnectTimer = Timer.periodic(Duration(seconds: 5), (Timer timer) {
       this.connect();
     });

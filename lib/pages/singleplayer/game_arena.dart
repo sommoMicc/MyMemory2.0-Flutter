@@ -31,7 +31,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   //Booleano che indica se c'è un'operazione in corso che sta usando un 
   //timer, in modo tale da evitare problemi di concorrenza
   bool timerGoing;
-  bool gamesBegun;
+  bool gameBegun;
   //Gestisce il tutorial
   bool tutorialMode;
   bool tutorialVisible;
@@ -54,7 +54,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
     cardsRevealed = 0;
     secondsToStartGame = 0;
     timerGoing = true;
-    gamesBegun = false;
+    gameBegun = false;
 
     cards.forEach((card) {
       card.setOnTapCallback(this.onCardTap);
@@ -125,7 +125,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
         card.hide();
       });
       timerGoing = false;
-      gamesBegun = true;
+      gameBegun = true;
       if(tutorialMode) {
         setState(() {
           tutorialVisible = true;
@@ -148,7 +148,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   }
 
   void onCardTap(LetsMemoryFlipableCard cardTapped) {
-    if(!gamesBegun)
+    if(!gameBegun)
       return;
 
     if(cardsRevealed < 2) { 
