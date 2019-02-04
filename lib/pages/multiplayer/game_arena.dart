@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:letsmemory/models/online_user.dart';
 
 import '../../models/socket_listener.dart';
+
+import '../../pages/multiplayer/game_result.dart';
 
 import '../../UI/background.dart';
 import '../../UI/theme.dart';
@@ -33,7 +34,9 @@ class LetsMemoryMultiplayerGameArena extends StatefulWidget {
 
 class _LetsMemoryMultiplayerGameArenaState extends State<LetsMemoryMultiplayerGameArena>
 implements GameSocketListener {
-  int cardsFound;
+  int cardsFoundByMe;
+  int cardsFoundByAdversary;
+
   
   int secondsToStartGame;
   Timer startGameTimer, cardsHideTimer, genericOverlayTimer;
@@ -46,6 +49,8 @@ implements GameSocketListener {
   bool myTurn;
 
   LetsMemoryFlipableCard lastCardSelected;
+  LetsMemoryFlipableCard lastCardFoundByAdversary;
+
   int cardsRevealed;
 
   List<LetsMemoryFlipableCard> cards ;
@@ -57,12 +62,41 @@ implements GameSocketListener {
 
   @override
   void onDisconnect() {
-    Navigator.pushReplacementNamed(context, "/");
+    Navigator.popUntil
+      (context, ModalRoute.withName(Navigator.defaultRouteName));
   }
 
   @override
-  void onAdversaryCardFlipped() {
-    // TODO: implement onAdversaryCardFlipped
+  void onScoreUpdate(List<int> score) {
+    setState(() {
+      cardsFoundByMe = score[widget.playerNumber];
+      cardsFoundByAdversary = score[widget.playerNumber-1 % 2];
+    });
+  }
+
+  @override
+  void onAdversaryCardFlipped(int index) {
+    if(!cards[index].revealed) {
+      cards[index].reveal();
+      if(lastCardFoundByAdversary != null) {
+        if(cards[index] == lastCardFoundByAdversary) {
+          cards[index].makeAsFound();
+          lastCardFoundByAdversary.makeAsFound();
+          setState(() {
+            cardsFoundByAdversary++;
+          });
+        }
+        lastCardFoundByAdversary = null;
+      }
+      else {
+        lastCardFoundByAdversary = cards[index];
+      }
+    }
+  }
+
+  @override
+  void onAdversaryCardHidden(int index) {
+    cards[index].hide();
   }
 
   @override
@@ -86,6 +120,25 @@ implements GameSocketListener {
     });
     print("on My Turn");
   }
+
+  @override
+  void onGameFinished(String winnerUsername) {
+    String text;
+    if(winnerUsername == null || winnerUsername.length < 1) {
+      text = "Parità\n😱😱😱";
+    }
+    else {
+      text = (winnerUsername != widget.adversaryName) ?
+        "OH NO!! Hai perso\n😩😩😩" :
+        "Congratulazioni, hai vinto!! \n🏆🏆🏆🏆";
+    }
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (BuildContext context) => LetsMemoryMultiplayerGameResult(text)
+      )
+    );
+  }
+
 
   void _startGenericOverlayTimer() {
     if(genericOverlayTimer != null)
@@ -127,14 +180,16 @@ implements GameSocketListener {
   @override
   void initState() {
     super.initState();
-    cardsFound = 0;
+    cardsFoundByMe = 0;
+    cardsFoundByAdversary = 0;
+
     cardsRevealed = 0;
     secondsToStartGame = 5;
     timerGoing = true;
 
     genericOverlayVisible = false;
     genericOverlayText = "";
-    myTurn = widget.playerNumber % 2 == 0;
+    myTurn = (widget.playerNumber % 2 == 0) ;
 
     cards = widget.cards;
 
@@ -145,15 +200,19 @@ implements GameSocketListener {
         return;
       }
       setState(() {
-        secondsToStartGame--;      
+        secondsToStartGame--;
       });
     });
 
+    int index = 0;
     cards.forEach((card) {
-      card.setOnTapCallback(this.onCardTap);
+      card.setOnTapCallback(onCardTap);
+      card.index = index;
+      index++;
     });
 
     SocketHelper().currentGameListener = this;
+
   }
 
   Future<bool> _onWillPop() async {
@@ -236,37 +295,46 @@ implements GameSocketListener {
   }
 
   void onCardTap(LetsMemoryFlipableCard cardTapped) {
-    if(cardsRevealed < 2) { 
-      cardTapped.reveal();
-      cardsRevealed++;
-            
-      if(lastCardSelected != null) {
-        if(lastCardSelected == cardTapped) {
-          lastCardSelected.makeAsFound();
-          cardTapped.makeAsFound();
+    if(!myTurn) {
+      _showGenericOverlay();
+    }
+    else {
+      if(cardsRevealed < 2) {
+        SocketHelper().cardFlipped(cardTapped.index); 
+        cardTapped.reveal();
+        cardsRevealed++;
+              
+        if(lastCardSelected != null) {
+          if(lastCardSelected == cardTapped) {
+            lastCardSelected.makeAsFound();
+            cardTapped.makeAsFound();
 
-          setState(() {
-            cardsFound++;
-            if(cardsFound*2 == cards.length) endGame();
-            
-            lastCardSelected = null;
-            cardsRevealed = 0;
-          });
+            setState(() {
+              cardsFoundByMe++;
+              //if(cardsFound*2 == cards.length) endGame();
+              
+              lastCardSelected = null;
+              cardsRevealed = 0;
+            });
+          }
+          else {
+            Timer(Duration(seconds: 1),() {
+              lastCardSelected.hide();
+              cardTapped.hide();
+
+              SocketHelper().cardHidden(lastCardSelected.index);
+              SocketHelper().cardHidden(cardTapped.index);
+              
+              lastCardSelected = null;
+              cardsRevealed = 0;
+            });
+
+          }
+
         }
         else {
-          Timer(Duration(seconds: 1),() {
-            lastCardSelected.hide();
-            cardTapped.hide();
-            
-            lastCardSelected = null;
-            cardsRevealed = 0;
-          });
-
+          lastCardSelected = cardTapped;
         }
-
-      }
-      else {
-        lastCardSelected = cardTapped;
       }
     }
   }
@@ -301,7 +369,7 @@ implements GameSocketListener {
             bottom: 0,
             left: 0,
             right: 0,
-            child: _BottomSheet(this.cardsFound, aspectRatioCorrection, this.myTurn, ()=>_showGenericOverlay()),
+            child: _BottomSheet(this.cardsFoundByMe,this.cardsFoundByAdversary, aspectRatioCorrection, this.myTurn, ()=>_showGenericOverlay()),
           ),
           _StartGameOverlay(widget.adversaryName,secondsToStartGame),
           LetsMemoryOverlay.simple(
@@ -363,13 +431,21 @@ class _StartGameOverlay extends StatelessWidget {
 }
 
 class _BottomSheet extends StatefulWidget {
-  final int _cardsFound;
+  final int _cardsFoundByMe;
+  final int _cardsFoundByAdversary;
+
   final double _aspectRatio; 
   final bool myTurn;
+  final Color backgroundColor;
+  final Color shadowColor;
+
 
   final VoidCallback tapCallback;
 
-  _BottomSheet(this._cardsFound,this._aspectRatio,this.myTurn,this.tapCallback);
+  _BottomSheet(this._cardsFoundByMe,this._cardsFoundByAdversary,
+    this._aspectRatio,this.myTurn,this.tapCallback) : 
+      backgroundColor = myTurn ? Colors.green[700] : Colors.deepOrange[700],
+      shadowColor = myTurn ? Colors.green[900] : Colors.deepOrange[900];
 
 
   static TextStyle getTextStyle() {
@@ -388,25 +464,12 @@ class _BottomSheet extends StatefulWidget {
 class _BottomSheetState extends State<_BottomSheet> {  
   bool pressed;
 
-  Color backgroundColor;
-  Color shadowColor;
-
   _BottomSheetState();
 
   @override
   void initState() {
     super.initState();
     pressed = false;
-
-    backgroundColor = widget.myTurn ? Colors.green[700] : Colors.deepOrange[700];
-    shadowColor = widget.myTurn ? Colors.green[900] : Colors.deepOrange[900];
-  }
-
-  void updateBackgroundColor() {
-    setState((){
-      backgroundColor = widget.myTurn ? Colors.green[700] : Colors.deepOrange[700];
-      shadowColor = widget.myTurn ? Colors.green[900] : Colors.deepOrange[900];
-    });
   }
 
   void _onTapDown(TapDownDetails details) {
@@ -429,6 +492,7 @@ class _BottomSheetState extends State<_BottomSheet> {
     widget.tapCallback();
   }
 
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -443,12 +507,12 @@ class _BottomSheetState extends State<_BottomSheet> {
           decoration: BoxDecoration(
             boxShadow: [
               new BoxShadow(
-                color: shadowColor,
+                color: widget.shadowColor,
                 offset: Offset(0, -10.0),
                 blurRadius: 1.0
               )
             ],
-            color: pressed ? shadowColor: backgroundColor,
+            color: pressed ? widget.shadowColor: widget.backgroundColor,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(LetsMemoryDimensions.cardRadius),
               topRight: Radius.circular(LetsMemoryDimensions.cardRadius)
@@ -470,7 +534,7 @@ class _BottomSheetState extends State<_BottomSheet> {
                   Padding(padding: EdgeInsets.only(left: LetsMemoryDimensions.standardCard/2)),
                   Container(
                     child: LetsMemoryCard(
-                      letter: widget._cardsFound.toString(),
+                      letter: widget._cardsFoundByMe.toString(),
                       textColor: Colors.black,
                     ),
                     height: LetsMemoryDimensions.standardCard,
@@ -487,7 +551,7 @@ class _BottomSheetState extends State<_BottomSheet> {
                   Padding(padding: EdgeInsets.only(left: LetsMemoryDimensions.standardCard/2)),
                   Container(
                     child: LetsMemoryCard(
-                      letter: widget._cardsFound.toString(),
+                      letter: widget._cardsFoundByAdversary.toString(),
                       textColor: Colors.black,
                     ),
                     height: LetsMemoryDimensions.standardCard,

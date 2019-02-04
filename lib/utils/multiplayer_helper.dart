@@ -138,6 +138,8 @@ class MultiplayerHelper {
         );
       }
     );
-    Navigator.pushReplacementNamed(context, "/");
+    Navigator.popUntil
+      (context, ModalRoute.withName(Navigator.defaultRouteName));
+
   }
 }

@@ -1,26 +1,54 @@
 import 'package:flutter/material.dart';
 import './lets_memory_static_card.dart';
+import 'dart:math';
 
 class LetsMemoryFlipableCard extends StatefulWidget {
   final String letter;
   final Color textColor;
   final Matrix4 rotation;
 
-  final _LetsMemoryFlipableCardState state;
+  _LetsMemoryFlipableCardState state;
+  int index;
+  Function onTapCallback;
 
-  LetsMemoryFlipableCard({this.letter, this.textColor = Colors.white, this.rotation})
-   : state = _LetsMemoryFlipableCardState();
+  LetsMemoryFlipableCard({this.letter, this.textColor = Colors.white, this.rotation});
 
   @override
-  State<StatefulWidget> createState() => state;
+  State<LetsMemoryFlipableCard> createState() {
+    state = _LetsMemoryFlipableCardState();
+    return state;
+  }
 
-  void hide() => state.hide();
-  void reveal() => state.reveal();
+  void hide() {
+    if(state != null)
+      state.hide();
+    }
 
-  void makeAsFound() => state.makeAsFound();
-  bool get found => state.found;
+  void reveal() {
+    if(state != null)
+      state.reveal();
+  }
 
-  void setOnTapCallback(Function callback) => state.onTapCallback = callback;
+  void makeAsFound() {
+    if(state != null)
+      state.makeAsFound();
+  }
+    
+  bool get found {
+    if(state != null)
+      return state.found;
+    else
+      return false;
+  }
+  bool get revealed {
+    if(state != null)
+      return state.revealed;
+    else
+      return false;
+  }
+
+
+  void setOnTapCallback(Function callback) => this.onTapCallback = callback;
 
   @override
   bool operator==(dynamic card) {
@@ -29,7 +57,7 @@ class LetsMemoryFlipableCard extends StatefulWidget {
 
   @override
   int get hashCode {
-    return letter.hashCode * 3 * textColor.hashCode;
+    return letter.hashCode * 3 * textColor.hashCode * Random().nextInt(99999);
   }
 
   factory LetsMemoryFlipableCard.fromJSON(Map<String, dynamic> json) {
@@ -45,10 +73,10 @@ class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with Ti
   Animation<double> _frontScale;
   Animation<double> _backScale;
 
+  int index;
+
   bool _pressed;
   bool _found;
-
-  Function onTapCallback;
 
   bool get found => _found;
   
@@ -100,13 +128,23 @@ class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with Ti
   }
 
   void hide() {
-    if (this.revealed)
-      _controller.reverse();
+    try {
+      if (this.revealed)
+        _controller.reverse();
+    }
+    catch(e) {
+      print(e);
+    }
   }
   
   void reveal() {
-    if (!this.revealed)
-        _controller.forward();
+    try {
+      if (!this.revealed)
+          _controller.forward();
+    }
+    catch(e) {
+      print(e);
+    }
   }
 
   get revealed => (_controller.isCompleted || _controller.velocity > 0);
@@ -114,8 +152,8 @@ class _LetsMemoryFlipableCardState extends State<LetsMemoryFlipableCard> with Ti
   void _onTap() {
     if(!_found && !revealed && mounted) {
       //reveal();
-      if(this.onTapCallback != null)
-        this.onTapCallback(widget);
+      if(widget.onTapCallback != null)
+        widget.onTapCallback(widget);
     }
   }
 

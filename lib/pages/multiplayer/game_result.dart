@@ -3,7 +3,11 @@ import '../../UI/main_button.dart';
 import '../../UI/background.dart';
 import '../../UI/theme.dart';
 
-class LetsMemoryGameResult extends StatelessWidget {
+class LetsMemoryMultiplayerGameResult extends StatelessWidget {
+  final String text;
+
+  LetsMemoryMultiplayerGameResult(this.text);
+    
   @override
   Widget build(BuildContext context) {
     return LetsMemoryBackground(
@@ -14,18 +18,11 @@ class LetsMemoryGameResult extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Text(
-                "Match completato\n🤪", 
-                style: LetsmemoryStyles.mainTitle,
+                text, 
+                style: LetsmemoryStyles.mediumTitle,
                 textAlign: TextAlign.center
               ),
               Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard*3/2)),
-              LetsMemoryMainButton(
-                text: "Nuova partita",
-                backgroundColor: Colors.green[500],
-                shadowColor: Colors.green[900],
-                callback: () {
-                  Navigator.pushReplacementNamed(context, "/singleplayer");
-                }),
               Padding(padding: EdgeInsets.only(top: LetsMemoryDimensions.standardCard)),
               LetsMemoryMainButton(
                 text: "Torna alla home",

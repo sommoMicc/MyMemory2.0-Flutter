@@ -285,6 +285,7 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
 
   @override
   void onAdversaryLeft() {
+    print("Adversary left home");
     MultiplayerHelper().showAdversaryLeftDialog(context);
   }
 

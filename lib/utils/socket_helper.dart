@@ -69,6 +69,8 @@ class SocketHelper {
       _socket.on("adversaryTurn",_onAdversaryTurn);
       _socket.on("myTurn",_onMyTurn);
       _socket.on("adversaryCardFlipped",_onAdversaryCardFlipped);
+      _socket.on("adversaryCardHidden",_onAdversaryCardHidden);
+      _socket.on("gameFinished",_onGameFinished);
     }
     isConnectionInitiated = true;
   }
@@ -224,6 +226,7 @@ class SocketHelper {
   }
 
   void _onAdversaryLeft(dynamic data) {
+    print("Adversary left socket helper");
     currentSocketListener.forEach((listener) {
       if(listener.isMounted())
         listener.onAdversaryLeft();
@@ -262,7 +265,26 @@ class SocketHelper {
   }
   void _onAdversaryCardFlipped(dynamic data) {
     if(currentGameListener != null && currentGameListener.isMounted()) {
-      currentGameListener.onAdversaryCardFlipped();
+      currentGameListener.onAdversaryCardFlipped(data);
     }
   }
+  void _onAdversaryCardHidden(dynamic data) {
+    if(currentGameListener != null && currentGameListener.isMounted()) {
+      currentGameListener.onAdversaryCardHidden(data);
+    }
+  }
+
+  void cardFlipped(int cardIndex) {
+    _socket.emit("cardFlipped",cardIndex);
+  }
+  void cardHidden(int cardIndex) {
+    _socket.emit("cardHidden",cardIndex);
+  }
+
+  void _onGameFinished(dynamic winner) {
+    if(currentGameListener != null && currentGameListener.isMounted()) {
+      currentGameListener.onGameFinished(winner);
+    }
+  }
+
 }

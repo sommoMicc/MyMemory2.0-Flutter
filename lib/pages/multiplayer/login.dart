@@ -98,7 +98,8 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                         }
                       );
                     }
-                    Navigator.popUntil(context, ModalRoute.withName("/"));
+                    Navigator.popUntil
+                      (context, ModalRoute.withName(Navigator.defaultRouteName));
                   }).catchError((e) async {
                     Navigator.of(context).pop();
                     await showDialog(
@@ -112,7 +113,8 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                         );
                       }
                     );
-                    Navigator.popUntil(context, ModalRoute.withName("/"));
+                    Navigator.popUntil
+                      (context, ModalRoute.withName(Navigator.defaultRouteName));
                   });
                 }
               ),

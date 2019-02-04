@@ -116,7 +116,8 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
                         }
                       );
                     }
-                    Navigator.popUntil(context, ModalRoute.withName("/"));
+                    Navigator.popUntil
+                      (context, ModalRoute.withName(Navigator.defaultRouteName));
                   }).catchError((e) async {
                     Navigator.of(context).pop();
                     await showDialog(
@@ -130,7 +131,8 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
                         );
                       }
                     );
-                    Navigator.popUntil(context, ModalRoute.withName("/"));
+                    Navigator.popUntil
+                      (context, ModalRoute.withName(Navigator.defaultRouteName));
                   });
                 }
               ),

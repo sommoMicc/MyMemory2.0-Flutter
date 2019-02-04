@@ -23,5 +23,10 @@ abstract class GameSocketListener {
 
   void onAdversaryTurn();
   void onMyTurn();
-  void onAdversaryCardFlipped();
+  void onAdversaryCardFlipped(int index);
+  void onAdversaryCardHidden(int index);
+
+  void onScoreUpdate(List<int> score);
+
+  void onGameFinished(String winnerUsername);
 }
