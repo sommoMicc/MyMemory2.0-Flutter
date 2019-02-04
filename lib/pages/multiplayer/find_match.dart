@@ -70,6 +70,9 @@ implements SocketListener {
                 onChanged: (text) {
                   this.searchQuery = text.trim();
                 },
+                onSubmitted: (String text) {
+                  SocketHelper().searchUsers(searchQuery);
+                },
                 autofocus: false,
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.all(20.0),
@@ -79,24 +82,51 @@ implements SocketListener {
                     borderRadius:BorderRadius.circular(LetsMemoryDimensions.cardRadius)
                   ),
                   hintText: "Username...",
-                  suffixIcon: IconButton(
+                  suffixIcon: /*IconButton(
                     icon: Icon(Icons.search),
                     onPressed: () {
                       SocketHelper().searchUsers(searchQuery);
                     }
-                  ),
+                  ),*/
+                  LetsMemoryMainButton(
+                    backgroundColor: Colors.cyan[700],
+                    shadowColor: Colors.cyan[900],
+                    textColor: Colors.white,
+                    icon: Icons.search,
+                    mini: true,
+                    callback: () {
+                      SocketHelper().searchUsers(searchQuery);
+                    }
+                  )
                 ),
               ),
-              ListView.builder (
-                itemCount: searchResult.length,
-                shrinkWrap: true,
-                itemBuilder: (BuildContext ctxt, int index) {
-                  return _LetsMemorySearchResult(
-                    searchResult[index].username,
-                    searchResult[index].isOnline)
-                  ;
-                }
-              )
+              searchResult.length == 0 ? 
+                Padding(
+                  padding: EdgeInsets.only(top: 10),
+                  child: Text(
+                    (searchQuery ?? "").length > 0 ?
+                      "Nessun risultato corrispondente ai parametri di ricerca" :
+                      "Inserisci lo username dell'utente che vuoi sfidare e premi "+
+                      "sull'icona dellla lente",
+
+                    style: TextStyle(
+                      color: Colors.white
+                    ),
+                    textAlign: TextAlign.center,
+                  )
+                )
+                :
+                ListView.builder (
+                  itemCount: searchResult.length,
+                  shrinkWrap: true,
+                  itemBuilder: (BuildContext ctxt, int index) {
+                    print("Buildo index "+index.toString());
+                    return _LetsMemorySearchResult(
+                      searchResult[index].username,
+                      searchResult[index].isOnline)
+                    ;
+                  }
+                )
             ],
 
           ),
@@ -258,6 +288,7 @@ class _LetsMemorySearchResultState extends State<_LetsMemorySearchResult> {
       onTapCancel: _onTapCancel,
       onTap: _onTap,
       child: Container(
+        margin: EdgeInsets.only(top: 15),
         decoration: BoxDecoration(
           color: this.pressed ? Colors.grey : Colors.white,
           borderRadius: BorderRadius.circular(LetsMemoryDimensions.cardRadius),

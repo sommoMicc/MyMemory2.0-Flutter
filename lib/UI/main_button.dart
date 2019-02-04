@@ -6,8 +6,9 @@ class LetsMemoryMainButton extends StatefulWidget {
   final String text;
   final bool mini;
   final VoidCallback callback;
+  final IconData icon;
 
-  LetsMemoryMainButton({this.backgroundColor, this.shadowColor, this.text, this.callback, this.textColor = Colors.white, this.mini=false});
+  LetsMemoryMainButton({this.icon,this.backgroundColor, this.shadowColor, this.text, this.callback, this.textColor = Colors.white, this.mini=false});
 
   @override
   State<StatefulWidget> createState() {
@@ -50,7 +51,8 @@ class LetsMemoryMainButtonState extends State<LetsMemoryMainButton> {
             text: widget.text,
             textColor: widget.textColor,
             height: LetsMemoryDimensions.standardCard,
-            mini: widget.mini
+            mini: widget.mini,
+            icon: widget.icon
           )
         ]),
       );    
@@ -63,8 +65,9 @@ class _LetsMemoryMainButtonContainer extends StatelessWidget {
   final String text;
   final double height;
   final bool mini;
+  final IconData icon;
 
-  _LetsMemoryMainButtonContainer({this.backgroundColor, this.shadowColor, this.text, this.height, this.textColor = Colors.white, this.mini});
+  _LetsMemoryMainButtonContainer({this.icon,this.backgroundColor, this.shadowColor, this.text, this.height, this.textColor = Colors.white, this.mini});
 
   @override
   Widget build(BuildContext context) {
@@ -86,14 +89,19 @@ class _LetsMemoryMainButtonContainer extends StatelessWidget {
       child: Center(
         child: Padding(
           padding: EdgeInsets.only(left: LetsMemoryDimensions.cardFont, right: LetsMemoryDimensions.cardFont),
-          child: Text(this.text,
+          child: icon == null ? Text(this.text,
             style: TextStyle(
               fontSize: mini ? LetsMemoryDimensions.cardFont * 2 / 3 
                 : LetsMemoryDimensions.cardFont,
               fontWeight: mini ? FontWeight.w500 : FontWeight.w900,
               color: this.textColor
             )
-          ),
+          ) : Icon(
+            this.icon,
+            color: this.textColor,
+            size: mini ? LetsMemoryDimensions.cardFont * 2 / 3 
+                : LetsMemoryDimensions.cardFont,
+          )
         )
       )
     );
