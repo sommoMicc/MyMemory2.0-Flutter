@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import './pages/home_page.dart';
+import 'package:letsmemory/pages/home_page.dart';
 
-import './pages/multiplayer/login.dart';
-import './pages/multiplayer/signup.dart';
-import './pages/multiplayer/find_match.dart';
+import 'package:letsmemory/pages/multiplayer/login.dart';
+import 'package:letsmemory/pages/multiplayer/signup.dart';
+import 'package:letsmemory/pages/multiplayer/find_match.dart';
 
-import './pages/singleplayer/game_arena.dart';
-import './pages/singleplayer/game_result.dart';
-
+import 'package:letsmemory/pages/singleplayer/game_arena.dart';
+import 'package:letsmemory/pages/singleplayer/game_result.dart';
 
 void main() {  
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])

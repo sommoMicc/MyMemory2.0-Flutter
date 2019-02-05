@@ -11,7 +11,7 @@ import 'package:letsmemory/UI/lets_memory_flipable_card.dart';
 import 'dart:async';
 
 class SocketHelper {
-  IO.Socket _socket;
+  static IO.Socket _socket;
   List<SocketListener> currentSocketListener = [];
   GameSocketListener currentGameListener;
 
@@ -46,16 +46,18 @@ class SocketHelper {
   void connect() {
     if(!isConnectionInitiated) {
       isConnectionInitiated = true;
-      _socket = IO.io(NetworkHelper.ADDRESS, <String, dynamic>{'transports': ['websocket']});
-      _socket.on("connect",(_) async {
-        if(reconnectTimer != null) {
-          reconnectTimer.cancel();
-        }
-        print("Connected");
-        isConnected = true;
-        _doLogin();
-      });
-  
+      if(_socket == null) {
+        _socket = IO.io(NetworkHelper.ADDRESS, <String, dynamic>{'transports': ['websocket']});
+        _socket.on("connect",(_) async {
+          if(reconnectTimer != null) {
+            reconnectTimer.cancel();
+          }
+          print("Connected");
+          isConnected = true;
+          _doLogin();
+        });
+      }
+
       _socket.on("loginResponse",_onLoginResponse);
       _socket.on("searchResult",_onSearchResult);
 
