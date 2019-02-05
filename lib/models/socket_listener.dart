@@ -14,6 +14,7 @@ abstract class SocketListener {
 
   bool isMounted();
   void onDisconnect();
+  void onReconnect();
 }
 
 //Gestisce le dinamiche di gioco

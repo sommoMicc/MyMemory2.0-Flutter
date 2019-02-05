@@ -182,6 +182,11 @@ implements SocketListener {
     // TODO: implement onDisconnect
   }
 
+  @override
+  void onReconnect() {
+    // TODO: implement onReconnect
+  }
+
 }
 
 class _LetsMemorySearchResult extends StatefulWidget {

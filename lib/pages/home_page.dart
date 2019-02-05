@@ -279,7 +279,7 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
   SnackBar _createSnackBar(String text, bool success) {
     return SnackBar(
       content: _LetsMemorySnackbar(text,success),
-      duration: Duration(seconds: 3),
+      duration: Duration(seconds: 2),
     );
   }
 
@@ -325,7 +325,14 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
 
   @override
   void onSearchResult(List<OnlineUser> users) {
-    // TODO: implement onSearchResult
+    //Nothing to do here
+  }
+
+  @override
+  void onReconnect() {
+    Scaffold.of(context).showSnackBar(
+      _createSnackBar("Riconnessione in corso", false)
+    );
   }
 }
 

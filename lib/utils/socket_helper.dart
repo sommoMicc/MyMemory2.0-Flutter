@@ -67,6 +67,7 @@ class SocketHelper {
       _socket.on("adversaryLeft",_onAdversaryLeft);
       
       _socket.on("disconnect",_onDisconnect);
+      _socket.on("reconnect",_onReconnect);
 
       _socket.on("adversaryTurn",_onAdversaryTurn);
       _socket.on("myTurn",_onMyTurn);
@@ -255,6 +256,16 @@ class SocketHelper {
       this.connect();
     });
   }
+
+  void _onReconnect(dynamic data) {
+    print("Reconnecting!!");
+    isConnected = false;
+    currentSocketListener.forEach((listener) {
+      if(listener.isMounted())
+        listener.onReconnect();
+    });
+  }
+
 
   void _onAdversaryTurn(dynamic data) {
     if(currentGameListener != null && currentGameListener.isMounted()) {
