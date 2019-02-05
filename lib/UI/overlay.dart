@@ -46,7 +46,7 @@ class LetsMemoryOverlay extends StatelessWidget {
   }
 
 
-  factory LetsMemoryOverlay.withTitleAndButton({bool visible,String title, String body, String buttonText, VoidCallback onTap}) {
+  factory LetsMemoryOverlay.withTitleAndButton({bool visible,String title, String body, String buttonText, VoidCallback onTap, String secondButtonText, VoidCallback secondButtonCallback}) {
     return LetsMemoryOverlay(
       visible: visible,
       onTap: onTap,
@@ -65,7 +65,7 @@ class LetsMemoryOverlay extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
-        Padding(padding: EdgeInsets.only(top: 10)),
+        Padding(padding: EdgeInsets.only(top: 20)),
         LetsMemoryMainButton(
           backgroundColor: Colors.indigo[500],
           shadowColor: Colors.indigo[900],
@@ -73,7 +73,17 @@ class LetsMemoryOverlay extends StatelessWidget {
           text: buttonText,
           mini: true,
           callback: onTap,
-        )
+        ),
+        Padding(padding: EdgeInsets.only(top: 20)),
+        (secondButtonText??"").length > 0 ? 
+        LetsMemoryMainButton(
+          backgroundColor: Colors.deepOrange[500],
+          shadowColor: Colors.deepOrange[900],
+          textColor: Colors.white,
+          text: secondButtonText,
+          mini: true,
+          callback: secondButtonCallback,
+        ) : Text("")
 
       ],
     );
@@ -117,7 +127,7 @@ class LetsMemoryOverlay extends StatelessWidget {
         visible: this.visible,
         child: Container(
           padding: EdgeInsets.all(20),
-          color: Color(0xBB000000),
+          color: Color(0xDD000000),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

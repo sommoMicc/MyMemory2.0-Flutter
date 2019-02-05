@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import './pages/home_page.dart';
 
@@ -11,18 +12,21 @@ import './pages/singleplayer/game_result.dart';
 
 
 void main() {  
-  runApp(  
-    MaterialApp(
-      title: "Let's Memory!",
-      initialRoute: '/',
-      routes: {
-        '/': (context) => LetsMemoryHomePage(),
-        '/multiplayer/login': (context) => LetsMemoryLoginPage(),
-        '/multiplayer/signup': (context) => LetsMemorySignupPage(),
-        '/multiplayer/findmatch': (context) => LetsMemoryFindMatch(),
-        '/singleplayer': (context) => LetsMemoryGameArena(),
-        '/singleplayer/gameresult': (context) => LetsMemoryGameResult()
-      },
-    )
-  );
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+  .then((_) {
+    runApp(  
+      MaterialApp(
+        title: "Let's Memory!",
+        initialRoute: '/',
+        routes: {
+          '/': (context) => LetsMemoryHomePage(),
+          '/multiplayer/login': (context) => LetsMemoryLoginPage(),
+          '/multiplayer/signup': (context) => LetsMemorySignupPage(),
+          '/multiplayer/findmatch': (context) => LetsMemoryFindMatch(),
+          '/singleplayer': (context) => LetsMemoryGameArena(),
+          '/singleplayer/gameresult': (context) => LetsMemoryGameResult()
+        },
+      )
+    );
+  });
 }

@@ -59,6 +59,7 @@ implements SocketListener {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
+              Padding(padding:EdgeInsets.only(top:20)),
               Text("Cerca avversario",
                 style: LetsmemoryStyles.mainTitle,
                 textAlign: TextAlign.center
@@ -117,16 +118,18 @@ implements SocketListener {
                   )
                 )
                 :
-                ListView.builder (
-                  itemCount: searchResult.length,
-                  shrinkWrap: true,
-                  itemBuilder: (BuildContext ctxt, int index) {
-                    print("Buildo index "+index.toString());
-                    return _LetsMemorySearchResult(
-                      searchResult[index].username,
-                      searchResult[index].isOnline)
-                    ;
-                  }
+                Flexible(
+                  child: ListView.builder (
+                    itemCount: searchResult.length,
+                    shrinkWrap: false,
+                    itemBuilder: (BuildContext ctxt, int index) {
+                      print("Buildo index "+index.toString());
+                      return _LetsMemorySearchResult(
+                        searchResult[index].username,
+                        searchResult[index].isOnline)
+                      ;
+                    }
+                  )
                 )
             ],
 

@@ -36,10 +36,13 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
   bool tutorialMode;
   bool tutorialVisible;
   bool showTutorialOnCardTap;
+  bool showBenFattoTutorial;
   String tutorialTitle;
   String tutorialText;
   String tutorialButton;
+  String tutorialSecondButton;
   VoidCallback tutorialCallback;
+  VoidCallback tutorialSecondCallback;
 
 
   LetsMemoryFlipableCard lastCardSelected;
@@ -62,6 +65,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
     tutorialVisible = false;
     tutorialMode = false;
     showTutorialOnCardTap = false;
+    showBenFattoTutorial = false;
     checkTutorialVisible();
   }
 
@@ -136,6 +140,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
             setState(() {
               tutorialVisible = false;
               showTutorialOnCardTap = true;
+              showBenFattoTutorial = true;
             });
           };
         });
@@ -164,15 +169,19 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
             setState(() {
               tutorialVisible = true;
               tutorialTitle = "Complimenti!";
-              tutorialText = "Trova tutte le coppie per terminare il gioco";
-              tutorialButton = "Ho capito!";
+              tutorialText = "Tutorial terminato! Completa la partita (premendo \"Vado avanti\") o  premi il tasto \"termina\" per uscire";
+              tutorialButton = "Vado avanti!";
               tutorialCallback = () {
                 setState(() {
                   tutorialVisible = false;
                   showTutorialOnCardTap = false;
-                  StorageHelper().setFirstLaunchSingleplayer(false);
                   //Navigator.of(context).pop();
                 });
+              };
+              StorageHelper().setFirstLaunchSingleplayer(false);
+              tutorialSecondButton = "Termina";
+              tutorialSecondCallback = () {
+                Navigator.of(context).pop();
               };
             });
           }
@@ -195,6 +204,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
               tutorialCallback = () {
                 setState(() {
                   tutorialVisible = false;
+                  showBenFattoTutorial = false;
                 });
               };
             });
@@ -212,7 +222,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
 
       }
       else {
-        if(showTutorialOnCardTap) {
+        if(showTutorialOnCardTap && showBenFattoTutorial) {
           setState(() {
             tutorialVisible = true;
             tutorialTitle = "Ben fatto!";
@@ -269,6 +279,8 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
           body: tutorialText,
           buttonText: tutorialButton,
           onTap: tutorialCallback,
+          secondButtonText: tutorialSecondButton,
+          secondButtonCallback: tutorialSecondCallback,
         )
 
       ]

@@ -30,8 +30,9 @@ class SocketHelper {
 
   void mightConnect() async {
     //Inizializzo il socket solo se ho già un token (quindi ho già fatto il login via HTTP)
+    print("Chiamato mightConnect");
     String token = await StorageHelper().getToken();
-    if(token != null && token.length > 0) {
+    if(token != null && token.length > 0 && !isConnectionInitiated) {
       connect();
       print("Inizializzata connessione con connect");
     }
@@ -42,6 +43,7 @@ class SocketHelper {
 
   void connect() {
     if(!isConnectionInitiated) {
+      isConnectionInitiated = true;
       _socket = IO.io(NetworkHelper.ADDRESS, <String, dynamic>{'transports': ['websocket']});
       _socket.on("connect",(_) async {
         if(reconnectTimer != null) {
@@ -72,7 +74,6 @@ class SocketHelper {
       _socket.on("adversaryCardHidden",_onAdversaryCardHidden);
       _socket.on("gameFinished",_onGameFinished);
     }
-    isConnectionInitiated = true;
   }
 
   void _doLogin() async {
