@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import './lets_memory_static_card.dart';
-import './theme.dart';
+import 'package:letsmemory/UI/lets_memory_static_card.dart';
+import 'package:letsmemory/UI/theme.dart';
 import 'dart:math';
 
 class LetsMemoryLogo extends StatefulWidget {

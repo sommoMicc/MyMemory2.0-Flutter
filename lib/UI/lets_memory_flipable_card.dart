@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './lets_memory_static_card.dart';
+import 'package:letsmemory/UI/lets_memory_static_card.dart';
 import 'dart:math';
 
 class LetsMemoryFlipableCard extends StatefulWidget {

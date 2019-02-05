@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './theme.dart';
+import 'package:letsmemory/UI/theme.dart';
 
 class LetsMemoryStaticCard extends StatelessWidget {
   final String letter;

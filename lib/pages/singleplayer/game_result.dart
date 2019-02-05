@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../UI/main_button.dart';
-import '../../UI/background.dart';
-import '../../UI/theme.dart';
+import 'package:letsmemory/UI/main_button.dart';
+import 'package:letsmemory/UI/background.dart';
+import 'package:letsmemory/UI/theme.dart';
 
 class LetsMemoryGameResult extends StatelessWidget {
   @override

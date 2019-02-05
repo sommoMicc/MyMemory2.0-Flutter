@@ -108,7 +108,6 @@ implements GameSocketListener {
       genericOverlayText = "Turno dell'avversario";
       _startGenericOverlayTimer();
     });
-    print("on Adversary Turn");
   }
 
   @override
@@ -119,7 +118,6 @@ implements GameSocketListener {
       genericOverlayText = "Tocca a te!";
       _startGenericOverlayTimer();
     });
-    print("on My Turn");
   }
 
   @override
@@ -153,7 +151,6 @@ implements GameSocketListener {
   }
 
   void _onSimpleOverlayTap() {
-    print("On simple overlay tap");
     _hideGenericOverlay();
   }
 
@@ -173,7 +170,6 @@ implements GameSocketListener {
       genericOverlayTimer.cancel();
     }
     setState(() {
-      print("Hide Generic overlay sta nascondendo l'overlay");
       genericOverlayVisible = false;
     });
   }

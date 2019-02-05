@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:letsmemory/models/online_user.dart';
 
-import '../utils/storage_helper.dart';
-import '../utils/network_helper.dart';
-import '../utils/socket_helper.dart';
-import '../utils/multiplayer_helper.dart';
+import 'package:letsmemory/utils/storage_helper.dart';
+import 'package:letsmemory/utils/network_helper.dart';
+import 'package:letsmemory/utils/socket_helper.dart';
+import 'package:letsmemory/utils/multiplayer_helper.dart';
 
-import '../models/socket_listener.dart';
+import 'package:letsmemory/models/socket_listener.dart';
 
-import '../UI/theme.dart';
-import '../UI/logo.dart';
-import '../UI/main_button.dart';
-import '../UI/background.dart';
-import '../UI/dialog.dart';
-import '../UI/overlay.dart';
+import 'package:letsmemory/UI/theme.dart';
+import 'package:letsmemory/UI/logo.dart';
+import 'package:letsmemory/UI/main_button.dart';
+import 'package:letsmemory/UI/background.dart';
+import 'package:letsmemory/UI/dialog.dart';
+import 'package:letsmemory/UI/overlay.dart';
 
 import './multiplayer/game_arena.dart';
 
@@ -312,7 +312,6 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
 
   @override
   void onAdversaryLeft() {
-    print("Adversary left home");
     MultiplayerHelper().showAdversaryLeftDialog(context);
   }
 

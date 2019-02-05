@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:letsmemory/models/online_user.dart';
 
-import '../../UI/theme.dart';
-import '../../UI/background.dart';
-import '../../UI/main_button.dart';
-import '../../UI/dialog.dart';
+import 'package:letsmemory/UI/theme.dart';
+import 'package:letsmemory/UI/background.dart';
+import 'package:letsmemory/UI/main_button.dart';
+import 'package:letsmemory/UI/dialog.dart';
 
-import '../../utils/socket_helper.dart';
+import 'package:letsmemory/utils/socket_helper.dart';
 
-import '../../models/socket_listener.dart';
-import '../../models/online_user.dart';
+import 'package:letsmemory/models/socket_listener.dart';
 
 class LetsMemoryFindMatch extends StatelessWidget {
   @override
@@ -123,7 +122,6 @@ implements SocketListener {
                     itemCount: searchResult.length,
                     shrinkWrap: false,
                     itemBuilder: (BuildContext ctxt, int index) {
-                      print("Buildo index "+index.toString());
                       return _LetsMemorySearchResult(
                         searchResult[index].username,
                         searchResult[index].isOnline)
@@ -148,7 +146,6 @@ implements SocketListener {
 
   @override
   bool isMounted() {
-    print("FindMatch mounted? "+ ((this.mounted) ? "Si" : "No"));
     return this.mounted;
   }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import './theme.dart';
-import './main_button.dart';
+import 'package:letsmemory/UI/theme.dart';
+import 'package:letsmemory/UI/main_button.dart';
 
 class LetsMemoryOverlay extends StatelessWidget {
 

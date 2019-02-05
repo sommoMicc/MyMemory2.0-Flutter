@@ -1,5 +1,5 @@
-import './online_user.dart';
-import '../UI/lets_memory_flipable_card.dart';
+import 'package:letsmemory/models/online_user.dart';
+import 'package:letsmemory/UI/lets_memory_flipable_card.dart';
 
 abstract class SocketListener {
   void onLoginResult(bool success, String username);

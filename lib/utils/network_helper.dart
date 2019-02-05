@@ -1,9 +1,9 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert'; //per JSON
 
-import './storage_helper.dart';
-import './socket_helper.dart';
-import '../models/message.dart';
+import 'package:letsmemory/utils/storage_helper.dart';
+import 'package:letsmemory/utils/socket_helper.dart';
+import 'package:letsmemory/models/message.dart';
 
 import 'dart:io' show Platform;
 
@@ -15,7 +15,6 @@ class NetworkHelper {
   static final String ADDRESS = PROTOCOL+"://"+WEB_DOMAIN;
 
   static Future<Message> doSignUp(String username, String email) async {
-    print("Daje chiamato dosignup");
 
     final response = await http.post(
       _buildURL()+"/signup",
@@ -33,8 +32,6 @@ class NetworkHelper {
   }
 
   static Future<Message> doLogin(String email) async {
-    print("Daje chiamato doLogin");
-
     final response = await http.post(
       _buildURL()+"/login",
       body: {
@@ -50,8 +47,6 @@ class NetworkHelper {
   }
 
   static Future<Message> finishLogin(String token) async {
-    print("Daje chiamato finishLogin");
-
     final response = await http.post(
       _buildURL()+"/finishLogin",
       body: {
@@ -65,9 +60,6 @@ class NetworkHelper {
         if(responseMessage.data != null) {
           await StorageHelper().setToken(responseMessage.data['token']);
           await StorageHelper().setUsername(responseMessage.data['username']);
-
-          print(await StorageHelper().getToken());
-          print(await StorageHelper().getUsername());
 
           SocketHelper().mightConnect();
         }

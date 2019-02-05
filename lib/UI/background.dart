@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './../UI/theme.dart';
+import 'package:letsmemory/UI/theme.dart';
 
 class LetsMemoryBackground extends StatelessWidget {
 

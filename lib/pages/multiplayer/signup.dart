@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../UI/theme.dart';
-import '../../UI/background.dart';
-import '../../UI/main_button.dart';
-import '../../UI/dialog.dart';
+import 'package:letsmemory/UI/theme.dart';
+import 'package:letsmemory/UI/background.dart';
+import 'package:letsmemory/UI/main_button.dart';
+import 'package:letsmemory/UI/dialog.dart';
 
-import '../../utils/network_helper.dart';
-import '../../models/message.dart';
+import 'package:letsmemory/utils/network_helper.dart';
+import 'package:letsmemory/models/message.dart';
 
 
 

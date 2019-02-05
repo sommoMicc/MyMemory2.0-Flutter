@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../UI/background.dart';
-import '../../UI/theme.dart';
-import '../../UI/lets_memory_flipable_card.dart';
-import '../../UI/lets_memory_card.dart';
-import '../../UI/lets_memory_static_card.dart';
+import 'package:letsmemory/UI/background.dart';
+import 'package:letsmemory/UI/theme.dart';
+import 'package:letsmemory/UI/lets_memory_flipable_card.dart';
+import 'package:letsmemory/UI/lets_memory_card.dart';
+import 'package:letsmemory/UI/lets_memory_static_card.dart';
 
-import '../../UI/overlay.dart';
+import 'package:letsmemory/UI/overlay.dart';
 
-import '../../utils/game_arena_utils.dart';
-import '../../utils/storage_helper.dart';
+import 'package:letsmemory/utils/game_arena_utils.dart';
+import 'package:letsmemory/utils/storage_helper.dart';
 
 import 'dart:async';
 import 'dart:math';

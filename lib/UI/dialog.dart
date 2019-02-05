@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../UI/theme.dart';
-import '../UI/main_button.dart';
+import 'package:letsmemory/UI/theme.dart';
+import 'package:letsmemory/UI/main_button.dart';
 
 class LetsMemoryDialog {
   static AlertDialog success({BuildContext context, String textContent}) {

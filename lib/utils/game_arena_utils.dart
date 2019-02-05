@@ -1,4 +1,4 @@
-import '../UI/lets_memory_flipable_card.dart';
+import 'package:letsmemory/UI/lets_memory_flipable_card.dart';
 
 import 'dart:math';
 import 'package:flutter/material.dart';

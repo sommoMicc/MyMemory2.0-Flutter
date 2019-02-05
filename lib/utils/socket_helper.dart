@@ -3,11 +3,11 @@ import  'package:socket_io_client/socket_io_client.dart' as IO;
 import 'network_helper.dart';
 import 'storage_helper.dart';
 
-import '../models/socket_listener.dart';
-import '../models/message.dart';
+import 'package:letsmemory/models/socket_listener.dart';
+import 'package:letsmemory/models/message.dart';
 import '../models/online_user.dart';
 
-import '../UI/lets_memory_flipable_card.dart';
+import 'package:letsmemory/UI/lets_memory_flipable_card.dart';
 import 'dart:async';
 
 class SocketHelper {
@@ -26,7 +26,9 @@ class SocketHelper {
   factory SocketHelper() {
     return _singleton;
   }
-  SocketHelper._internal(): isConnectionInitiated = false, isConnected = false;
+  SocketHelper._internal(): isConnectionInitiated = false, isConnected = false {
+    print("Chiamato metodo sockethelper internal"); 
+  }
 
   void mightConnect() async {
     //Inizializzo il socket solo se ho già un token (quindi ho già fatto il login via HTTP)
@@ -37,7 +39,7 @@ class SocketHelper {
       print("Inizializzata connessione con connect");
     }
     else {
-      print("Token non presente o nullo");
+      print("connessione con connect non inizializzata");
     }
   }
 
@@ -97,11 +99,9 @@ class SocketHelper {
   }
 
   void _onLoginResponse(dynamic data) {
-    print(data);
     Message response = Message.fromJSON(data);
     if(response.status == "success") {
       currentSocketListener.forEach((listener) {
-        print("Itero su listener");
         if(listener.isMounted())
           listener.onLoginResult(true, response.message);
       });
@@ -116,12 +116,10 @@ class SocketHelper {
   }
 
   void searchUsers(String query) {
-    print("Do search");
     _socket.emit("search",query);
   }
 
   void _onSearchResult(dynamic data) {
-    print("Search Result:");
     Message response = Message.fromJSON(data);
     if(response.status == "success") {
       searchResults = [];
@@ -146,7 +144,6 @@ class SocketHelper {
 
 
   void _onUserConnected(dynamic username) {
-    print("Utente connesso: "+username);
     for(int i=0;i<searchResults.length;i++) {
       if(username == searchResults[i].username) {
         searchResults[i].isOnline = true;
@@ -156,7 +153,6 @@ class SocketHelper {
   }
 
   void _onUserDisconnected(dynamic username) {
-    print("Utente disconnesso: "+username);
     for(int i=0;i<searchResults.length;i++) {
       if(username == searchResults[i].username) {
         searchResults[i].isOnline = false;
@@ -173,7 +169,6 @@ class SocketHelper {
   }
 
   void _onChallengeDenided(dynamic username) {
-    print("Ricevuto challenge denided");
     currentSocketListener.forEach((listener) {
       if(listener.isMounted())
         listener.onChallengeDenided(username);
@@ -228,7 +223,6 @@ class SocketHelper {
   }
 
   void _onAdversaryLeft(dynamic data) {
-    print("Adversary left socket helper");
     currentSocketListener.forEach((listener) {
       if(listener.isMounted())
         listener.onAdversaryLeft();
