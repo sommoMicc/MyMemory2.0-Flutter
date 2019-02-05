@@ -350,12 +350,13 @@ implements GameSocketListener {
       onWillPop: _onWillPop,
       child: LetsMemoryBackground(
         children: <Widget>[
+          LetsMemoryMainButton.getBackButton(context),
           Padding(
             padding: EdgeInsets.only(
               left: widget.cardsPadding,
               right: widget.cardsPadding,
               bottom: widget.cardsPadding,
-              top: 60.0 * aspectRatioCorrection
+              top: 60.0 * max(aspectRatioCorrection,0.75)
             ),
             child: GridView.count(
               mainAxisSpacing: widget.cardsPadding,

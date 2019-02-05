@@ -38,7 +38,8 @@ class LetsMemoryGameResult extends StatelessWidget {
               ),
             ],
           )
-        )
+        ),
+        LetsMemoryMainButton.getBackButton(context)
       ],
     );
   }

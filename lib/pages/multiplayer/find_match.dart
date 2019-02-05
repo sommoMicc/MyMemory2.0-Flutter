@@ -133,6 +133,7 @@ implements SocketListener {
 
           ),
         ),
+        LetsMemoryMainButton.getBackButton(context),
       ]
     );
   }

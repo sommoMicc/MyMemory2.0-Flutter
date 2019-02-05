@@ -14,6 +14,28 @@ class LetsMemoryMainButton extends StatefulWidget {
   State<StatefulWidget> createState() {
     return LetsMemoryMainButtonState();
   }
+
+  static Widget getBackButton(BuildContext context) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: 26,
+          left: 4
+        ),
+        child: LetsMemoryMainButton(
+          icon: Icons.arrow_back,
+          mini: true,
+          backgroundColor: Colors.red[700],
+          shadowColor: Colors.red[900],
+          callback: () {
+            Navigator.of(context).pop();
+          },
+        )
+      ),
+    );
+  }
 }
 
 class LetsMemoryMainButtonState extends State<LetsMemoryMainButton> {

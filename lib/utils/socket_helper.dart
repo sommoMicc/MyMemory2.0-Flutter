@@ -236,7 +236,7 @@ class SocketHelper {
   }
 
   void _onDisconnect(dynamic data) {
-    print("Disconnesso!!");
+    print("Disconnesso causa: "+data);
     isConnected = false;
     currentSocketListener.forEach((listener) {
       if(listener.isMounted())

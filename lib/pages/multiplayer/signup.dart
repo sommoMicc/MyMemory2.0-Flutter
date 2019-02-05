@@ -153,7 +153,8 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
               ),
             ],
           ),
-        )
+        ),
+        LetsMemoryMainButton.getBackButton(context)
       ],
     ); 
   }

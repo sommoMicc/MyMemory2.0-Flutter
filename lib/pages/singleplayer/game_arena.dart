@@ -7,6 +7,7 @@ import 'package:letsmemory/UI/lets_memory_card.dart';
 import 'package:letsmemory/UI/lets_memory_static_card.dart';
 
 import 'package:letsmemory/UI/overlay.dart';
+import 'package:letsmemory/UI/main_button.dart';
 
 import 'package:letsmemory/utils/game_arena_utils.dart';
 import 'package:letsmemory/utils/storage_helper.dart';
@@ -254,7 +255,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
             left: widget.cardsPadding,
             right: widget.cardsPadding,
             bottom: widget.cardsPadding,
-            top: 60.0 * aspectRatioCorrection
+            top: 60.0 * max(aspectRatioCorrection,0.75)
           ),
           child: GridView.count(
             mainAxisSpacing: widget.cardsPadding,
@@ -272,6 +273,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
           right: 0,
           child: _BottomSheet(this.cardsFound, (this.cards.length / 2).floor(), aspectRatioCorrection),
         ),
+        LetsMemoryMainButton.getBackButton(context),
         _StartGameOverlay(secondsToStartGame),
         LetsMemoryOverlay.withTitleAndButton(
           visible: this.tutorialVisible,

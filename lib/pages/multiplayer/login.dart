@@ -131,7 +131,8 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
               ),
             ],
           ),
-        )
+        ),
+        LetsMemoryMainButton.getBackButton(context)
       ],
     ); 
   }

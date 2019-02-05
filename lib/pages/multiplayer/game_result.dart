@@ -37,7 +37,8 @@ class LetsMemoryMultiplayerGameResult extends StatelessWidget {
               ),
             ],
           )
-        )
+        ),
+        LetsMemoryMainButton.getBackButton(context)
         
       ],
     );
