@@ -343,9 +343,6 @@ implements GameSocketListener {
 
   @override
   Widget build(BuildContext context) {
-    MediaQueryData mediaQuery = MediaQuery.of(context);
-    double aspectRatioCorrection = pow(2,mediaQuery.size.height/mediaQuery.size.width) - 3.0;
-
     return WillPopScope(
       onWillPop: _onWillPop,
       child: LetsMemoryBackground(
@@ -356,7 +353,9 @@ implements GameSocketListener {
               left: widget.cardsPadding,
               right: widget.cardsPadding,
               bottom: widget.cardsPadding,
-              top: 60.0 * max(aspectRatioCorrection,0.75)
+              top: LetsMemoryDimensions.scaleHeight(context,
+                LetsMemoryDimensions.standardCard * 
+                LetsMemoryDimensions.miniButtonScaleFactor + 11)
             ),
             child: GridView.count(
               mainAxisSpacing: widget.cardsPadding,
@@ -372,7 +371,7 @@ implements GameSocketListener {
             bottom: 0,
             left: 0,
             right: 0,
-            child: _BottomSheet(this.cardsFoundByMe,this.cardsFoundByAdversary, aspectRatioCorrection, this.myTurn, ()=>_showGenericOverlay()),
+            child: _BottomSheet(this.cardsFoundByMe,this.cardsFoundByAdversary, this.myTurn, ()=>_showGenericOverlay()),
           ),
           _StartGameOverlay(widget.adversaryName,secondsToStartGame),
           LetsMemoryOverlay.simple(
@@ -437,7 +436,6 @@ class _BottomSheet extends StatefulWidget {
   final int _cardsFoundByMe;
   final int _cardsFoundByAdversary;
 
-  final double _aspectRatio; 
   final bool myTurn;
   final Color backgroundColor;
   final Color shadowColor;
@@ -446,7 +444,7 @@ class _BottomSheet extends StatefulWidget {
   final VoidCallback tapCallback;
 
   _BottomSheet(this._cardsFoundByMe,this._cardsFoundByAdversary,
-    this._aspectRatio,this.myTurn,this.tapCallback) : 
+    this.myTurn,this.tapCallback) : 
       backgroundColor = myTurn ? Colors.green[700] : Colors.deepOrange[700],
       shadowColor = myTurn ? Colors.green[900] : Colors.deepOrange[900];
 
@@ -524,6 +522,8 @@ class _BottomSheetState extends State<_BottomSheet> {
           padding: EdgeInsets.only(
             left: LetsMemoryDimensions.standardCard/8,
             right: LetsMemoryDimensions.standardCard/8,
+            bottom: LetsMemoryDimensions.scaleHeight(context, 
+              LetsMemoryDimensions.standardCard/3),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

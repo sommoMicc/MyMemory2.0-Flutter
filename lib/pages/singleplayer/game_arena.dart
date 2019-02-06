@@ -245,9 +245,6 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
 
   @override
   Widget build(BuildContext context) {
-    MediaQueryData mediaQuery = MediaQuery.of(context);
-    double aspectRatioCorrection = pow(2,mediaQuery.size.height/mediaQuery.size.width) - 3.0;
-
     return LetsMemoryBackground(
       children: <Widget>[
         Padding(
@@ -255,7 +252,9 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
             left: widget.cardsPadding,
             right: widget.cardsPadding,
             bottom: widget.cardsPadding,
-            top: 60.0 * max(aspectRatioCorrection,0.75)
+            top: LetsMemoryDimensions.scaleHeight(context,
+              LetsMemoryDimensions.standardCard * 
+              LetsMemoryDimensions.miniButtonScaleFactor + 11)
           ),
           child: GridView.count(
             mainAxisSpacing: widget.cardsPadding,
@@ -271,7 +270,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
           bottom: 0,
           left: 0,
           right: 0,
-          child: _BottomSheet(this.cardsFound, (this.cards.length / 2).floor(), aspectRatioCorrection),
+          child: _BottomSheet(this.cardsFound, (this.cards.length / 2).floor()),
         ),
         LetsMemoryMainButton.getBackButton(context),
         _StartGameOverlay(secondsToStartGame),
@@ -328,9 +327,8 @@ class _StartGameOverlay extends StatelessWidget {
 class _BottomSheet extends StatefulWidget {
   final int _cardsFound;
   final int _totalCards;
-  final double _aspectRatio; 
 
-  _BottomSheet(this._cardsFound,this._totalCards,this._aspectRatio);
+  _BottomSheet(this._cardsFound,this._totalCards);
 
 
   static TextStyle getTextStyle() {
@@ -425,7 +423,8 @@ class _BottomSheetState extends State<_BottomSheet> with SingleTickerProviderSta
             left: LetsMemoryDimensions.standardCard/8,
             right: LetsMemoryDimensions.standardCard/8,
             top: LetsMemoryDimensions.standardCard/8,
-            bottom: LetsMemoryDimensions.standardCard/2 * max(widget._aspectRatio, 1),
+            bottom: LetsMemoryDimensions.scaleHeight(context, 
+                        LetsMemoryDimensions.standardCard/3),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

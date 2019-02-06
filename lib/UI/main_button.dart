@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:letsmemory/UI/theme.dart';
+import 'dart:io' show Platform;
 
 class LetsMemoryMainButton extends StatefulWidget {
   final Color backgroundColor, shadowColor, textColor;
@@ -21,11 +22,13 @@ class LetsMemoryMainButton extends StatefulWidget {
       left: 0,
       child: Padding(
         padding: EdgeInsets.only(
-          top: 26,
+          top: LetsMemoryDimensions
+            .scaleHeight(context,LetsMemoryDimensions.backButtonPaddingTop),
           left: 4
         ),
         child: LetsMemoryMainButton(
-          icon: Icons.arrow_back,
+          icon: Platform.isAndroid ? Icons.arrow_back :
+            Icons.arrow_back_ios,
           mini: true,
           backgroundColor: Colors.red[700],
           shadowColor: Colors.red[900],
@@ -110,10 +113,13 @@ class _LetsMemoryMainButtonContainer extends StatelessWidget {
       ),
       child: Center(
         child: Padding(
-          padding: EdgeInsets.only(left: LetsMemoryDimensions.cardFont, right: LetsMemoryDimensions.cardFont),
+          padding: EdgeInsets.symmetric(
+            horizontal: LetsMemoryDimensions.cardFont
+          ),
           child: icon == null ? Text(this.text,
             style: TextStyle(
-              fontSize: mini ? LetsMemoryDimensions.cardFont * 2 / 3 
+              fontSize: mini ? LetsMemoryDimensions.cardFont * 
+                LetsMemoryDimensions.miniButtonScaleFactor 
                 : LetsMemoryDimensions.cardFont,
               fontWeight: mini ? FontWeight.w500 : FontWeight.w900,
               color: this.textColor
@@ -121,7 +127,8 @@ class _LetsMemoryMainButtonContainer extends StatelessWidget {
           ) : Icon(
             this.icon,
             color: this.textColor,
-            size: mini ? LetsMemoryDimensions.cardFont * 2 / 3 
+            size: mini ? LetsMemoryDimensions.cardFont * 
+              LetsMemoryDimensions.miniButtonScaleFactor 
                 : LetsMemoryDimensions.cardFont,
           )
         )

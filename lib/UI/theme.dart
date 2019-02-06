@@ -23,7 +23,17 @@ class LetsMemoryDimensions {
   static const double cardRadius = standardCard / 3;
   static const double cardBorder = cardFont / 10;
 
-  static const mainButtonFont = cardFont/2 + 10;
+  static const double mainButtonFont = cardFont/2 + 10;
+  static const double miniButtonScaleFactor = 0.75;
+  static const double backButtonPaddingTop = 26;
+
+  static double scaleHeight(BuildContext context, double dimension) {
+    return dimension * MediaQuery.of(context).size.height / 592.0;
+  }
+
+  static double scaleWidth(BuildContext context, double dimension) {
+    return dimension * MediaQuery.of(context).size.height / 360.0;
+  }
 }
 
 class LetsmemoryStyles {

@@ -74,7 +74,7 @@ class LetsMemoryOverlay extends StatelessWidget {
           mini: true,
           callback: onTap,
         ),
-        Padding(padding: EdgeInsets.only(top: 20)),
+        Padding(padding: EdgeInsets.only(top: 30)),
         (secondButtonText??"").length > 0 ? 
         LetsMemoryMainButton(
           backgroundColor: Colors.deepOrange[500],
