@@ -505,7 +505,7 @@ class _BottomSheetState extends State<_BottomSheet> {
       onTap: _onTap,
       child: Container(
           constraints: BoxConstraints(
-            maxHeight: LetsMemoryDimensions.standardCard * 2,
+            maxHeight: LetsMemoryDimensions.standardCard * 1.6,
           ),
           decoration: BoxDecoration(
             boxShadow: [
@@ -524,14 +524,14 @@ class _BottomSheetState extends State<_BottomSheet> {
           padding: EdgeInsets.only(
             left: LetsMemoryDimensions.standardCard/8,
             right: LetsMemoryDimensions.standardCard/8,
-            top: LetsMemoryDimensions.standardCard/8,
-            bottom: LetsMemoryDimensions.standardCard/2 * max(widget._aspectRatio, 1),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             
             children: <Widget>[
               Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Text("Io: ",style: _BottomSheet.getTextStyle()),
                   Padding(padding: EdgeInsets.only(left: LetsMemoryDimensions.standardCard/2)),

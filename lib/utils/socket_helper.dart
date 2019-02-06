@@ -1,4 +1,4 @@
-import  'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:adhara_socket_io/adhara_socket_io.dart';
 
 import 'network_helper.dart';
 import 'storage_helper.dart';
@@ -11,7 +11,7 @@ import 'package:letsmemory/UI/lets_memory_flipable_card.dart';
 import 'dart:async';
 
 class SocketHelper {
-  static IO.Socket _socket;
+  static SocketIO _socket;
   List<SocketListener> currentSocketListener = [];
   GameSocketListener currentGameListener;
 
@@ -35,7 +35,7 @@ class SocketHelper {
     print("Chiamato mightConnect");
     String token = await StorageHelper().getToken();
     if(token != null && token.length > 0 && !isConnectionInitiated) {
-      connect();
+      await connect();
       print("Inizializzata connessione con connect");
     }
     else {
@@ -43,12 +43,12 @@ class SocketHelper {
     }
   }
 
-  void connect() {
+  void connect() async {
     if(!isConnectionInitiated) {
       isConnectionInitiated = true;
       if(_socket == null) {
-        _socket = IO.io(NetworkHelper.ADDRESS, <String, dynamic>{'transports': ['websocket']});
-        _socket.on("connect",(_) async {
+        _socket = await SocketIOManager().createInstance(NetworkHelper.ADDRESS);
+        _socket.onConnect((_) async {
           if(reconnectTimer != null) {
             reconnectTimer.cancel();
           }
@@ -56,35 +56,36 @@ class SocketHelper {
           isConnected = true;
           _doLogin();
         });
-      }
-
-      _socket.on("loginResponse",_onLoginResponse);
-      _socket.on("searchResult",_onSearchResult);
-
-      _socket.on("userConnected",_onUserConnected);
-      _socket.on("userDisconnected",_onUserDisconnected);
-
-      _socket.on("wannaChallenge",_onChallengeReceived);
-      _socket.on("challengeDenided",_onChallengeDenided);
-
-      _socket.on("beginGame",_onBeginGame);
-      _socket.on("adversaryLeft",_onAdversaryLeft);
       
-      _socket.on("disconnect",_onDisconnect);
-      _socket.on("reconnect",_onReconnect);
+        _socket.on("loginResponse",_onLoginResponse);
+        _socket.on("searchResult",_onSearchResult);
 
-      _socket.on("adversaryTurn",_onAdversaryTurn);
-      _socket.on("myTurn",_onMyTurn);
-      _socket.on("adversaryCardFlipped",_onAdversaryCardFlipped);
-      _socket.on("adversaryCardHidden",_onAdversaryCardHidden);
-      _socket.on("gameFinished",_onGameFinished);
+        _socket.on("userConnected",_onUserConnected);
+        _socket.on("userDisconnected",_onUserDisconnected);
+
+        _socket.on("wannaChallenge",_onChallengeReceived);
+        _socket.on("challengeDenided",_onChallengeDenided);
+
+        _socket.on("beginGame",_onBeginGame);
+        _socket.on("adversaryLeft",_onAdversaryLeft);
+        
+        _socket.onDisconnect(_onDisconnect);
+        _socket.on("reconnect",_onReconnect);
+
+        _socket.on("adversaryTurn",_onAdversaryTurn);
+        _socket.on("myTurn",_onMyTurn);
+        _socket.on("adversaryCardFlipped",_onAdversaryCardFlipped);
+        _socket.on("adversaryCardHidden",_onAdversaryCardHidden);
+        _socket.on("gameFinished",_onGameFinished);
+      }
+      _socket.connect();
     }
   }
 
   void _doLogin() async {
     String token = await StorageHelper().getToken();
     if(token != null && token.length != 0) {      
-      _socket.emit("login",token);
+      _socket.emit("login",[token]);
     }
   }
 
@@ -118,7 +119,7 @@ class SocketHelper {
   }
 
   void searchUsers(String query) {
-    _socket.emit("search",query);
+    _socket.emit("search",[query]);
   }
 
   void _onSearchResult(dynamic data) {
@@ -178,15 +179,15 @@ class SocketHelper {
   }
 
   void acceptChallenge(String username) {
-    _socket.emit("challengeAccepted",username);
+    _socket.emit("challengeAccepted",[username]);
   }
 
   void denyChallenge(String username) {
-    _socket.emit("challengeDenided",username);
+    _socket.emit("challengeDenided",[username]);
   }
 
   void sendChallenge(String username) {
-    _socket.emit("sendChallenge",username);
+    _socket.emit("sendChallenge",[username]);
   }
 
   void _onBeginGame(dynamic data) async {
@@ -232,7 +233,7 @@ class SocketHelper {
   }
 
   void leaveGame() {
-    _socket.emit("leaveGame");
+    _socket.emit("leaveGame",[]);
   }
 
   void _onDisconnect(dynamic data) {
@@ -285,10 +286,10 @@ class SocketHelper {
   }
 
   void cardFlipped(int cardIndex) {
-    _socket.emit("cardFlipped",cardIndex);
+    _socket.emit("cardFlipped",[cardIndex]);
   }
   void cardHidden(int cardIndex) {
-    _socket.emit("cardHidden",cardIndex);
+    _socket.emit("cardHidden",[cardIndex]);
   }
 
   void _onGameFinished(dynamic winner) {

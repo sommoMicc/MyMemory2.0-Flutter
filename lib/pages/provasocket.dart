@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
-import 'dart:async';
+import 'package:adhara_socket_io/adhara_socket_io.dart';
 
 class ProvaSocket extends StatefulWidget {
   @override
@@ -17,20 +16,44 @@ class _ProvaSocketState extends State<ProvaSocket> {
     super.initState();
     status = "Nothing done";
     additionalInfo = "";
-
-    IO.Socket socket = IO.io('https://tagliabuemichele.homepc.it/', <String, dynamic>{'transports': ['websocket']});
-    socket.on('connect', (_) { 
-      setState(() {
-        status = "Connected!";
-        socket.emit("ping");
-      });
-    });
-    socket.on('disconnect', (_) { 
-      setState(() {
-        status = "Disconnected :/";
-      });
-    });
+    initSocket();
   }
+  
+  void initSocket() async {
+    SocketIO socket = await SocketIOManager().createInstance('https://tagliabuemichele.homepc.it/');       //TODO change the port  accordingly
+    socket.onConnect((data){
+      print("connected...");
+      print(data);
+      setState(() {
+        status = "Connected";
+      });
+    });
+    socket.onDisconnect((data) {
+      setState(() {
+        status = "Disconnected "+data;
+      });
+      print("Disconneted :(");
+      print(data);
+    });
+    socket.on("news", (data){   //sample event
+      print("news");
+      print(data);
+    });
+    socket.on("pong", (data) {
+      setState(() {
+        status = "Ricevuto pong";
+      });
+    });
+    socket.on("ping", (data) {
+      setState(() {
+        status = "Ricevuto ping";
+      });
+    });
+
+    socket.connect();
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
