@@ -52,7 +52,7 @@ class SocketHelper {
           if(reconnectTimer != null) {
             reconnectTimer.cancel();
           }
-          print("Connected");
+          print("Connected XOXOXO");
           isConnected = true;
           _doLogin();
         });
@@ -102,19 +102,26 @@ class SocketHelper {
   }
 
   void _onLoginResponse(dynamic data) {
-    Message response = Message.fromJSON(data);
-    if(response.status == "success") {
-      currentSocketListener.forEach((listener) {
-        if(listener.isMounted())
-          listener.onLoginResult(true, response.message);
-      });
+    try {
+      Message response = Message.fromJSON(data);
+      if(response.status == "success") {
+        currentSocketListener.forEach((listener) {
+          if(listener.isMounted())
+            listener.onLoginResult(true, response.message);
+        });
+      }
+      else {
+        StorageHelper().logout();
+        currentSocketListener.forEach((listener) {
+          if(listener.isMounted())
+            listener.onLoginResult(false, null);
+        });
+      }
+
     }
-    else {
-      StorageHelper().logout();
-      currentSocketListener.forEach((listener) {
-        if(listener.isMounted())
-          listener.onLoginResult(false, null);
-      });
+    catch(e) {
+      print("Eccezione nel decodificare il messaggio di login");
+      print(e);
     }
   }
 
@@ -123,19 +130,32 @@ class SocketHelper {
   }
 
   void _onSearchResult(dynamic data) {
-    Message response = Message.fromJSON(data);
-    if(response.status == "success") {
-      searchResults = [];
-      List<dynamic> results = response.data['users'];
-      results.forEach((onlineUserJSON) {
-        searchResults.add(OnlineUser.fromJSON(onlineUserJSON));
-      });
+    try {
 
-      _notifySearchResultChanged();
+      Message response = Message.fromJSON(data);
+      if(response.status == "success") {
+        searchResults = [];
+        List<dynamic> results = response.data['users'];
+        results.forEach((onlineUserJSON) {
+          print("RISULTATO");
+          OnlineUser toAdd = OnlineUser.fromJSON(Map<String,dynamic>.from(onlineUserJSON));
+          print("CREATO USER");
+          searchResults.add(toAdd);
+        });
+        print("searchResult");
+        print(searchResults);
+
+        _notifySearchResultChanged();
+        
+      }
+      else {
+        //currentSocketListener.onLoginResult(false, null);
+      }
     }
-    else {
-      //currentSocketListener.onLoginResult(false, null);
-    }
+    catch(e) {
+        print("ECCEZIONE SEARCH RESULT "+data);
+      }
+
   }
 
   void _notifySearchResultChanged() {
@@ -197,7 +217,7 @@ class SocketHelper {
       List<LetsMemoryFlipableCard> cards = [];
       List<dynamic> cardsDynamicList = message.data['cards'];
       cardsDynamicList.forEach((cardJSON) {
-        cards.add(LetsMemoryFlipableCard.fromJSON(cardJSON));
+        cards.add(LetsMemoryFlipableCard.fromJSON(Map<String,dynamic>.from(cardJSON)));
       });
 
       String currentUseranme = await StorageHelper().getUsername();

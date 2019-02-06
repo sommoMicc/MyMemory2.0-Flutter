@@ -264,6 +264,7 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
 
   @override
   void onLoginResult(bool success, String username) {
+    print("ON LOGIN RESULT");
     if(success) {
       Scaffold.of(context).showSnackBar(
         _createSnackBar("Bentornato "+username, success) 
