@@ -19,6 +19,7 @@ class SocketHelper {
 
   bool isConnectionInitiated;
   bool isConnected;
+  bool intentionalLogout;
 
   Timer reconnectTimer;
 
@@ -26,9 +27,8 @@ class SocketHelper {
   factory SocketHelper() {
     return _singleton;
   }
-  SocketHelper._internal(): isConnectionInitiated = false, isConnected = false {
-    print("Chiamato metodo sockethelper internal"); 
-  }
+  SocketHelper._internal(): isConnectionInitiated = false, 
+    isConnected = false, intentionalLogout = false;
 
   void mightConnect() async {
     //Inizializzo il socket solo se ho già un token (quindi ho già fatto il login via HTTP)
@@ -52,11 +52,11 @@ class SocketHelper {
           if(reconnectTimer != null) {
             reconnectTimer.cancel();
           }
-          print("Connected XOXOXO");
+          print("Connected");
           isConnected = true;
           _doLogin();
         });
-      
+        
         _socket.on("loginResponse",_onLoginResponse);
         _socket.on("searchResult",_onSearchResult);
 
@@ -79,6 +79,7 @@ class SocketHelper {
         _socket.on("gameFinished",_onGameFinished);
       }
       _socket.connect();
+      intentionalLogout = false;
     }
   }
 
@@ -123,6 +124,13 @@ class SocketHelper {
       print("Eccezione nel decodificare il messaggio di login");
       print(e);
     }
+  }
+
+  void logout() async {
+    intentionalLogout = true;
+    await StorageHelper().logout();
+    await SocketIOManager().clearInstance(_socket);
+    isConnectionInitiated = false;
   }
 
   void searchUsers(String query) {
@@ -259,6 +267,7 @@ class SocketHelper {
   void _onDisconnect(dynamic data) {
     print("Disconnesso causa: "+data);
     isConnected = false;
+
     currentSocketListener.forEach((listener) {
       if(listener.isMounted())
         listener.onDisconnect();
@@ -269,9 +278,10 @@ class SocketHelper {
     if(reconnectTimer != null) {
       reconnectTimer.cancel();
     }
-    reconnectTimer = Timer.periodic(Duration(seconds: 5), (Timer timer) {
-      this.connect();
-    });
+    if(!intentionalLogout)
+      reconnectTimer = Timer.periodic(Duration(seconds: 5), (Timer timer) {
+        this.connect();
+      });
   }
 
   void _onReconnect(dynamic data) {

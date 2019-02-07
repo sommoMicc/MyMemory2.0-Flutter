@@ -163,7 +163,8 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
   implements SocketListener {
 
   bool tutorialVisible;
-  
+  bool logoutVisible;
+
   @override
   void initState() {
     super.initState();
@@ -174,14 +175,32 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
       });
     tutorialVisible = false;
     checkTutorialVisible();
+    logoutVisible = false;
+    checkLogoutVisible();
   }
 
   void checkTutorialVisible() async {
-    tutorialVisible = await StorageHelper().getFirstLaunch();
-    if(tutorialVisible) {
+    if(await StorageHelper().getFirstLaunch()) {
       setState(() {
         tutorialVisible = true;
       });
+    }
+  }
+
+  Future<bool> checkLogoutVisible() async {
+    if((await StorageHelper().getToken() ?? "").length > 0) {
+      if(!logoutVisible)
+        setState(() {
+          logoutVisible = true;
+        });
+      return true;
+    }
+    else {
+      if(logoutVisible)
+      setState(() {
+        logoutVisible = false;
+      });
+      return false;
     }
   }
 
@@ -243,6 +262,7 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
             ],
           ),
         ),
+        _LetsMemoryLogoutButton(this.logoutVisible),
         LetsMemoryOverlay.withTitleAndButton(
           visible: this.tutorialVisible,
           title: "Benvenuto in LetsMemory!",
@@ -275,6 +295,7 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
        _createSnackBar("Impossibile effettuare il login. Credenziali errate.", success) 
       );
     }
+    checkLogoutVisible();
   }
 
   SnackBar _createSnackBar(String text, bool success) {
@@ -317,10 +338,12 @@ class _LetsMemoryHomePageInnerState extends State<_LetsMemoryHomePageInner>
   }
 
   @override
-  void onDisconnect() {
-    Scaffold.of(context).showSnackBar(
-      _createSnackBar("Connessione persa :(", false)
-    );
+  void onDisconnect() async {
+    if(await checkLogoutVisible()) {
+      Scaffold.of(context).showSnackBar(
+        _createSnackBar("Connessione persa :(", false)
+      );
+    }
   }
 
   @override
@@ -368,4 +391,71 @@ class _LetsMemorySnackbar extends StatelessWidget {
   }
 }
 
+class _LetsMemoryLogoutButton extends StatelessWidget {
+  final bool visible;
+  _LetsMemoryLogoutButton(this.visible);
+
+  @override
+  Widget build(BuildContext context) {
+    return visible ? Positioned(
+      top: 0,
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: LetsMemoryDimensions
+            .scaleHeight(context,LetsMemoryDimensions.backButtonPaddingTop),
+          left: 4
+        ),
+        child: LetsMemoryMainButton(
+          icon: Icons.exit_to_app,
+          mini: true,
+          backgroundColor: Colors.red[700],
+          shadowColor: Colors.red[900],
+          callback: () async {
+            bool shouldLogout = await showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(LetsMemoryDimensions.cardRadius)
+                ),
+                title: new Text("Conferma!"),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text("Vuoi veramente effettuare il logout dal gioco?")
+                  ],
+                ),
+                actions: <Widget>[
+                  LetsMemoryMainButton(
+                    textColor: Colors.black,
+                    backgroundColor: Colors.red[500],
+                    shadowColor: Colors.red[900],
+                    mini: true,
+                    text: "Si",
+                    callback: () {
+                      Navigator.pop(context,true);
+                    },
+                  ),
+                  LetsMemoryMainButton(
+                    textColor: Colors.white,
+                    backgroundColor: Colors.lightGreen[500],
+                    shadowColor: Colors.lightGreen[900],
+                    mini: true,
+                    text: "No",
+                    callback: () {
+                      Navigator.pop(context,false);
+                    },
+                  )
+                ],
+              ),
+            ) ?? false;
+            if(shouldLogout) {
+              SocketHelper().logout();
+            }
+          },
+        )
+      ),
+    ) : Container(width: 0,height: 0);
+  }
+
+}
 

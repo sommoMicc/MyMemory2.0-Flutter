@@ -11,11 +11,11 @@ import '../../UI/lets_memory_static_card.dart';
 import '../../UI/lets_memory_card.dart';
 import '../../UI/main_button.dart';
 import '../../UI/overlay.dart';
+import 'package:letsmemory/UI/dialog.dart';
 
 import '../../utils/socket_helper.dart';
 
 import 'dart:async';
-import 'dart:math';
 
 class LetsMemoryMultiplayerGameArena extends StatefulWidget {
   final List<LetsMemoryFlipableCard> cards;
@@ -62,7 +62,17 @@ implements GameSocketListener {
   }
 
   @override
-  void onDisconnect() {
+  void onDisconnect() async{
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return LetsMemoryDialog.error(
+          context: context,
+          textContent: "Connessione persa! Il gioco è terminato :("
+        );
+      }
+    );
     Navigator.popUntil
       (context, ModalRoute.withName(Navigator.defaultRouteName));
   }

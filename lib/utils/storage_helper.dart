@@ -41,11 +41,12 @@ class StorageHelper {
     this.username = username;
   }
 
-  void logout() async {
+  Future<bool> logout() async {
     await _storage.delete(key: _keyUsername);
     await _storage.delete(key: _keyToken);
     this.username = null;
     this.token = null;
+    return true;
   }
 
   Future<bool> getFirstLaunch() async {
