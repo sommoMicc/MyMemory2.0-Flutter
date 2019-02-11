@@ -239,19 +239,25 @@ implements GameSocketListener {
         ),
         actions: <Widget>[
           LetsMemoryMainButton(
-            textColor: Colors.black,
-            backgroundColor: Colors.lightGreen[500],
-            shadowColor: Colors.lightGreen[900],
+            textColor: Colors.white,
+            backgroundColor: Colors.red[500],
+            shadowColor: Colors.red[900],
             mini: true,
             text: "Si",
             callback: () {
               Navigator.pop(context,true);
             },
           ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: LetsMemoryDimensions
+                .scaleWidth(context, 15)
+              ),
+          ),
           LetsMemoryMainButton(
-            textColor: Colors.white,
-            backgroundColor: Colors.red[500],
-            shadowColor: Colors.red[900],
+            textColor: Colors.black,
+            backgroundColor: Colors.lightGreen[500],
+            shadowColor: Colors.lightGreen[900],
             mini: true,
             text: "No",
             callback: () {

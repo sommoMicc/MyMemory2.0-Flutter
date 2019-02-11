@@ -251,6 +251,12 @@ class _LetsMemorySearchResultState extends State<_LetsMemorySearchResult> {
                   Navigator.pop(context,true);
                 },
               ),
+              Padding(
+                padding: EdgeInsets.only(
+                  left: LetsMemoryDimensions
+                    .scaleWidth(context, 15)
+                  ),
+              ),
               LetsMemoryMainButton(
                 textColor: Colors.white,
                 backgroundColor: Colors.red[500],

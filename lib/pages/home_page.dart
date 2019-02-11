@@ -426,7 +426,7 @@ class _LetsMemoryLogoutButton extends StatelessWidget {
                 ),
                 actions: <Widget>[
                   LetsMemoryMainButton(
-                    textColor: Colors.black,
+                    textColor: Colors.white,
                     backgroundColor: Colors.red[500],
                     shadowColor: Colors.red[900],
                     mini: true,
@@ -434,6 +434,12 @@ class _LetsMemoryLogoutButton extends StatelessWidget {
                     callback: () {
                       Navigator.pop(context,true);
                     },
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: LetsMemoryDimensions
+                        .scaleWidth(context, 15)
+                      ),
                   ),
                   LetsMemoryMainButton(
                     textColor: Colors.white,
