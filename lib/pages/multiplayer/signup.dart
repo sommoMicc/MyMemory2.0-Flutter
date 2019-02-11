@@ -92,7 +92,7 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
                     if(signupResult.status == "success") {
                       await showDialog(
                         context: context,
-                        barrierDismissible: true,
+                        barrierDismissible: false,
                         builder: (BuildContext context) {
                           return LetsMemoryDialog.success(
                             context: context,
@@ -108,11 +108,11 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
                     else {
                       await showDialog(
                         context: context,
-                        barrierDismissible: true,
+                        barrierDismissible: false,
                         builder: (BuildContext context) {
                           return LetsMemoryDialog.error(
                             context: context,
-                            textContent: "Errore nella procedura di registrazione:\n\n"+
+                            textContent: "Oh cavolo, c'è stato un errore nella procedura di registrazione:\n\n"+
                               signupResult.message
                           );
                         }

@@ -74,7 +74,7 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                     if(signupResult.status == "success") {
                       await showDialog(
                         context: context,
-                        barrierDismissible: true,
+                        barrierDismissible: false,
                         builder: (BuildContext context) {
                           return LetsMemoryDialog.success(
                             context: context,
@@ -90,11 +90,11 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                     else {
                       await showDialog(
                         context: context,
-                        barrierDismissible: true,
+                        barrierDismissible: false,
                         builder: (BuildContext context) {
                           return LetsMemoryDialog.error(
                             context: context,
-                            textContent: "Errore nella procedura di login:\n\n"+
+                            textContent: "Uff, qualcosa è andato storto:\n\n"+
                               signupResult.message
                           );
                         }
@@ -104,7 +104,7 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                     Navigator.of(context).pop();
                     await showDialog(
                       context: context,
-                      barrierDismissible: true,
+                      barrierDismissible: false,
                       builder: (BuildContext context) {
                         return LetsMemoryDialog.error(
                           context: context,

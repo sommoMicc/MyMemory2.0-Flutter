@@ -17,6 +17,7 @@ void main() {
   .then((_) {
     runApp(  
       MaterialApp(
+        debugShowCheckedModeBanner:false,
         title: "Let's Memory!",
         initialRoute: '/',
         routes: {
