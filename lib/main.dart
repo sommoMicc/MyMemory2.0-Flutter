@@ -10,7 +10,7 @@ import 'package:letsmemory/pages/multiplayer/find_match.dart';
 import 'package:letsmemory/pages/singleplayer/game_arena.dart';
 import 'package:letsmemory/pages/singleplayer/game_result.dart';
 
-//import 'package:letsmemory/pages/provasocket.dart';
+import 'package:letsmemory/pages/provasocket.dart';
 
 void main() {  
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
@@ -21,7 +21,7 @@ void main() {
         title: "Let's Memory!",
         initialRoute: '/',
         routes: {
-          '/': (context) => LetsMemoryHomePage(),
+          '/': (context) => LetsMemoryHomePage(),//ProvaSocket(),
           '/multiplayer/login': (context) => LetsMemoryLoginPage(),
           '/multiplayer/signup': (context) => LetsMemorySignupPage(),
           '/multiplayer/findmatch': (context) => LetsMemoryFindMatch(),

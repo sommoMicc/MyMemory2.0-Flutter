@@ -13,7 +13,6 @@ import 'package:letsmemory/utils/game_arena_utils.dart';
 import 'package:letsmemory/utils/storage_helper.dart';
 
 import 'dart:async';
-import 'dart:math';
 
 class LetsMemoryGameArena extends StatefulWidget {
   final double cardsPadding = LetsMemoryDimensions.standardCard / 2;
@@ -242,10 +241,59 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
       }
     }
   }
+  Future<bool> _onWillPop() async {
+    bool shoudQuit = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(LetsMemoryDimensions.cardRadius)
+        ),
+        title: new Text("Conferma!"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text("Vuoi veramente sfidare abbandonare la sfida?")
+          ],
+        ),
+        actions: <Widget>[
+          LetsMemoryMainButton(
+            textColor: Colors.white,
+            backgroundColor: Colors.red[500],
+            shadowColor: Colors.red[900],
+            mini: true,
+            text: "Si",
+            callback: () {
+              Navigator.pop(context,true);
+            },
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: LetsMemoryDimensions
+                .scaleWidth(context, 15)
+              ),
+          ),
+          LetsMemoryMainButton(
+            textColor: Colors.black,
+            backgroundColor: Colors.lightGreen[500],
+            shadowColor: Colors.lightGreen[900],
+            mini: true,
+            text: "No",
+            callback: () {
+              Navigator.pop(context,false);
+            },
+          )
+        ],
+      ),
+    ) ?? false;
+
+    return shoudQuit;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return LetsMemoryBackground(
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: LetsMemoryBackground(
       children: <Widget>[
         Padding(
           padding: EdgeInsets.only(
@@ -272,7 +320,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
           right: 0,
           child: _BottomSheet(this.cardsFound, (this.cards.length / 2).floor()),
         ),
-        LetsMemoryMainButton.getBackButton(context),
+        LetsMemoryMainButton.getBackButton(context,_onWillPop),
         _StartGameOverlay(secondsToStartGame),
         LetsMemoryOverlay.withTitleAndButton(
           visible: this.tutorialVisible,
@@ -285,7 +333,7 @@ class _LetsMemoryGameArenaState extends State<LetsMemoryGameArena> {
         )
 
       ]
-    );
+    ));
   }
 }
 

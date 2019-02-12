@@ -16,7 +16,7 @@ class LetsMemoryMainButton extends StatefulWidget {
     return LetsMemoryMainButtonState();
   }
 
-  static Widget getBackButton(BuildContext context) {
+  static Widget getBackButton(BuildContext context, [dynamic method]) {
     return Positioned(
       top: 0,
       left: 0,
@@ -32,8 +32,13 @@ class LetsMemoryMainButton extends StatefulWidget {
           mini: true,
           backgroundColor: Colors.red[700],
           shadowColor: Colors.red[900],
-          callback: () {
-            Navigator.of(context).pop();
+          callback: () async {
+            bool doPop = false;
+            if(method != null)
+              doPop = await method();
+
+            if(doPop)
+              Navigator.of(context).pop();
           },
         )
       ),

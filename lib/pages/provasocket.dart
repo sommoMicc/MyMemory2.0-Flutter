@@ -1,72 +1,76 @@
 import 'package:flutter/material.dart';
-import 'package:adhara_socket_io/adhara_socket_io.dart';
+import 'package:letsmemory/UI/theme.dart';
+import 'package:letsmemory/UI/main_button.dart';
+import 'package:letsmemory/UI/background.dart';
 
 class ProvaSocket extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return _ProvaSocketState();
+    return ProvaSocketState();
   }
 }
 
-class _ProvaSocketState extends State<ProvaSocket> {
-  String status;
-  String additionalInfo;
-  @override
-  void initState() {
-    super.initState();
-    status = "Nothing done";
-    additionalInfo = "";
-    initSocket();
-  }
-  
-  void initSocket() async {
-    SocketIO socket = await SocketIOManager().createInstance('https://tagliabuemichele.homepc.it/');       //TODO change the port  accordingly
-    socket.onConnect((data){
-      print("connected...");
-      print(data);
-      setState(() {
-        status = "Connected";
-      });
-    });
-    socket.onDisconnect((data) {
-      setState(() {
-        status = "Disconnected "+data;
-      });
-      print("Disconneted :(");
-      print(data);
-    });
-    socket.on("news", (data){   //sample event
-      print("news");
-      print(data);
-    });
-    socket.on("pong", (data) {
-      setState(() {
-        status = "Ricevuto pong";
-      });
-    });
-    socket.on("ping", (data) {
-      setState(() {
-        status = "Ricevuto ping";
-      });
-    });
+class ProvaSocketState extends State<ProvaSocket> {
+  Future<bool> _onWillPop() async {
+    bool shoudQuit = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(LetsMemoryDimensions.cardRadius)
+        ),
+        title: new Text("Conferma!"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text("Vuoi veramente sfidare abbandonare la sfida?")
+          ],
+        ),
+        actions: <Widget>[
+          LetsMemoryMainButton(
+            textColor: Colors.white,
+            backgroundColor: Colors.red[500],
+            shadowColor: Colors.red[900],
+            mini: true,
+            text: "Si",
+            callback: () {
+              Navigator.pop(context,true);
+            },
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: LetsMemoryDimensions
+                .scaleWidth(context, 15)
+              ),
+          ),
+          LetsMemoryMainButton(
+            textColor: Colors.black,
+            backgroundColor: Colors.lightGreen[500],
+            shadowColor: Colors.lightGreen[900],
+            mini: true,
+            text: "No",
+            callback: () {
+              Navigator.pop(context,false);
+            },
+          )
+        ],
+      ),
+    ) ?? false;
 
-    socket.connect();
-
+    return shoudQuit;
   }
+
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(status),
-            Padding(padding: EdgeInsets.only(top: 10)),
-            Text(additionalInfo)
-          ]
-        ),
-      ),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: LetsMemoryBackground(
+        children: <Widget>[ 
+          LetsMemoryMainButton.getBackButton(context,_onWillPop),
+          Padding(padding: EdgeInsets.only(top: 10)),
+          Text("Ciao 2")
+        ]
+      )
     );
   }
 }
