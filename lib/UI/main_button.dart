@@ -33,7 +33,7 @@ class LetsMemoryMainButton extends StatefulWidget {
           backgroundColor: Colors.red[700],
           shadowColor: Colors.red[900],
           callback: () async {
-            bool doPop = false;
+            bool doPop = true;
             if(method != null)
               doPop = await method();
 
