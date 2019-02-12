@@ -363,7 +363,7 @@ implements GameSocketListener {
       onWillPop: _onWillPop,
       child: LetsMemoryBackground(
         children: <Widget>[
-          LetsMemoryMainButton.getBackButton(context),
+          LetsMemoryMainButton.getBackButton(context,_onWillPop),
           Padding(
             padding: EdgeInsets.only(
               left: widget.cardsPadding,
