@@ -539,7 +539,7 @@ class _BottomSheetState extends State<_BottomSheet> {
             left: LetsMemoryDimensions.standardCard/8,
             right: LetsMemoryDimensions.standardCard/8,
             bottom: LetsMemoryDimensions.scaleHeight(context, 
-              LetsMemoryDimensions.standardCard/3),
+              LetsMemoryDimensions.standardCard/5),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
