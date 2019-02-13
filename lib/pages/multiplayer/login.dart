@@ -79,7 +79,7 @@ class _LetsMemoryLoginPageState extends State<LetsMemoryLoginPage> {
                           return LetsMemoryDialog.success(
                             context: context,
                             textContent: "Un ultimo sforzo! "+
-                                  "Per terminare il login, apri "+
+                                  "Per terminare il login, apri da questo smartphone "+
                                   "il link che ti è appena stato inviato via mail"
                           );
                         },

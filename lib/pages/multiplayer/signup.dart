@@ -97,7 +97,7 @@ class _LetsMemorySignupState extends State<LetsMemorySignupPage> {
                           return LetsMemoryDialog.success(
                             context: context,
                             textContent: "Registrazione completata con succcesso. "+
-                                  "Per effettuare il login, apri "+
+                                  "Per autenticarti apri da questo smartphone  "+
                                   "il link che ti è appena stato inviato via mail"
                           );
                         },
