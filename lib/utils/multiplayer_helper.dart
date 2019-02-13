@@ -28,7 +28,7 @@ class MultiplayerHelper {
   Future<bool> showIncomingChallengeDialog(BuildContext context, String username) {
     return showDialog(
       context: context,
-      barrierDismissible: true,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
