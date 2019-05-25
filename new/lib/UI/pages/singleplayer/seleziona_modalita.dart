@@ -6,6 +6,7 @@ import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:lets_memory/UI/styles/style.dart';
 import 'package:lets_memory/UI/view/main_button.dart';
 import 'package:lets_memory/UI/view/pager_element.dart';
+import 'package:lets_memory/model/pojo/arena.dart';
 
 class SelezionaModalita extends StatelessWidget {
   @override
@@ -47,7 +48,7 @@ class SelezionaModalita extends StatelessWidget {
                     SizedBox(
                       height: cs.verticalSpace,
                     ),
-                    TextField(),
+                    DropDownArena(style: cs),
                     SizedBox(
                       height: cs.verticalSpace,
                     ),
@@ -71,7 +72,7 @@ class SelezionaModalita extends StatelessWidget {
               ),
             );
           },
-          itemCount: 10,
+          itemCount: 2,
           layout: SwiperLayout.TINDER,
 
           itemWidth: cs.itemPageWidth,
@@ -85,22 +86,78 @@ class SelezionaModalita extends StatelessWidget {
 }
 
 class DropDownArena extends StatefulWidget {
+
+  final _Style style;
+
+  DropDownArena({@required this.style});
+
+  final List<Arena> arenas = <Arena> [
+    Arena(id: 1, name: "Alfabeto"),
+    Arena(id: 1, name: "Arena del matematico")
+  ];
+
   @override
   State<StatefulWidget> createState() => _DropDownArenaState();
 
 }
 
 class _DropDownArenaState extends State<DropDownArena> {
+  Arena currentArena;
+  List<DropdownMenuItem<Arena>> dropdownArenas = [];
+
+  @override
+  void initState() {
+    widget.arenas.forEach((arena) => dropdownArenas.add(
+        DropdownMenuItem(
+            value: arena,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Palette.colors["orange"].primary,
+                border: Border.all(
+                  color: Palette.colors["orange"].dark,
+                  width: widget.style.dropdownBorder,
+                ),
+                borderRadius: BorderRadius.circular(widget.style.radius)
+              ),
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(arena.name, style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.normal
+                  ), textAlign: TextAlign.center),
+                ]
+              ),
+            )
+        )
+    ));
+
+    currentArena = widget.arenas[0];
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+
     return Container(
       child: DropdownButton(
-        items: null,
-        onChanged: null
+        isExpanded: true,
+        iconSize: 0,
+        value: currentArena,
+        items: dropdownArenas,
+        onChanged: changeDropdownItem,
+        underline: Container(),
       ),
     );
   }
 
+  void changeDropdownItem(Arena selected) => setState(() {
+    currentArena = selected;
+  });
 }
 
 class _Style {
@@ -135,4 +192,7 @@ class _Style {
     fontSize: size.scale(25,Measure.width),
     fontWeight: FontWeight.w600,
   );
+
+  double get dropdownBorder => size.scale(10,size.minSide);
+  double get radius => size.radius;
 }
