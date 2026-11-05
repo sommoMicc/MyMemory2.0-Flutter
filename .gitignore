@@ -50,3 +50,7 @@ Caddyfile.before-*
 *.aab
 *.ipa
 *.xcarchive/
+
+# Keep superseded Console drafts and private deletion review screenshots local.
+/artifacts/play-internal-draft.jpg
+/artifacts/play-old-app-delete-dialog.jpg

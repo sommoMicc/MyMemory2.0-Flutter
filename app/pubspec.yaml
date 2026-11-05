@@ -1,7 +1,7 @@
 name: mymemory
-description: Il memory da riscoprire, insieme. Android, iOS e web.
+description: Gioco del memory per Android, iOS e web.
 publish_to: none
-version: 3.0.0+30001
+version: 3.0.0+30003
 environment:
   sdk: '>=3.9.2 <4.0.0'
 dependencies:

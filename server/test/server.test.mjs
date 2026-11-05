@@ -62,3 +62,40 @@ test('unknown origins cannot open WebSocket connections', async () => {
     assert.match(error.message, /403/);
   } finally { await server.close(); }
 });
+
+test('a cached prior web release cannot conceal a newly deployed interface', async () => {
+  const { mkdtemp, writeFile, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join, resolve } = await import('node:path');
+  const { execFileSync } = await import('node:child_process');
+  const webDir = await mkdtemp(join(tmpdir(), 'mymemory-web-upgrade-'));
+  const helper = resolve(import.meta.dirname, '../../scripts/prepare-web.mjs');
+  const bootstrap = 'const fallback="main.dart.js"; const build={"mainJsPath":"main.dart.js"};';
+  const build = async text => {
+    await writeFile(join(webDir, 'main.dart.js'), text);
+    await writeFile(join(webDir, 'flutter_bootstrap.js'), bootstrap);
+    execFileSync(process.execPath, [helper, webDir]);
+  };
+  await build('old interface with slogans');
+  const server = startServer({ port: 0, webDir, engine: new GameEngine() });
+  await once(server.http, 'listening');
+  const base = `http://127.0.0.1:${server.http.address().port}`;
+  try {
+    const entry = async () => {
+      const response = await fetch(`${base}/flutter_bootstrap.js`);
+      assert.equal(response.headers.get('cache-control'), 'no-cache');
+      return (await response.text()).match(/"mainJsPath":"([^"]+)"/)[1];
+    };
+    const oldPath = await entry();
+    const browserCache = new Map([[oldPath, await fetch(`${base}/${oldPath}`).then(r => r.text())]]);
+    await build('compact interface without slogans');
+    const newPath = await entry();
+    assert.notEqual(newPath, oldPath);
+    assert.equal(browserCache.has(newPath), false);
+    const updated = await fetch(`${base}/${newPath}`);
+    assert.equal(updated.headers.get('cache-control'), 'no-cache');
+    assert.equal(await updated.text(), 'compact interface without slogans');
+    execFileSync(process.execPath, [helper, webDir]);
+    assert.equal(await entry(), newPath);
+  } finally { await server.close(); await rm(webDir, { recursive: true, force: true }); }
+});

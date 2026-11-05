@@ -22,8 +22,8 @@ android {
     }
 
     defaultConfig {
-        // Preserve the original Android app identity for Play upgrades.
-        applicationId = "com.michele.mymemory"
+        // New Play listing; the historical com.michele.mymemory app is separate.
+        applicationId = "cc.sommomi.mymemory"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

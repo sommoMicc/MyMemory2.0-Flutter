@@ -50,7 +50,7 @@ export function startServer({ port = Number(process.env.PORT || 8787), host = pr
     }
     if (!existsSync(path) || !statSync(path).isFile()) { res.writeHead(404); res.end('Not found'); return; }
     res.writeHead(200, { 'Content-Type': mime[extname(path)] || 'application/octet-stream',
-      'Cache-Control': extname(path) === '.html' || path.endsWith('flutter_bootstrap.js') || path.endsWith('flutter_service_worker.js') ? 'no-cache' : 'public, max-age=3600' });
+      'Cache-Control': ['.html', '.js', '.mjs', '.json'].includes(extname(path)) ? 'no-cache' : 'public, max-age=3600' });
     if (req.method === 'HEAD') res.end();
     else createReadStream(path).on('error', () => res.destroy()).pipe(res);
   });

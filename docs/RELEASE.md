@@ -2,20 +2,30 @@
 
 Verified 2026-11-05. This file records preparation, not store publication.
 
-The final signed iOS artifact is `app/build/ios/ipa/MyMemory.ipa`, version
-**3.0.0 (30001)**, SHA-256
-`60ba4eeecf5a0e511898520bdbe71b74938ee80767ffd012d70c41fd68f3dbeb`.
-All 16 Flutter tests and static analysis passed; Android debug build and native
-iOS IPA/signing/icon/launch validation succeeded. The IPA was uploaded through
-the Build Upload API, binary delivery and Apple upload processing are `COMPLETE`. The processed build
-is `VALID`, with internal TestFlight state `READY_FOR_BETA_TESTING`, under upload
-and build ID `b8837758-5b6f-48a1-acb0-c508db210729`.
-The receipt in `artifacts/testflight-upload.json` contains the latest status.
+The current signed release is **3.0.0 (30003)**. Final native artifacts are
+`artifacts/MyMemory-Together-3.0.0-30003.{aab,apk,ipa}`; hashes, certificate and
+source verification are recorded in `artifacts/native-builds-30003.json`.
+The IPA SHA-256 is
+`47ee9d12a370c24e518e78f75cc0e11fc76e810a6a6c5f8adfc13fffb0c575cd`.
 
-Internal TestFlight group `MyMemory Internal`
-(`d811d09d-3800-4275-b5c3-8a9773439b1d`) contains only the account holder and has no
-public link. Build 30001 is attached and Italian test notes include the required
-physical-device Bluetooth validation. No external testers were added.
+Apple upload **4bf310e0-8722-472f-ae1c-180d7079f352** completed and the build is
+**VALID / IN_BETA_TESTING**, attached to **MyMemory Internal** with exactly one
+account-holder tester. That tester's prior invitation is accepted (tester state
+INSTALLED); this confirms app access, not installation of every new build.
+`artifacts/testflight-upload.json` is the current API receipt.
+
+The new Android app **cc.sommomi.mymemory** is live on its internal track with
+versionCode **30003**, tester list restricted to the owner. The opt-in link is
+https://play.google.com/apps/internaltest/4700857721365894827 . No production
+release was made. See `ANDROID.md` for Console evidence and old-app deletion.
+
+The compact UI was implemented with the explicitly requested Astra subagent.
+**18 Flutter tests** and analysis pass, including four viewports with realistic
+iOS safe areas, all 36 cards visible and hit-testable, completion/rematch,
+keyboard entry, settings, waiting rooms and Bluetooth lobby. The game screens
+do not scroll; Flutter's standard legal-license viewer retains its text scrolling.
+**11 Node tests** pass, including the observed stale-browser-cache regression.
+Native AAB/APK/IPA signatures and release identities were verified.
 
 ## iOS
 
@@ -82,17 +92,16 @@ The app has ordinary HTTPS and BLE networking; it declares no nonexempt encrypti
 
 ## Android
 
-Play Console directly confirms the original ID **com.michele.mymemory**, an
-**unpublished** listing, and highest uploaded **versionCode 2 / versionName 0.9**.
-The modern project preserves the ID and uses versionCode 30001. See
-[ANDROID.md](ANDROID.md) for authoritative Console URLs and full findings.
+The user's requested replacement is a **new** app, **cc.sommomi.mymemory**,
+Console app ID **4972469070574777722**. Release **3.0.0 (30003)** is available to
+internal testers; Google Play App Signing is active. A new dedicated upload key
+is stored outside source control. There is no dependency on recovering the old
+app's signing key for this new package.
 
-The app is **not enrolled in Play App Signing**, so updating the existing listing
-requires the **original release signing key**. No original release keystore was
-found in the recovered source or Flutter repository; the local old APK is
-debug-signed. A new key or ordinary upload-key reset is insufficient to preserve
-updates for this record. Android release upload remains dependent on recovering
-the original signing key and completing the outstanding Console declarations.
+The old **com.michele.mymemory** listing remains unpublished, with historical
+versionCode2/version0.9 and no Play App Signing. Its recoverable deletion is
+prepared but awaits permission to transmit the private registration-payment ID
+required by Google. Nothing has been deleted yet. Full evidence: `ANDROID.md`.
 
 ## Offline Bluetooth
 

@@ -8,6 +8,7 @@ case "$MYMEMORY_RELEASE" in
 esac
 test -f server/package-lock.json || { echo 'Missing server/package-lock.json.' >&2; exit 1; }
 test -f app/build/web/index.html || { echo 'Build Flutter web before deployment.' >&2; exit 1; }
+node scripts/prepare-web.mjs
 REMOTE_RELEASE="/srv/mymemory/releases/$MYMEMORY_RELEASE"
 ssh -o BatchMode=yes "$MYMEMORY_TARGET" "mkdir -p '$REMOTE_RELEASE'"
 COPYFILE_DISABLE=1 tar --exclude='node_modules' --exclude='.env*' --exclude='.DS_Store' --exclude='__pycache__' --exclude='*.pyc' --exclude='*.log' --exclude='data' -czf - server deploy app/build/web |

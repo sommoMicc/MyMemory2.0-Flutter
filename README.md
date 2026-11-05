@@ -12,6 +12,7 @@ Il memory di Michele Tagliabue, ripristinato per Android, iPhone, iPad e browser
 - Bluetooth Low Energy offline nelle app Android/iOS: un telefono ospita, l'altro cerca la partita. Entrambe le app devono restare aperte; alcuni Android non supportano il ruolo host. Interoperabilità radio ancora da collaudare su due telefoni fisici.
 - 6, 8, 12 o 18 coppie; giardino, spazio e mare. Nuovi simboli vettoriali, senza usare i vecchi mazzi di terzi.
 - Nessun account, pubblicità o SDK di analisi.
+- Interfaccia senza slogan, con modalità e configurazione separate; tabelloni completi senza scorrimento anche su iPhone SE e in orizzontale.
 
 Una coppia corretta mantiene il turno; un errore mostra le carte per 900 ms, poi passa il turno. Il server decide mazzo, turni e punteggio e non invia le carte coperte. La riconnessione online conserva il posto per 90 secondi; dopo il termine si perde per abbandono. Le stanze inattive scadono dopo 24 ore.
 
@@ -63,12 +64,14 @@ flutter build apk --debug
 flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
 ```
 
-Android conserva **`com.michele.mymemory`**. La scheda originale è stata ritrovata in Play Console: **non pubblicata**, ultimo artefatto **0.9 (versionCode 2)**, nessuna iscrizione a Play App Signing. La chiave di produzione originale non è stata trovata. Vedere `docs/ANDROID.md` per scheda, dichiarazioni mancanti e ripristino. `app-debug.apk` è un pacchetto di prova; le build release non vengono firmate con la chiave debug. Per Play occorrono la chiave upload corretta e `app/android/key.properties` locale (ignorato da Git) con `storeFile`, `storePassword`, `keyAlias`, `keyPassword`. La build attuale usa versionCode 30001, superiore al massimo storico 2.
+Android usa la **nuova app `cc.sommomi.mymemory`**, nome **MyMemory Together**, versione **3.0.0 (30003)**. La release è disponibile nei [test interni Google Play](https://play.google.com/apps/internaltest/4700857721365894827), riservati al tester proprietario. Occorre accettare l'invito nella pagina del test. La vecchia `com.michele.mymemory` è una scheda separata non pubblicata: eliminazione richiesta dall'utente e predisposta, ancora in attesa del consenso specifico all'uso dell'ID privato della registrazione. Vedere `docs/ANDROID.md` per lo stato aggiornato.
 
-iOS usa **`cc.sommomi.mymemory`**, versione **3.0.0 (30001)**. Il profilo e la chiave rimangono esterni alla repository. Gli script ASC leggono la configurazione in `~/.codex/credentials/appstoreconnect/config.json`, firmano JWT brevi in memoria e non espongono credenziali.
+La nuova chiave upload dedicata è conservata esternamente in `~/.codex/credentials/android/mymemory/`, con configurazione privata e `app/android/key.properties` locale ignorato da Git. Le release non usano la chiave debug; Google Play gestisce la firma delle installazioni distribuite dal canale interno.
+
+iOS usa **`cc.sommomi.mymemory`**, versione **3.0.0 (30003)**, disponibile nel gruppo **MyMemory Internal** su TestFlight. Il tester proprietario è già aggiunto e il suo invito risulta accettato. Il profilo e la chiave rimangono esterni alla repository. Gli script ASC leggono la configurazione in `~/.codex/credentials/appstoreconnect/config.json`, firmano JWT brevi in memoria e non espongono credenziali. Dopo l'upload, `node scripts/testflight-finalize.mjs --finalize --build=30003 --wait=1200` verifica Apple e collega solo il gruppo interno esistente.
 
 ## Hosting e collaudo
 
-Dopo la build web, `bash deploy/deploy.sh` pubblica una release separata su Sommonas; vedere `deploy/README.md`. Dati in volume Docker persistente; una sola istanza del servizio. Caddy gestisce HTTPS e WebSocket. Per scalare a più istanze occorrono storage transazionale e sincronizzazione condivisi.
+Dopo la build web, `node scripts/prepare-web.mjs` assegna al codice JavaScript un nome basato sul suo contenuto, evitando che una copia precedente nella cache nasconda gli aggiornamenti. `bash deploy/deploy.sh` esegue questo passaggio automaticamente e pubblica una release separata su Sommonas; vedere `deploy/README.md`. Dati in volume Docker persistente; una sola istanza del servizio. Caddy gestisce HTTPS e WebSocket. Per scalare a più istanze occorrono storage transazionale e sincronizzazione condivisi.
 
-Verificati test Flutter (motore locale, layout 320/390/1024, BLE e riconnessione tramite socket reali), test Node con due client e ripristino da disco, build web/Android/iOS. Il Bluetooth ha ancora bisogno del collaudo fisico Android↔iPhone, Android↔Android e iPhone↔iPhone, con permessi negati, radio spenta, background e perdita di connessione. I simulatori non possono verificare questa parte radio.
+Verificati **18 test Flutter** (motore locale, quattro viewport con safe area iOS, tastiera aperta, tutte le 36 carte visibili e selezionabili, dialoghi, Bluetooth e riconnessione) e **11 test Node** con due client, ripristino da disco e aggiornamento di una versione web già memorizzata dal browser; build firmate Android/iOS e build web. Il Bluetooth ha ancora bisogno del collaudo fisico Android↔iPhone, Android↔Android e iPhone↔iPhone, con permessi negati, radio spenta, background e perdita di connessione. I simulatori non possono verificare questa parte radio.

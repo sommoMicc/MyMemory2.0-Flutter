@@ -33,3 +33,9 @@ SHA-256 before and after adding the marked MyMemory block was
 `924e2ec3bd5316af8900b93e992948b1cac2a7decf1d10a20d536af0641ed5b1`.
 The route is persisted in `/etc/caddy/Caddyfile` and active in Caddy's runtime;
 a repeated configuration check reports it already configured and active.
+
+## Compact interface deployment — 5 November 2026
+
+Release `20261105T072907Z` serves the compact UI and plain privacy/support headings. Browser QA verified the existing cached session updates after a normal reload; the bootstrap now loads `main.ae9ada890cc4da3d.dart.js`, and application runtime/configuration files require cache revalidation. `scripts/prepare-web.mjs` runs before deployment and in CI. A regression test simulates an existing cached release and verifies the new entrypoint.
+
+Live browser QA at 390×844: no slogans, mode/configuration/game fit the viewport, invite link pre-fills the room code, two browser clients join and show identical revealed cards, and leaving returns to configuration. All test rooms were removed; `/healthz` reports healthy with zero rooms. Local visual QA also verified all 36 cards at 320×568 and 844×390. Core gameplay/protocol code and Caddy routes are unchanged.

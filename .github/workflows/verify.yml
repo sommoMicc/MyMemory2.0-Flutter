@@ -40,4 +40,5 @@ jobs:
       - run: flutter analyze
       - run: flutter test
       - run: flutter build web --release
+      - run: node ../scripts/prepare-web.mjs build/web
       - run: flutter build apk --debug

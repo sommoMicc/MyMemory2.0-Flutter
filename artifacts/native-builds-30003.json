@@ -1,0 +1,42 @@
+{
+  "verifiedAt": "2026-11-05T07:27:35.625058+00:00",
+  "version": "3.0.0",
+  "build": 30003,
+  "packageName": "cc.sommomi.mymemory",
+  "sourceSha256": {
+    "app/lib/main.dart": "81e60b5e051564f533cf1a923d7eb630c1f9affda66092ac6953824f6ddd8b58",
+    "app/pubspec.yaml": "716e8e8b6794b9245f91ae9958b5fe82a1780985658b4759e8e92304f27aecfd"
+  },
+  "artifacts": {
+    "androidBundle": {
+      "path": "artifacts/MyMemory-Together-3.0.0-30003.aab",
+      "bytes": 52537392,
+      "sha256": "bac88b841f8d5616faf909635c8ac8c43b3d917918c7647411192d3dc745e923"
+    },
+    "androidApk": {
+      "path": "artifacts/MyMemory-Together-3.0.0-30003.apk",
+      "bytes": 53754749,
+      "sha256": "b4da17813853500002a08142c982defd6fe803b5b43df88f153b924332ef292e"
+    },
+    "ios": {
+      "path": "artifacts/MyMemory-Together-3.0.0-30003.ipa",
+      "bytes": 21010050,
+      "sha256": "47ee9d12a370c24e518e78f75cc0e11fc76e810a6a6c5f8adfc13fffb0c575cd"
+    }
+  },
+  "android": {
+    "label": "MyMemory Together",
+    "uploadCertificateSha256": "404D6F54025C024007E37F2A25352CB84471268A1C6C0D78C17A9565E12BED67",
+    "bundletoolValidation": "passed",
+    "aabSignature": "verified",
+    "apkSignature": "verified",
+    "zipAlignment16KB": "passed",
+    "elf64BitLibraries16KB": 8
+  },
+  "ios": {
+    "teamId": "L6CS7PYA4B",
+    "codesignDeepStrict": "passed",
+    "distributionProfile": "MyMemory App Store",
+    "profileUuid": "10fd734b-e131-42ba-a75c-e62ff73105f2"
+  }
+}
