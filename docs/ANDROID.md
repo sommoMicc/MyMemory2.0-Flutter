@@ -8,20 +8,20 @@ testing, and deletion of the historical app. The new Console record is created:
 | Field | Verified value |
 | --- | --- |
 | Installed app display name | SommoMemory |
-| Console record name | MyMemory Together; requested SommoMemory name saved in Store-listing draft (see below) |
+| Console record name | MyMemory Together; SommoMemory is the installed app display name |
 | Package/application ID | `cc.sommomi.mymemory` (Console availability verified) |
 | Console app ID | `4972469070574777722` |
 | Language/category/pricing | Italian `it-IT`, game, free |
 | Internal track ID | `4700857721365894827` |
 | Tester list | MyMemory test interno; selected and saved; one account owner tester |
-| Release | 9, name `3.0.0 (30011) - Suoni e anteprima`; **available to internal testers**, published 5 November 2026 at 18:09 as shown in Console |
-| Binary | Final **3.0.0 (30011)** uploaded and accepted |
+| Release | 11, version `3.1.0 (30013)`; **active on internal track** |
+| Binary | **3.1.0 (30013)** uploaded and accepted |
 | Track status | **Attivo** |
 | App signing | Releases signed by Google Play; no new terms prompt appeared |
 | Production | No production release requested or performed |
 
 [New app dashboard](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/app-dashboard)
-and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/9/details).
+and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/11/details).
 The **live internal opt-in link** is
 [Join the internal test](https://play.google.com/apps/internaltest/4700857721365894827).
 It was opened in the owner's signed-in browser and showed the invitation to test
@@ -29,12 +29,25 @@ It was opened in the owner's signed-in browser and showed the invitation to test
 accepted on the user's behalf. The tester must open it with the account included
 in the selected tester list and accept the invitation before installation.
 
+The current AAB is `artifacts/SommoMemory-3.1.0-30013.aab` (90,032,282 bytes;
+SHA-256 `70629b0f64a282d6595321c92d643334d9610a44d7b8435a969e3f87eda6f273`).
+Its local JAR signature check reports verified; Play release 11 is active on the
+existing internal track. The signed artifacts, deployment and data-preservation
+summary are recorded in `artifacts/native-builds-30013.json`. The Italian Play
+listing text and two 1080×1920 phone screenshots are saved. Console confirms
+“Modifica salvata”; the publishing overview lists the Italian listing among the
+changes not yet sent for review. Its submission button is disabled until required
+initial app dashboard steps are complete. Internal testing remains active.
+No production release was created.
+
 Google temporarily displays the unreviewed package name instead of the eventual
 store name for this new internal app. This release is **internal only**, not a
 production listing. Console accepted the binary with min API 24, target API 36,
 three ABIs, and ReTrace mapping/native symbols attached.
 
-Build **30011** replaces the intermediate internal build 30010. The final binary uses
+Build **30013** is the current internal binary. The feature and package details
+below document the preceding 30011 build and remain as release history. Build
+**30011** replaced the intermediate internal build 30010. That binary uses
 `wss://sommomemory.sommomi.cc/ws`; the public service is
 `https://sommomemory.sommomi.cc`. Only this new domain is associated with native
 invites; legacy-host intent filters were removed before the final rebuild, as the
@@ -124,7 +137,7 @@ request for this app's existing build 30008 returned HTTP403 `PERMISSION_DENIED`
 No grants were changed and no API edit/upload was created. The authorized
 signed-in Console was used for internal distribution.
 
-## SommoMemory rename — Store draft saved
+## SommoMemory rename — historical Store draft status
 
 On 5 November 2026 the user requested the display name **SommoMemory**, preserving
 the existing package and app record. The default Italian Store listing did not
@@ -132,18 +145,20 @@ previously exist. Its **Nome app** is now **SommoMemory**, saved as a draft and
 verified after reloading the editor. No identifiers or tester settings changed.
 Local evidence, excluded from Git: `artifacts/play-sommomemory-name-draft.jpg`.
 
-This is a saved draft, not a published Store-name change. Descriptions, Store
-icon, feature graphic and screenshots are still absent, and Console continues to
-show **MyMemory Together** and the temporary name
-**cc.sommomi.mymemory (unreviewed)**. Google's
+At the time of this earlier snapshot, the name was a saved draft and the listing
+description and screenshots were absent. For 3.1.0, the Italian listing text was
+still pending a save and screenshot uploads were in progress when the current
+receipt was prepared. Console continues to show **MyMemory Together** and the
+temporary name **cc.sommomi.mymemory (unreviewed)**. Google's
 [internal-testing guidance](https://support.google.com/googleplay/android-developer/answer/9845334)
 explains that testers see a temporary name before the app's first review. A
 complete Store listing and review are separate from the internal binary release;
 neither production publication nor a first-review submission was performed.
 
-Build **30011 is the current live internal version**, with SommoMemory as its
-installed launcher name. The incomplete Store draft does not prevent this
-authorized internal binary update. No production release was created.
+Build **30011 was the live internal version** before release 30013, with
+SommoMemory as its installed launcher name. The Store draft status below is
+historical; the 3.1.0 listing update is tracked above. No production release was
+created.
 
 ## Old app deleted — recoverable until 12 November 2026
 
@@ -162,7 +177,7 @@ Immediately after deletion, the replacement **cc.sommomi.mymemory** app was
 refreshed and verified separately: its then-current 30003 internal release
 remained **Attivo**, with the owner tester list selected and the opt-in link
 enabled. The replacement app and its signing settings were not modified during
-deletion. The current SommoMemory update 30011 is recorded above.
+deletion. The current SommoMemory update 30013 is recorded above.
 
 The [current official deletion guide](https://support.google.com/googleplay/android-developer/answer/16483176)
 requires an unpublished app, fewer than 1000 active devices, no unresolved review,

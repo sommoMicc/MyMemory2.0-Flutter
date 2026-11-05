@@ -1,42 +1,72 @@
 {
   "appId": "6831015201",
   "bundleId": "cc.sommomi.mymemory",
-  "version": "3.0.0",
-  "build": "30012",
-  "sha256": "857610d7b2a0ab5898b6b69ec1a63918e47f1c91ef03b21945b04134993271db",
-  "buildUploadId": "0d979073-15ee-43ee-9885-4e755b964130",
-  "createdAt": "2026-11-05T19:41:40.612Z",
+  "version": "3.1.0",
+  "build": "30013",
+  "sha256": "95e50e5a7fa159afdedf4f39410450bd4348db56a05b92df457e043caf0b4ae2",
+  "buildUploadId": "766a750e-62ec-4801-9f3c-47ff5f18b90b",
+  "createdAt": "2026-11-05T22:01:39.326Z",
   "reusedEmptyUpload": true,
-  "buildUploadFileId": "4cc015cd-5a54-47af-9adf-f094e37bd0d6",
+  "buildUploadFileId": "fa62178a-2bd1-4dba-818c-40b4c887c35c",
   "binaryPartsUploaded": [
     {
       "part": 1,
-      "offset": 20971520,
-      "length": 4252327
+      "offset": 26214400,
+      "length": 5242880
     },
     {
       "part": 2,
-      "offset": 0,
+      "offset": 31457280,
       "length": 5242880
     },
     {
       "part": 3,
-      "offset": 5242880,
+      "offset": 41943040,
       "length": 5242880
     },
     {
       "part": 4,
-      "offset": 10485760,
+      "offset": 47185920,
       "length": 5242880
     },
     {
       "part": 5,
       "offset": 15728640,
       "length": 5242880
+    },
+    {
+      "part": 6,
+      "offset": 5242880,
+      "length": 5242880
+    },
+    {
+      "part": 7,
+      "offset": 36700160,
+      "length": 5242880
+    },
+    {
+      "part": 8,
+      "offset": 0,
+      "length": 5242880
+    },
+    {
+      "part": 9,
+      "offset": 10485760,
+      "length": 5242880
+    },
+    {
+      "part": 10,
+      "offset": 20971520,
+      "length": 5242880
+    },
+    {
+      "part": 11,
+      "offset": 52428800,
+      "length": 4672504
     }
   ],
-  "binaryUploadCompleteAt": "2026-11-05T19:41:47.487Z",
-  "committedAt": "2026-11-05T19:41:51.634Z",
+  "binaryUploadCompleteAt": "2026-11-05T22:01:51.551Z",
+  "committedAt": "2026-11-05T22:01:55.078Z",
   "assetDeliveryState": {
     "errors": [],
     "warnings": [],
@@ -44,8 +74,8 @@
   },
   "processingState": "COMPLETE",
   "buildProcessingState": "VALID",
-  "lastCheckedAt": "2026-11-05T19:45:27.916Z",
-  "buildId": "0d979073-15ee-43ee-9885-4e755b964130",
+  "buildId": "766a750e-62ec-4801-9f3c-47ff5f18b90b",
+  "lastCheckedAt": "2026-11-05T22:08:07.415Z",
   "readyForInternalTesting": true,
   "internalBuildState": "IN_BETA_TESTING",
   "betaGroupId": "d811d09d-3800-4275-b5c3-8a9773439b1d",
@@ -56,15 +86,5 @@
   ],
   "groupAssignmentPending": false,
   "notesLocale": "it",
-  "finalizedAt": "2026-11-05T19:45:31.796Z",
-  "appName": "SommoMemory",
-  "baseUrl": "https://sommomemory.sommomi.cc",
-  "betaNotesVerified": true,
-  "usesNonExemptEncryption": false,
-  "internalDistributionOnly": true,
-  "verifiedTesterIds": [
-    "0503efbd-2924-4827-9232-920bd5cc7d76",
-    "8f73fef5-1c02-4500-92e6-b8e31f908f11"
-  ],
-  "metadataVerifiedAt": "2026-11-05T19:46:46.825Z"
+  "finalizedAt": "2026-11-05T22:08:11.308Z"
 }

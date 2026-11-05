@@ -9,7 +9,7 @@ const APP = '6831015201';
 const GROUP = 'd811d09d-3800-4275-b5c3-8a9773439b1d';
 const NOTES = "SommoMemory 3.0.0 (30012): profilo personalizzabile con nickname, avatar e colore anche come ospite. Accesso facoltativo con Apple o Google per ritrovare gemme, collezioni e personalizzazione su iPhone, Android e browser. Verifica che il primo collegamento conservi il profilo e il saldo attuali; se un accesso appartiene già a un altro profilo, deve comparire un’anteprima e servire una conferma prima del cambio, senza sommare i saldi. Il codice di recupero resta disponibile come metodo alternativo. In Profilo → Gestisci puoi vedere e revocare i dispositivi, scollegare un metodo di accesso e richiedere la cancellazione del profilo; alcune operazioni richiedono una nuova verifica. La cancellazione è disponibile anche da https://sommomemory.sommomi.cc/delete-account senza reinstallare l’app. Prova annullamento del login, riavvio, rete interrotta, sessione scaduta, premi offline in attesa e passaggio tra profili: non devono causare sostituzioni o accrediti silenziosi. Il gioco resta utilizzabile senza registrazione. I login Apple e Google reali, il ritorno all’app e le revoche devono essere verificati su dispositivi fisici e browser; questa nota non attesta il loro collaudo. Restano le sette collezioni, i suoni e le vibrazioni separati, le animazioni rispettose di Riduci movimento e le partite locali, online e Bluetooth. Non condividere codici personali o credenziali nelle segnalazioni.";
 const args = process.argv.slice(2);
-const help = 'Usage: node scripts/testflight-finalize.mjs [--status | --finalize --build=30012] [--additional-tester=EXISTING_TESTER_ID] [--wait=1200] [--receipt=artifacts/testflight-upload.json]\nDefault: one read-only status check. Finalization requires exactly the account holder unless one existing additional tester ID is explicitly allowed. No memberships are changed. --wait polls every 30s, up to 1800s.';
+const help = 'Usage: node scripts/testflight-finalize.mjs [--status | --finalize --build=30012] [--additional-tester=EXISTING_TESTER_ID] [--wait=1200] [--receipt=artifacts/testflight-upload.json] [--notes-file=path/to/notes.txt]\nDefault: one read-only status check. Finalization requires exactly the account holder unless one existing additional tester ID is explicitly allowed. No memberships are changed. --wait polls every 30s, up to 1800s.';
 
 function assert(value, message) { if (!value) throw new Error(message); }
 function argument(name) { return args.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3); }
@@ -17,8 +17,11 @@ function id(value) { assert(typeof value === 'string' && /^[a-zA-Z0-9-]+$/.test(
 
 async function main() {
   if (args.includes('--help')) { console.log(help); return; }
-  assert(args.every(arg => ['--status', '--finalize'].includes(arg) || /^--(build|wait|receipt|additional-tester)=.+$/.test(arg)), help);
+  assert(args.every(arg => ['--status', '--finalize'].includes(arg) || /^--(build|wait|receipt|additional-tester|notes-file)=.+$/.test(arg)), help);
   const finalize = args.includes('--finalize');
+  const notesPath = argument('notes-file');
+  const notes = notesPath ? (await readFile(resolve(notesPath), 'utf8')).trim() : NOTES;
+  assert(notes.length > 0 && [...notes].length <= 4000, 'Beta notes must contain 1–4000 characters.');
   assert(!(finalize && args.includes('--status')), 'Choose --status or --finalize.');
   const expectedBuild = argument('build');
   assert(args.filter(arg => arg.startsWith('--additional-tester=')).length <= 1, 'Only one explicit additional tester ID is supported.');
@@ -97,9 +100,9 @@ async function main() {
   }
   const localization = build.included.find(item => item.type === 'betaBuildLocalizations' && item.attributes.locale === 'it');
   if (localization) {
-    if (localization.attributes.whatsNew !== NOTES) await request(`/v1/betaBuildLocalizations/${id(localization.id)}`, { method: 'PATCH', body: { data: { type: 'betaBuildLocalizations', id: localization.id, attributes: { whatsNew: NOTES } } } });
+    if (localization.attributes.whatsNew !== notes) await request(`/v1/betaBuildLocalizations/${id(localization.id)}`, { method: 'PATCH', body: { data: { type: 'betaBuildLocalizations', id: localization.id, attributes: { whatsNew: notes } } } });
   } else {
-    await request('/v1/betaBuildLocalizations', { method: 'POST', body: { data: { type: 'betaBuildLocalizations', attributes: { locale: 'it', whatsNew: NOTES }, relationships: { build: { data: { type: 'builds', id: build.id } } } } } });
+    await request('/v1/betaBuildLocalizations', { method: 'POST', body: { data: { type: 'betaBuildLocalizations', attributes: { locale: 'it', whatsNew: notes }, relationships: { build: { data: { type: 'builds', id: build.id } } } } } });
   }
   const builds = (await request(`/v1/betaGroups/${GROUP}/relationships/builds?limit=200`)).data;
   if (!builds.some(item => item.id === build.id)) await request(`/v1/betaGroups/${GROUP}/relationships/builds`, { method: 'POST', body: { data: [{ type: 'builds', id: build.id }] } });

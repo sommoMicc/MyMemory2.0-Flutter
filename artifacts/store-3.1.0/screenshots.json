@@ -1,0 +1,44 @@
+{
+  "version": "3.1.0",
+  "build": 30013,
+  "source": "Unmodified shared Flutter UI in an isolated release web preview, captured through Chrome device emulation; these are not physical-device or Simulator captures. RGB conversion only. No production profile data used.",
+  "iphonePixels": [
+    1320,
+    2868
+  ],
+  "ipadPixels": [
+    2064,
+    2752
+  ],
+  "playPixels": [
+    1080,
+    1920
+  ],
+  "files": [
+    {
+      "file": "artifacts/store-3.1.0/iphone/01-classificata.png",
+      "sha256": "0d5c0b9da8fcf60374c0ff2669b11fb8aee728f22f4ff41a2ea4a6e6951114e6",
+      "bytes": 630591
+    },
+    {
+      "file": "artifacts/store-3.1.0/iphone/02-arene.png",
+      "sha256": "67e2c56aa4cd1518eeb995de52d067f1c548f2bc324cc7dcbe0651fdf83271e9",
+      "bytes": 279700
+    },
+    {
+      "file": "artifacts/store-3.1.0/ipad/01-arene.png",
+      "sha256": "16d5a1d77bb800c57db6c55e6153822085fd9496433763010d7970a516bd49e8",
+      "bytes": 188865
+    },
+    {
+      "file": "artifacts/store-3.1.0/play/01-classificata.png",
+      "sha256": "ad54eb80939ba8e56fd4433d19e8e9b659d0bf6ddf4a0048e69b24a264e284f8",
+      "bytes": 377976
+    },
+    {
+      "file": "artifacts/store-3.1.0/play/03-tabellone.png",
+      "sha256": "aa12734ce5e072c89ee5a5c596f45fd911982ada609dc517d10b6df12ab59b0c",
+      "bytes": 538291
+    }
+  ]
+}

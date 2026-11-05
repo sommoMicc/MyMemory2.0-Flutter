@@ -1,0 +1,70 @@
+{
+  "appId": "6831015201",
+  "version": "3.1.0",
+  "locale": "it",
+  "text": {
+    "appId": "6831015201",
+    "version": "3.1.0",
+    "locale": "it",
+    "mode": "text",
+    "changes": {
+      "appInfoLocalizationId": "d7b464a1-2aab-4f7a-b2c0-d6ad6b7c8b9b",
+      "appStoreVersionId": "df818c27-8b5a-4244-9563-e92168e59552",
+      "appStoreVersionLocalizationId": "eccad0e9-6291-4cb2-819d-21e590fdf6a5",
+      "betaAppLocalizationId": "aa75af53-5f68-485b-ab25-907fa83020a8",
+      "appInfo": {
+        "name": "SommoMemory",
+        "subtitle": "Memory, arene e sfide",
+        "privacyPolicyUrl": "https://sommomemory.sommomi.cc/privacy"
+      },
+      "appStore": {
+        "description": "Allena la memoria con SommoMemory, un gioco di carte per una persona o da condividere.\n\nGIOCA COME PREFERISCI\n• In singolo, scegli un mazzo e trova le coppie al tuo ritmo.\n• In due sullo stesso dispositivo, giocate a turni.\n• Online, crea una stanza privata e invita una persona con il codice. Le amichevoli durano un round; le classificate tre. Non c’è abbinamento automatico.\n• Senza Internet, usa il Bluetooth tra app iOS e Android: scegli Cerca partita oppure Crea partita. Tieni entrambe le app aperte; la connessione dipende dai dispositivi.\n\nQUATTRO ARENE, 21 MAZZI ILLUSTRATI\nEsplora Valle Selvaggia, Baia Corallina, Grande Città e Frontiera Spaziale, sbloccate al raggiungimento di 0, 100, 300 e 600 corone. Ogni arena include tre mazzi gratuiti; altri mazzi si sbloccano con le gemme guadagnate giocando. Paola aggiunge un mazzo gratuito di sillabe italiane.\n\nUNA SFIDA CLASSIFICATA DI TRE ROUND\nInvita un’altra persona tramite codice. Entrambi giocate in contemporanea su tabelloni individuali con le stesse carte e la stessa disposizione. Si usano tre mazzi diversi, uno per round; vince chi completa tutti i round con meno tentativi complessivi. Ogni coppia di profili deve trovarsi nella stessa arena.\n\nPROFILO FACOLTATIVO\nPuoi iniziare come ospite. Se vuoi, collega Apple o Google oppure usa un codice di recupero per ritrovare il profilo e sincronizzare gemme, mazzi e personalizzazione. I record delle partite restano sul dispositivo. Non ci sono acquisti in denaro.\n\nPrivacy: https://sommomemory.sommomi.cc/privacy\nAssistenza: https://sommomemory.sommomi.cc/support",
+        "keywords": "memory,carte,memoria,gioco,bambini,famiglia,animali,mazzi,sfida,bluetooth",
+        "promotionalText": "Quattro arene, 21 mazzi illustrati e sfide da condividere: trova le coppie, guadagna gemme e misura i tuoi tentativi.",
+        "marketingUrl": "https://sommomemory.sommomi.cc",
+        "supportUrl": "https://sommomemory.sommomi.cc/support"
+      },
+      "beta": {
+        "description": "Prova SommoMemory 3.1.0 in anteprima. Gioca in singolo, in due sul dispositivo o online con una stanza privata a codice; prova anche le quattro arene e le sfide classificate a invito. Il Bluetooth è disponibile tra le app iOS e Android con entrambe le app aperte. Un profilo ospite è sufficiente; Apple e Google sono facoltativi."
+      },
+      "readbackVerified": true
+    },
+    "verifiedAt": "2026-11-05T22:14:59.940Z"
+  },
+  "verifiedAt": "2026-11-05T22:30:01.241Z",
+  "screenshots": {
+    "appId": "6831015201",
+    "version": "3.1.0",
+    "locale": "it",
+    "mode": "screenshots",
+    "versionId": "df818c27-8b5a-4244-9563-e92168e59552",
+    "localizationId": "eccad0e9-6291-4cb2-819d-21e590fdf6a5",
+    "screenshots": [
+      {
+        "displayType": "APP_IPHONE_67",
+        "id": "85c00019-7290-8521-8024-c74058f1eee0",
+        "fileName": "01-classificata.png",
+        "state": "COMPLETE",
+        "checksum": "bb84d32d1781783dc6628a797c4ab274",
+        "skipped": false
+      },
+      {
+        "displayType": "APP_IPHONE_67",
+        "id": "2a000019-7290-8521-8016-a3d113ed8dad",
+        "fileName": "02-arene.png",
+        "state": "COMPLETE",
+        "checksum": "1da3a242756073a80f0fb1f24d5b460c",
+        "skipped": false
+      },
+      {
+        "displayType": "APP_IPAD_PRO_3GEN_129",
+        "id": "67400019-7290-8521-8012-eacfd3105b17",
+        "fileName": "01-arene.png",
+        "state": "COMPLETE",
+        "checksum": "b13841580f9d74345a5c66e15155e9f6",
+        "skipped": false
+      }
+    ],
+    "verifiedAt": "2026-11-05T22:30:01.241Z"
+  }
+}

@@ -1,28 +1,39 @@
 # SommoMemory release readiness
 
-Verified 2026-11-05. This file records internal test distribution and remaining
-production release readiness. No production release has been made.
+Verified 2026-11-05. The latest native build is **3.1.0 (30013)** for internal
+testing. No production release or production store binary was published.
 
-The current signed release is **3.0.0 (30011)**. Final native artifacts are
-`artifacts/SommoMemory-3.0.0-30011.{aab,apk,ipa}`; hashes, certificate and
-source verification are recorded in `artifacts/native-builds-30011.json`.
-The IPA SHA-256 is
-`79bd46bc83d1e21856f4e3b742d1458e74a58ce62210b95239a6f0c2b47907b2`.
+Build outputs, hashes and release evidence are recorded in
+`artifacts/native-builds-30013.json`. The AAB is
+`artifacts/SommoMemory-3.1.0-30013.aab` (90,032,282 bytes; SHA-256
+`70629b0f64a282d6595321c92d643334d9610a44d7b8435a969e3f87eda6f273`); the IPA
+is `artifacts/SommoMemory-3.1.0-30013.ipa` (57,101,304 bytes; SHA-256
+`95e50e5a7fa159afdedf4f39410450bd4348db56a05b92df457e043caf0b4ae2`). The iOS
+verification report confirms version/build, bundle ID, deep/strict code signing,
+the distribution profile and required account entitlements. `jarsigner` reports
+the Android AAB signature verified, with trust-chain and JAR stream consistency
+warnings; Google Play has accepted this build.
 
-Apple upload **ed02d40e-9a06-4456-ac48-5e7ca969e6f9** completed and the build is
-**VALID / IN_BETA_TESTING**, attached to **SommoMemory Internal** for the two
-existing testers explicitly authorized by the user. No tester was added, removed
-or invited during this distribution. The account-holder tester has app access
-(state INSTALLED); this does not establish installation of this particular build.
-Italian beta notes, the declaration of no nonexempt encryption, metadata URLs
-and exact two-tester group membership were reread through the API.
-`artifacts/testflight-upload.json` is the current successful API receipt; the
-failed 30010 attempt and corrected replacement are documented below.
+TestFlight build **766a750e-62ec-4801-9f3c-47ff5f18b90b** is **VALID / IN_BETA_TESTING**
+in the existing **SommoMemory Internal** group with two testers. Google Play
+release **11**, versionCode **30013**, is active on internal track
+**4700857721365894827**. See `ANDROID.md` for the current Play status and the
+historic app record. Neither distribution is a production release.
 
-The new Android app **cc.sommomi.mymemory** is live on its internal track with
-versionCode **30011**, tester list restricted to the owner. The opt-in link is
-https://play.google.com/apps/internaltest/4700857721365894827 . No production
-release was made. See `ANDROID.md` for Console evidence and old-app deletion.
+The backend deployment is **20261105-arenas-30013**. The local preservation
+report records 43 profiles, 43 tokens, 79 ledger entries, two linked identities,
+two admin passkeys, two admin sessions, one used admin enrollment and nine online
+rounds preserved; no preexisting rows were missing, gem balances were unchanged,
+and the capability key was preserved. Apple Italian listing text is saved in
+`PREPARE_FOR_SUBMISSION`, with two iPhone screenshots and one iPad screenshot
+processed as COMPLETE. The Italian Google Play listing text and two new phone
+screenshots are saved. Play Console blocks public review until required initial
+app setup steps are complete; internal testing remains active. No production
+submission was made. The main-branch verification run 42115892272 completed
+successfully for both app and server.
+
+The failed 30010 Apple validation attempt and corrected 30011 replacement remain
+documented below for release history.
 
 The UI was implemented with the explicitly requested Astra subagent. Full-viewport animated collection worlds extend behind safe areas, with original code-drawn scenery and bundled Noto characters. Motion stops in background and with reduced motion; reference research is documented in `DESIGN_REFERENCES.md` and `MEMORY_UI_REFERENCES.md`.
 **91 Flutter tests** and analysis pass, including four viewports with realistic
@@ -32,7 +43,7 @@ do not scroll; Flutter's standard legal-license viewer retains its text scrollin
 **31 Node tests** pass, including the observed stale-browser-cache regression.
 Native AAB/APK/IPA signatures and release identities were verified. The presentation layer captures immutable authority snapshots: card faces animate first, then scores, matched styling and results appear. Turn changes wait for both mismatch closing flips. Input remains locked during any flip and still checks the latest authority before sending a move. Early remote card changes queue in order; duplicate heartbeats are ignored. Reduced motion settles immediately. Regression tests cover the final pair, early reveal/hide, rotation during reveal and stale callbacks after a new round. Independent review reproduced and verified the rotation fix. The reveal and close presentation rules remain intact.
 
-## 30011 features and validation
+## 30011 features and validation (historical)
 
 The replacement is **3.0.0 (30011)** on all platforms. The audio synthesis
 source is now `scripts/synthesize-feedback.py`, outside Flutter assets; only
@@ -212,8 +223,9 @@ The app has ordinary HTTPS and BLE networking; it declares no nonexempt encrypti
 ## Android
 
 The user's requested replacement is a **new** app, **cc.sommomi.mymemory**,
-Console app ID **4972469070574777722**. Release **3.0.0 (30011)** is available to
-internal testers; Google Play App Signing is active. A new dedicated upload key
+Console app ID **4972469070574777722**. Google Play App Signing is active. The
+current internal release is **3.1.0 (30013)**, release 11, active on track
+**4700857721365894827**. A new dedicated upload key
 is stored outside source control. There is no dependency on recovering the old
 app's signing key for this new package.
 

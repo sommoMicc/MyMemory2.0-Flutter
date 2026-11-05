@@ -1,0 +1,126 @@
+{
+  "verifiedAt": "2026-11-05",
+  "brand": "SommoMemory",
+  "version": "3.1.0",
+  "build": 30013,
+  "packageName": "cc.sommomi.mymemory",
+  "artifacts": {
+    "androidBundle": {
+      "path": "artifacts/SommoMemory-3.1.0-30013.aab",
+      "bytes": 90032282,
+      "sha256": "70629b0f64a282d6595321c92d643334d9610a44d7b8435a969e3f87eda6f273",
+      "package": "cc.sommomi.mymemory",
+      "displayName": "SommoMemory",
+      "version": "3.1.0",
+      "build": 30013,
+      "buildLog": "/tmp/mymemory-release-android.log",
+      "distribution": {
+        "googlePlayRelease": 11,
+        "track": "internal",
+        "trackId": "4700857721365894827",
+        "status": "active"
+      },
+      "signatureVerification": {
+        "tool": "jarsigner",
+        "result": "verified",
+        "notes": [
+          "JVM trust-chain warning for self-signed signing certificate",
+          "JAR stream consistency warnings reported; Google Play accepted the AAB"
+        ]
+      }
+    },
+    "ios": {
+      "path": "artifacts/SommoMemory-3.1.0-30013.ipa",
+      "bytes": 57101304,
+      "sha256": "95e50e5a7fa159afdedf4f39410450bd4348db56a05b92df457e043caf0b4ae2",
+      "package": "cc.sommomi.mymemory",
+      "displayName": "SommoMemory",
+      "version": "3.1.0",
+      "build": 30013,
+      "codesignDeepStrict": true,
+      "provisioningProfile": "SommoMemory App Store Accounts Notifications",
+      "provisioningProfileUUID": "dc790f0a-5752-4d01-9b8a-9b84d4ff01a7",
+      "appleSignInEntitlement": true,
+      "googleURLSchemeVerified": true,
+      "bundledDeckPngsVerified": 378,
+      "noBundledPython": true,
+      "buildLog": "/tmp/mymemory-release-ios.log",
+      "verificationReport": "/tmp/mymemory-release-ios-verification.json",
+      "testFlight": {
+        "buildId": "766a750e-62ec-4801-9f3c-47ff5f18b90b",
+        "uploadState": "COMPLETE",
+        "processingState": "VALID",
+        "internalBuildState": "IN_BETA_TESTING",
+        "group": "SommoMemory Internal",
+        "testerCount": 2
+      }
+    }
+  },
+  "web": {
+    "buildLog": "/tmp/mymemory-release-web.log",
+    "build": "completed"
+  },
+  "deployment": {
+    "id": "20261105-arenas-30013",
+    "dataPreservationReport": "artifacts/deployment-30013.json",
+    "preservation": {
+      "profiles": 43,
+      "tokens": 43,
+      "ledgerEntries": 79,
+      "authIdentities": 2,
+      "adminPasskeys": 2,
+      "adminSessions": 2,
+      "adminUsedEnrollments": 1,
+      "onlineRounds": 9,
+      "missingPreexistingRows": 0,
+      "changedGemBalances": 0,
+      "capabilityKeyPreserved": true
+    }
+  },
+  "distribution": {
+    "productionRelease": false,
+    "googlePlay": {
+      "release": 11,
+      "track": "internal",
+      "trackId": "4700857721365894827",
+      "status": "active"
+    },
+    "testFlight": {
+      "buildId": "766a750e-62ec-4801-9f3c-47ff5f18b90b",
+      "state": "VALID / IN_BETA_TESTING",
+      "group": "SommoMemory Internal",
+      "testerCount": 2
+    }
+  },
+  "storeMetadata": {
+    "apple": {
+      "locale": "it",
+      "version": "3.1.0",
+      "status": "PREPARE_FOR_SUBMISSION",
+      "textVerified": true,
+      "betaDescriptionVerified": true,
+      "betaBuildNotesVerified": true,
+      "screenshots": {
+        "iphone": 2,
+        "ipad": 1,
+        "deliveryState": "COMPLETE"
+      },
+      "receipt": "artifacts/store-3.1.0/apple-metadata.json"
+    },
+    "googlePlay": {
+      "locale": "it-IT",
+      "status": "saved_pending_initial_app_setup",
+      "textSaved": true,
+      "phoneScreenshots": 2,
+      "publicReviewSubmitted": false,
+      "reviewBlocker": "Play Console disables submission until required initial app dashboard steps are complete.",
+      "proof": "artifacts/store-3.1.0/play-listing-saved.jpg"
+    }
+  },
+  "validation": {
+    "workflowRunId": 42115892272,
+    "status": "success",
+    "app": "success",
+    "server": "success"
+  }
+}
