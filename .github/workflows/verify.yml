@@ -1,41 +1,29 @@
 name: Verify MyMemory
 on:
   push:
-  pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
   server:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, sommonas]
     defaults:
       run:
         working-directory: server
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: server/package-lock.json
+      - run: node --version && npm --version
       - run: npm ci
       - run: npm test
       - run: npm audit --omit=dev
   app:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, sommonas]
     defaults:
       run:
         working-directory: app
     steps:
       - uses: actions/checkout@v6
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.47.9'
-          channel: stable
-          cache: true
-      - uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: '17'
+      - run: flutter --version && java -version
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
