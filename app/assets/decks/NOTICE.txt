@@ -8,5 +8,5 @@ Upstream directory: 2D/png/512/
 License: Apache License, Version 2.0 (see LICENSE-APACHE-2.0.txt).
 The upstream image copyright/license notice is retained in UPSTREAM-NOTICE.txt.
 
-MyMemory selects and orders the images into Animali, Spazio and Oceano.
+SommoMemory selects and orders the images into Animali, Spazio and Oceano.
 No Noto font files, flags or Noto 3D artwork are included.

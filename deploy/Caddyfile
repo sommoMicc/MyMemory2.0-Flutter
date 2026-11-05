@@ -1,5 +1,5 @@
 # BEGIN mymemory
-mymemory.sommomi.cc {
+sommomemory.sommomi.cc {
     encode zstd gzip
     request_body {
         max_size 16KB
@@ -10,6 +10,17 @@ mymemory.sommomi.cc {
     }
     reverse_proxy 127.0.0.1:8798 {
         header_up X-Forwarded-For {remote_host}
+    }
+}
+mymemory.sommomi.cc {
+    @legacySocket path /ws
+    handle @legacySocket {
+        reverse_proxy 127.0.0.1:8798 {
+            header_up X-Forwarded-For {remote_host}
+        }
+    }
+    handle {
+        redir https://sommomemory.sommomi.cc{uri} permanent
     }
 }
 # END mymemory

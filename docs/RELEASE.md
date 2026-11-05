@@ -1,4 +1,4 @@
-# MyMemory release readiness
+# SommoMemory release readiness
 
 Verified 2026-11-05. This file records internal test distribution and remaining
 production release readiness. No production release has been made.
@@ -10,7 +10,7 @@ The IPA SHA-256 is
 `36621dcdd1e18054554f102de201d031bc8ca9cf197ac7490ad8adc47c990846`.
 
 Apple upload **e456678f-f659-402c-a6ba-251cd03aa967** completed and the build is
-**VALID / IN_BETA_TESTING**, attached to **MyMemory Internal** with exactly one
+**VALID / IN_BETA_TESTING**, attached to **SommoMemory Internal** with exactly one
 account-holder tester. That tester's prior invitation is accepted (tester state
 INSTALLED); this confirms app access, not installation of every new build.
 `artifacts/testflight-upload.json` is the current API receipt.
@@ -63,6 +63,17 @@ flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
 App Store Connect record **6831015201** was created through the website as
 **MyMemory Together** (the name MyMemory was already occupied), with Italian
 primary locale, SKU `mymemory-ios`, iOS and unrestricted existing-team access.
+On 5 November 2026, the existing record’s Italian public name was changed through
+the API to **SommoMemory** and the Italian beta description was updated. The app
+ID, SKU `mymemory-ios` and bundle identifier `cc.sommomi.mymemory` are unchanged.
+The existing internal group was renamed **SommoMemory Internal**; its ID, sole
+account-holder tester and build relationships were verified unchanged. No new
+app record or tester was created. The signed 30007 artifact above retains its
+original native display name; a later build will carry the updated app name.
+Beta and App Store metadata now point to `https://sommomemory.sommomi.cc`,
+with `/privacy` and `/support` for their respective URLs. The updates were
+verified through the API after public DNS and strict TLS validation of the new
+site. No production submission was made.
 Apple's
 [Apps API documentation](https://developer.apple.com/documentation/appstoreconnectapi/apps)
 states that creating a new app record requires the App Store Connect website.
@@ -71,7 +82,7 @@ does support direct binary uploads; that newer resource supersedes the older
 Apps overview's Transporter-only upload statement. Use:
 
 ```sh
-node scripts/testflight-upload.mjs app/build/ios/ipa/MyMemory.ipa
+node scripts/testflight-upload.mjs app/build/ios/ipa/SommoMemory.ipa
 ```
 
 The uploader supports `--commit-only` to validate the existing receipt/native SHA-256 and resume only its checksum confirmation after completed binary transmission. It creates no new upload reservation and sends no binary parts in this mode; new uploads persist successful-part markers before confirming the checksum. Build 30006 used this recovery after an API connect timeout, and then completed VALID/internal testing.

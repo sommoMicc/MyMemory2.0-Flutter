@@ -15,7 +15,7 @@ so Android, iOS and web render the same artwork and work offline.
 
 The selected assets come only from Noto's **2D** directory; no Noto 3D artwork,
 font files, flags or third-party character packs are included. The downloaded
-images are unchanged. MyMemory selects and orders them into collections.
+images are unchanged. SommoMemory selects and orders them into collections.
 
 ## Pinned provenance and reproduction
 

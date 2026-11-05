@@ -14,7 +14,7 @@ services:
       PORT: 8798
       DATA_DIR: /data
       WEB_DIR: /app/web
-      ALLOWED_ORIGINS: https://mymemory.sommomi.cc
+      ALLOWED_ORIGINS: https://sommomemory.sommomi.cc,https://mymemory.sommomi.cc
       TRUST_PROXY: "1"
     ports:
       - "127.0.0.1:8798:8798"

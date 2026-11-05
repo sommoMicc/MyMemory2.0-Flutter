@@ -1,10 +1,10 @@
-# MyMemory on Sommonas
+# SommoMemory on Sommonas
 
-The app and multiplayer service share `https://mymemory.sommomi.cc`. Caddy
+The app and multiplayer service share `https://sommomemory.sommomi.cc`. Caddy
 terminates HTTPS and proxies HTTP/WebSocket requests to `127.0.0.1:8798`.
 No new public server ports are opened. DNS already points to the existing NAS.
-Only the production browser origin is accepted; native Android/iOS clients also
-use `/ws`. Caddy overwrites `X-Forwarded-For` with the actual remote client address
+Only the current and legacy production browser origins are accepted; native
+Android/iOS clients also use `/ws`. Caddy overwrites `X-Forwarded-For` with the actual remote client address
 and is the sole public path to the private listener. `TRUST_PROXY=1` enables the
 backend's per-address connection limits using that trusted header.
 
@@ -53,7 +53,7 @@ to erase it. Deployments restart the server. Clients can resume within the serve
 Check deployment health:
 
 ```sh
-curl -fsS https://mymemory.sommomi.cc/healthz
+curl -fsS https://sommomemory.sommomi.cc/healthz
 ssh sommonas 'docker inspect --format "{{.State.Health.Status}}" mymemory-api'
 ```
 
@@ -70,3 +70,9 @@ mv -Tf /srv/mymemory/current.new /srv/mymemory/current
 Do not restore a full historical Caddyfile over changes made later by other apps.
 To remove MyMemory, remove only the `BEGIN/END mymemory` block, validate and reload
 Caddy, and stop only the `mymemory` Compose project. Existing sites are independent.
+
+## Domain migration
+
+The current public origin is `https://sommomemory.sommomi.cc`. Both the app WebSocket endpoint and shared room links use this hostname. The legacy `https://mymemory.sommomi.cc` redirects ordinary requests to the new hostname, preserving path and query. Its `/ws` endpoint remains proxied to the same service so previously distributed native builds can still play with the current clients. Both origins are explicitly allowed; storage, room protocol, container project and persistent volume retain their existing identities.
+
+Both hostnames need CNAME records targeting `sommomi.cc`. During a migration, validate the new DNS and HTTPS route before enabling the legacy HTTP redirect. Keep the marked `BEGIN/END mymemory` block name stable to update only this game’s routes.

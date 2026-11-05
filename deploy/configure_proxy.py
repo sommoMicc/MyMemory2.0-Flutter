@@ -102,7 +102,7 @@ def main():
         _, after = rest.split(END, 1)
         candidate = before + route + after
     else:
-        if 'mymemory.sommomi.cc' in original:
+        if any(domain in original for domain in ('mymemory.sommomi.cc', 'sommomemory.sommomi.cc')):
             raise SystemExit('An unmarked MyMemory route already exists; no change made.')
         candidate = original.rstrip() + '\n\n' + route + '\n'
     old_adapted = adapt(original)

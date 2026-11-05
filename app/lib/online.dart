@@ -14,7 +14,7 @@ class OnlineGame extends ChangeNotifier {
   final String _serverUrl;
   static const endpoint = String.fromEnvironment(
     'MULTIPLAYER_URL',
-    defaultValue: 'wss://mymemory.sommomi.cc/ws',
+    defaultValue: 'wss://sommomemory.sommomi.cc/ws',
   );
   WebSocketChannel? _channel;
   StreamSubscription<dynamic>? _subscription;

@@ -14,7 +14,7 @@ const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.
 export function startServer({ port = Number(process.env.PORT || 8787), host = process.env.HOST || '127.0.0.1',
   dataDir = process.env.DATA_DIR || resolve(here, '../data'),
   webDir = process.env.WEB_DIR || resolve(here, '../../app/build/web'),
-  allowedOrigins = process.env.ALLOWED_ORIGINS || 'https://mymemory.sommomi.cc,http://localhost:8080,http://127.0.0.1:8080',
+  allowedOrigins = process.env.ALLOWED_ORIGINS || 'https://sommomemory.sommomi.cc,https://mymemory.sommomi.cc,http://localhost:8080,http://127.0.0.1:8080',
   trustProxy = process.env.TRUST_PROXY === '1', engine: providedEngine } = {}) {
   const engine = providedEngine || new GameEngine({ dataDir });
   const sockets = new Map();

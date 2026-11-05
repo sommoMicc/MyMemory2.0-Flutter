@@ -23,7 +23,7 @@ class MyMemory extends StatelessWidget {
   final SharedPreferences prefs;
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'MyMemory',
+    title: 'SommoMemory',
     debugShowCheckedModeBanner: false,
     theme: ThemeData(
       useMaterial3: true,
@@ -346,7 +346,7 @@ class _HomeState extends State<Home> {
                           ],
                           Expanded(
                             child: Text(
-                              configuring ? modeTitle : 'my memory',
+                              configuring ? modeTitle : 'SommoMemory',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w600,
@@ -689,18 +689,18 @@ class _SettingsDialogState extends State<_SettingsDialog> {
               ),
             if (section == 2) ...[
               const Text(
-                'MyMemory · Michele Tagliabue\nLe partite locali restano sul dispositivo. Online vengono condivisi nome, mosse e stato stanza. Nessuna pubblicità o analisi di utilizzo.',
+                'SommoMemory · Michele Tagliabue\nLe partite locali restano sul dispositivo. Online vengono condivisi nome, mosse e stato stanza. Nessuna pubblicità o analisi di utilizzo.',
                 style: TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 10),
               const SelectableText(
-                'mymemory.sommomi.cc/privacy\nmikitg.michele@gmail.com',
+                'sommomemory.sommomi.cc/privacy\nmikitg.michele@gmail.com',
                 style: TextStyle(fontSize: 13, color: teal),
               ),
               TextButton(
                 onPressed: () => showLicensePage(
                   context: context,
-                  applicationName: 'MyMemory',
+                  applicationName: 'SommoMemory',
                 ),
                 child: const Text('Licenze'),
               ),
@@ -1734,7 +1734,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         : '${matched.length ~/ 2} / ${widget.pairs} coppie';
     Future<void> copyInvite() async {
       await Clipboard.setData(
-        ClipboardData(text: 'https://mymemory.sommomi.cc/?room=$code'),
+        ClipboardData(text: 'https://sommomemory.sommomi.cc/?room=$code'),
       );
       if (context.mounted) {
         ScaffoldMessenger.of(

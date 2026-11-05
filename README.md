@@ -1,8 +1,10 @@
-# MyMemory Together
+# SommoMemory
 
 Il memory di Michele Tagliabue, ripristinato per Android, iPhone, iPad e browser.
 
-**Gioca:** https://mymemory.sommomi.cc · **Privacy:** https://mymemory.sommomi.cc/privacy · **Assistenza:** https://mymemory.sommomi.cc/support
+Il gioco si chiama **SommoMemory**. SKU `mymemory-ios` e bundle/package `cc.sommomi.mymemory` restano invariati. Il sito e il multiplayer usano `sommomemory.sommomi.cc`.
+
+**Gioca:** https://sommomemory.sommomi.cc · **Privacy:** https://sommomemory.sommomi.cc/privacy · **Assistenza:** https://sommomemory.sommomi.cc/support
 
 ## Il gioco
 
@@ -44,7 +46,7 @@ flutter test
 flutter run
 ```
 
-Il client usa per impostazione predefinita `wss://mymemory.sommomi.cc/ws`. Per un servizio locale:
+Il client usa per impostazione predefinita `wss://sommomemory.sommomi.cc/ws`. Per un servizio locale:
 
 ```sh
 cd server
@@ -67,11 +69,11 @@ flutter build apk --release
 flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
 ```
 
-Android usa la **nuova app `cc.sommomi.mymemory`**, nome **MyMemory Together**, versione **3.0.0 (30007)**. La release è disponibile nei [test interni Google Play](https://play.google.com/apps/internaltest/4700857721365894827), riservati al tester proprietario. Occorre accettare l'invito nella pagina del test. La vecchia `com.michele.mymemory` è stata eliminata il **5 novembre 2026**, su conferma esplicita dell'utente; Google consente di recuperarla fino al **12 novembre 2026**. Dopo la cancellazione è stato verificato che il nuovo test interno resta attivo. Vedere `docs/ANDROID.md` per i dettagli.
+Android usa la **nuova app `cc.sommomi.mymemory`**, nome **SommoMemory**, versione **3.0.0 (30008)**. Il nome nel launcher è **SommoMemory**; la scheda Store ha il nuovo nome salvato in bozza e Google mostra un nome temporaneo fino alla prima revisione. La release è disponibile nei [test interni Google Play](https://play.google.com/apps/internaltest/4700857721365894827), riservati al tester proprietario. Occorre accettare l'invito nella pagina del test. La vecchia `com.michele.mymemory` è stata eliminata il **5 novembre 2026**, su conferma esplicita dell'utente; Google consente di recuperarla fino al **12 novembre 2026**. Dopo la cancellazione è stato verificato che il nuovo test interno resta attivo. Vedere `docs/ANDROID.md` per i dettagli.
 
 La nuova chiave upload dedicata è conservata esternamente in `~/.codex/credentials/android/mymemory/`, con configurazione privata e `app/android/key.properties` locale ignorato da Git. Le release non usano la chiave debug; Google Play gestisce la firma delle installazioni distribuite dal canale interno.
 
-iOS usa **`cc.sommomi.mymemory`**, versione **3.0.0 (30007)**, disponibile nel gruppo **MyMemory Internal** su TestFlight. Il tester proprietario è già aggiunto e il suo invito risulta accettato. Il profilo e la chiave rimangono esterni alla repository. In caso di interruzione dopo l’invio completo dei byte, `node scripts/testflight-upload.mjs --commit-only artifacts/MyMemory-Together-3.0.0-30007.ipa` riprende soltanto la conferma della ricevuta esistente, verificando versione e impronte senza creare un altro upload. Gli script ASC leggono la configurazione in `~/.codex/credentials/appstoreconnect/config.json`, firmano JWT brevi in memoria e non espongono credenziali. Dopo l'upload, `node scripts/testflight-finalize.mjs --finalize --build=30007 --wait=1200` verifica Apple e collega solo il gruppo interno esistente.
+iOS usa **`cc.sommomi.mymemory`**: la versione **3.0.0 (30008)** è caricata e in elaborazione Apple; la distribuzione avverrà nel gruppo **SommoMemory Internal** su TestFlight dopo la validazione. La precedente 30007 resta disponibile al tester. Il tester proprietario è già aggiunto e il suo invito risulta accettato. Il profilo e la chiave rimangono esterni alla repository. In caso di interruzione dopo l’invio completo dei byte, `node scripts/testflight-upload.mjs --commit-only artifacts/SommoMemory-3.0.0-30008.ipa` riprende soltanto la conferma della ricevuta esistente, verificando versione e impronte senza creare un altro upload. Gli script ASC leggono la configurazione in `~/.codex/credentials/appstoreconnect/config.json`, firmano JWT brevi in memoria e non espongono credenziali. Dopo l'upload, `node scripts/testflight-finalize.mjs --finalize --build=30008 --wait=1200` verifica Apple e collega solo il gruppo interno esistente.
 
 ## Hosting e collaudo
 

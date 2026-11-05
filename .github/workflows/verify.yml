@@ -1,4 +1,4 @@
-name: Verify MyMemory
+name: Verify SommoMemory
 on:
   push:
   pull_request:

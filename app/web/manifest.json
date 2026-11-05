@@ -1,6 +1,6 @@
 {
-  "name": "MyMemory",
-  "short_name": "MyMemory",
+  "name": "SommoMemory",
+  "short_name": "SommoMemory",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#FAF7F0",

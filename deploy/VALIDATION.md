@@ -102,3 +102,36 @@ The signed AAB/APK/IPA match all 71 frozen source/asset hashes in
 `artifacts/native-builds-30007.json`. Android internal release 5 is live. Apple
 upload `e456678f-f659-402c-a6ba-251cd03aa967` is COMPLETE/VALID/IN_BETA_TESTING
 and assigned to the existing internal group with its sole owner tester.
+
+## SommoMemory and domain migration — 5 November 2026
+
+Build 30008 uses the display name **SommoMemory** on Android, iOS and web while
+retaining `cc.sommomi.mymemory`, the existing Apple/Play records, signing keys,
+service names and persistent `mymemory-data` volume. The new primary endpoint is
+`https://sommomemory.sommomi.cc`, with multiplayer at `/ws`.
+
+Release `20261105T132117Z` serves `main.13a9a6272aab18dc.dart.js`, SHA-256
+`13a9a6272aab18dc4ceae4f6762b1826455306ce7fcf885f8238d8e4a01a5900`.
+Public checks with ordinary DNS and TLS verification confirm the title/PWA
+manifest, privacy and support branding, the prepared entrypoint, all 54 PNGs,
+manifest and license bytes. The final native packages have matching names,
+version, signatures, assets and 79 frozen runtime/asset/identity/config hashes
+in `artifacts/native-builds-30008.json`.
+
+Migration first enabled both hosts in proxy mode while Caddy obtained the new
+certificate. Only after normal DNS and HTTPS worked was the final legacy HTTP
+redirect enabled. `mymemory.sommomi.cc/support?from=legacy&check=1` returns HTTP
+301 with the complete path/query preserved on the new domain. The old `/ws`
+endpoint remains proxied: a new-domain browser client and an old-domain native
+client created/joined the same room, received identical revealed cards and left
+successfully. An old-origin browser WebSocket also exchanged ping/pong. All test
+rooms were removed; health reported zero rooms.
+
+The other Caddy site definitions were unchanged, confirmed before and after the
+final route update with SHA-256
+`5ed20e19f4bb909c615da391e05a47c5b8b04d29aff0fd19d487591a4aad1e21`.
+No router, firewall, TLS trust or resolver settings were changed by deployment.
+Root browser QA confirmed the new-domain SommoMemory home at 320×568 without
+overflow; its viewport was reset afterwards. Proof:
+`artifacts/sommomemory-live-30008.png`. Public verification receipt:
+`artifacts/web-deploy-30008.json`.

@@ -1,6 +1,6 @@
 # MyMemory multiplayer protocol v1
 
-Connect to `wss://mymemory.sommomi.cc/ws`. Every frame is one JSON object.
+Connect to `wss://sommomemory.sommomi.cc/ws`. Every frame is one JSON object.
 Rooms support exactly two players. No account, email or advertising identifier is used.
 
 ## Client messages

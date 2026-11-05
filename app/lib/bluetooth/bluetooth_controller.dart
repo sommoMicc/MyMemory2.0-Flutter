@@ -196,10 +196,13 @@ class BluetoothController extends ChangeNotifier {
         ),
       );
       await manager.startAdvertising(
-        ble.Advertisement(name: 'MyMemory $code', serviceUUIDs: [_serviceId]),
+        ble.Advertisement(
+          name: 'SommoMemory $code',
+          serviceUUIDs: [_serviceId],
+        ),
       );
       state = _game!.snapshot();
-      status = 'Visibile come MyMemory $code';
+      status = 'Visibile come SommoMemory $code';
       _startHeartbeat();
       _changed();
     } catch (cause) {
@@ -225,7 +228,7 @@ class BluetoothController extends ChangeNotifier {
         manager.discovered.listen((event) {
           final peer = BluetoothPeer(
             event.peripheral,
-            event.advertisement.name ?? 'MyMemory vicino',
+            event.advertisement.name ?? 'SommoMemory vicino',
             event.rssi,
           );
           final index = peers.indexWhere((p) => p.id == peer.id);

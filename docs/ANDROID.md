@@ -7,20 +7,21 @@ testing, and deletion of the historical app. The new Console record is created:
 
 | Field | Verified value |
 | --- | --- |
-| Name | MyMemory Together |
+| Installed app display name | SommoMemory |
+| Console record name | MyMemory Together; requested SommoMemory name saved in Store-listing draft (see below) |
 | Package/application ID | `cc.sommomi.mymemory` (Console availability verified) |
 | Console app ID | `4972469070574777722` |
 | Language/category/pricing | Italian `it-IT`, game, free |
 | Internal track ID | `4700857721365894827` |
 | Tester list | MyMemory test interno; selected and saved; one account owner tester |
-| Release | 5, name `3.0.0 (30007) - Eventi dopo il flip`; **available to internal testers**, published 5 November 2026 at 11:02 as shown in Console |
-| Binary | Final **3.0.0 (30007)** uploaded and accepted |
+| Release | 6, name `3.0.0 (30008) - SommoMemory`; **available to internal testers**, published 5 November 2026 at 14:29 as shown in Console |
+| Binary | Final **3.0.0 (30008)** uploaded and accepted |
 | Track status | **Attivo** |
 | App signing | Releases signed by Google Play; no new terms prompt appeared |
 | Production | No production release requested or performed |
 
 [New app dashboard](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/app-dashboard)
-and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/5/details).
+and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/6/details).
 The **live internal opt-in link** is
 [Join the internal test](https://play.google.com/apps/internaltest/4700857721365894827).
 It was opened in the owner's signed-in browser and showed the invitation to test
@@ -33,8 +34,16 @@ store name for this new internal app. This release is **internal only**, not a
 production listing. Console accepted the binary with min API 24, target API 36,
 three ABIs, and ReTrace mapping/native symbols attached.
 
-Build 30007 replaces internal build 30006 with presentation synchronized to the
-actual card animations. Scores, matched-pair styling and the final result appear
+Build **30008** replaces internal build 30007 with the **SommoMemory** display
+name and branding. The final binary uses
+`wss://sommomemory.sommomi.cc/ws`; the public service is
+`https://sommomemory.sommomi.cc`. It was packaged after validation of the new
+domain and TLS. Package, signing identity, internal track and owner-only tester
+list are unchanged. Proof of the active release:
+`artifacts/play-internal-live-30008.jpg`.
+
+The presentation synchronization introduced in build 30007 remains. Scores,
+matched-pair styling and the final result follow the actual card animations and appear
 after the opening flip completes; turn changes appear after both cards finish
 closing. Input stays locked during opening, closing and queued presentation
 updates. Rapid remote snapshots preserve the visual sequence without replaying
@@ -42,7 +51,7 @@ heartbeat events. Rotation and new-round resets cannot strand an animation lock
 or replay an old action. The authoritative local, Bluetooth and server engines
 and their 900ms mismatch interval are unchanged.
 
-Before packaging, Flutter analysis and **all 37 Flutter tests passed**, including
+For that synchronization update, Flutter analysis and **all 37 Flutter tests passed**, including
 local final-pair events, online/Bluetooth snapshot ordering, complete closing,
 reduced motion, rotation and round-reset regressions. Independent review first
 reproduced the rotation lock and then verified its correction.
@@ -50,13 +59,13 @@ reproduced the rotation lock and then verified its correction.
 Full-screen animated scenery for Animals, Space and Ocean, floating characters,
 reduced-motion and pause handling, illustrated collections, animated card flips,
 complete uniform rows and non-scrolling screens remain. The upload and review
-screens verified versionCode **30007**,
+screens verified versionCode **30008**,
 versionName **3.0.0**; Console reports **zero previously supported devices lost**.
 The owner tester list and invitation link were unchanged.
 
 Uploaded artifact:
-`artifacts/MyMemory-Together-3.0.0-30007.aab`, SHA-256
-`5d5089b6ee89e1d8227dc25fb010c699e9624ebe75bcad7e3efad77cf2d13a1a`.
+`artifacts/SommoMemory-3.0.0-30008.aab`, SHA-256
+`b9e47cdd6c050ff350bcb8f54a5efdfe384bfc70b8e882179bbb1b8056768637`.
 The dedicated upload certificate SHA-256 is
 `404D6F54025C024007E37F2A25352CB84471268A1C6C0D78C17A9565E12BED67`.
 Private signing materials remain outside the repository.
@@ -66,6 +75,27 @@ acknowledgments. No new signing-service contract was presented at creation.
 There was no connected Play tool or configured Play Developer API credential;
 the official [API resource reference](https://developers.google.com/android-publisher/api-ref/rest)
 also exposes no create-app operation, so this work uses the signed-in Console UI.
+
+## SommoMemory rename — Store draft saved
+
+On 5 November 2026 the user requested the display name **SommoMemory**, preserving
+the existing package and app record. The default Italian Store listing did not
+previously exist. Its **Nome app** is now **SommoMemory**, saved as a draft and
+verified after reloading the editor. No identifiers or tester settings changed.
+Local evidence, excluded from Git: `artifacts/play-sommomemory-name-draft.jpg`.
+
+This is a saved draft, not a published Store-name change. Descriptions, Store
+icon, feature graphic and screenshots are still absent, and Console continues to
+show **MyMemory Together** and the temporary name
+**cc.sommomi.mymemory (unreviewed)**. Google's
+[internal-testing guidance](https://support.google.com/googleplay/android-developer/answer/9845334)
+explains that testers see a temporary name before the app's first review. A
+complete Store listing and review are separate from the internal binary release;
+neither production publication nor a first-review submission was performed.
+
+Build **30008 is the current live internal version**, with SommoMemory as its
+installed launcher name. The incomplete Store draft does not prevent this
+authorized internal binary update. No production release was created.
 
 ## Old app deleted — recoverable until 12 November 2026
 
@@ -84,7 +114,7 @@ Immediately after deletion, the replacement **cc.sommomi.mymemory** app was
 refreshed and verified separately: its then-current 30003 internal release
 remained **Attivo**, with the owner tester list selected and the opt-in link
 enabled. The replacement app and its signing settings were not modified during
-deletion. The current presentation-synchronization update 30007 is recorded above.
+deletion. The current SommoMemory update 30008 is recorded above.
 
 The [current official deletion guide](https://support.google.com/googleplay/android-developer/answer/16483176)
 requires an unpublished app, fewer than 1000 active devices, no unresolved review,
@@ -162,7 +192,7 @@ The **Testa e rilascia** page listed these required incomplete declarations:
 
 These were observed only; they were not completed or submitted. Public privacy
 and support pages for the restored service are available at
-`https://mymemory.sommomi.cc/privacy` and `/support`, but Console declarations still
+`https://sommomemory.sommomi.cc/privacy` and `/support`, but Console declarations still
 need to reflect the final app behavior and the user's intended audience.
 
 During the initial historical audit, no Android upload, production submission or
