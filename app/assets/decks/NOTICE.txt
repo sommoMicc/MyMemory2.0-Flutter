@@ -1,0 +1,12 @@
+Noto Emoji 2D illustrations
+Copyright 2013 Google, Inc. All Rights Reserved.
+
+These 54 unmodified PNG image resources are from Google Fonts Noto Emoji:
+https://github.com/googlefonts/noto-emoji
+Pinned commit: 99701e07d3d1fe1bdbcdb14964547f0fd592966f
+Upstream directory: 2D/png/512/
+License: Apache License, Version 2.0 (see LICENSE-APACHE-2.0.txt).
+The upstream image copyright/license notice is retained in UPSTREAM-NOTICE.txt.
+
+MyMemory selects and orders the images into Animali, Spazio and Oceano.
+No Noto font files, flags or Noto 3D artwork are included.

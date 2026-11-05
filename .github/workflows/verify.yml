@@ -1,0 +1,32 @@
+name: Verify MyMemory
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  server:
+    runs-on: [self-hosted, Linux, X64, sommonas]
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v6
+      - run: node --version && npm --version
+      - run: npm ci
+      - run: npm test
+      - run: npm audit --omit=dev
+  app:
+    runs-on: [self-hosted, Linux, X64, sommonas]
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v6
+      - run: flutter --version && java -version
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - run: flutter build web --release
+      - run: node ../scripts/prepare-web.mjs build/web
+      - run: flutter build apk --debug

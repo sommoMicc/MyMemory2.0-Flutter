@@ -1,0 +1,9 @@
+# Runtime image needs only the locked backend source and built-in public pages.
+**
+!server/
+!server/**
+server/node_modules/
+server/data/
+server/.env*
+server/**/__pycache__/
+server/**/*.log

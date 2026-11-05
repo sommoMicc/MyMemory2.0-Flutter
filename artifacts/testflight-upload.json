@@ -1,0 +1,58 @@
+{
+  "appId": "6831015201",
+  "bundleId": "cc.sommomi.mymemory",
+  "version": "3.0.0",
+  "build": "30007",
+  "sha256": "36621dcdd1e18054554f102de201d031bc8ca9cf197ac7490ad8adc47c990846",
+  "buildUploadId": "e456678f-f659-402c-a6ba-251cd03aa967",
+  "createdAt": "2026-11-05T10:02:52.008Z",
+  "buildUploadFileId": "b8e1fa56-ecc4-46e3-bcec-b19bcb09512b",
+  "binaryPartsUploaded": [
+    {
+      "part": 1,
+      "offset": 0,
+      "length": 5242880
+    },
+    {
+      "part": 2,
+      "offset": 10485760,
+      "length": 5242880
+    },
+    {
+      "part": 3,
+      "offset": 15728640,
+      "length": 5242880
+    },
+    {
+      "part": 4,
+      "offset": 20971520,
+      "length": 1493368
+    },
+    {
+      "part": 5,
+      "offset": 5242880,
+      "length": 5242880
+    }
+  ],
+  "binaryUploadCompleteAt": "2026-11-05T10:03:01.970Z",
+  "committedAt": "2026-11-05T10:03:07.490Z",
+  "assetDeliveryState": {
+    "errors": [],
+    "warnings": [],
+    "state": "COMPLETE"
+  },
+  "processingState": "COMPLETE",
+  "buildProcessingState": "VALID",
+  "lastCheckedAt": "2026-11-05T10:05:04.397Z",
+  "buildId": "e456678f-f659-402c-a6ba-251cd03aa967",
+  "readyForInternalTesting": true,
+  "internalBuildState": "IN_BETA_TESTING",
+  "betaGroupId": "d811d09d-3800-4275-b5c3-8a9773439b1d",
+  "betaGroupName": "MyMemory Internal",
+  "internalTesterCount": 1,
+  "notesLocale": "it",
+  "finalizedAt": "2026-11-05T10:05:23.525Z",
+  "usesNonExemptEncryption": false,
+  "betaNotesVerified": true,
+  "metadataVerifiedAt": "2026-11-05T10:06:49.188Z"
+}

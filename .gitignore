@@ -1,0 +1,58 @@
+# Original local Java projects and untouched historical checkout copies.
+/MyMemory/
+/ProvaHTTPRequest/
+/carte/
+/legacy/MyMemory2.0-Flutter/
+/legacy/MyMemory2.0-Node/
+
+# Generated application and dependency files, including archived old/new clients.
+**/node_modules/
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+**/Pods/
+**/.gradle/
+**/DerivedData/
+**/coverage/
+**/__pycache__/
+*.pyc
+*.class
+*.log
+.DS_Store
+.idea/
+*.iml
+
+# Private runtime data and all signing credentials stay outside source control.
+/server/data/
+.env
+.env.*
+!.env.example
+*.p8
+*.p12
+*.pfx
+*.pem
+*.jks
+*.keystore
+*.mobileprovision
+*.provisionprofile
+key.properties
+local.properties
+*.xcuserstate
+**/xcuserdata/
+caddy-backup-*
+Caddyfile.before-*
+
+# Distributable binaries remain local; receipts can be reviewed in artifacts/.
+*.apk
+*.aab
+*.ipa
+*.xcarchive/
+
+# Keep superseded Console drafts and private deletion review screenshots local.
+/artifacts/play-internal-draft.jpg
+/artifacts/play-old-app-delete-dialog.jpg
+
+/artifacts/play-internal-draft-*.jpg

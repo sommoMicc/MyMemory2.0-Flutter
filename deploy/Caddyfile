@@ -1,0 +1,15 @@
+# BEGIN mymemory
+mymemory.sommomi.cc {
+    encode zstd gzip
+    request_body {
+        max_size 16KB
+    }
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+    reverse_proxy 127.0.0.1:8798 {
+        header_up X-Forwarded-For {remote_host}
+    }
+}
+# END mymemory
