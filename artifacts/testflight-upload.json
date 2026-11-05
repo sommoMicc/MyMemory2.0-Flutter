@@ -42,7 +42,25 @@
     "warnings": [],
     "state": "COMPLETE"
   },
-  "processingState": "PROCESSING",
-  "buildProcessingState": null,
-  "lastCheckedAt": "2026-11-05T13:50:47.969Z"
+  "processingState": "COMPLETE",
+  "buildProcessingState": "VALID",
+  "lastCheckedAt": "2026-11-05T13:59:46.997Z",
+  "buildId": "25bc7373-20a5-4106-a8e1-5ff3e0560280",
+  "notesLocale": "it",
+  "betaNotesVerified": true,
+  "usesNonExemptEncryption": false,
+  "metadataVerifiedAt": "2026-11-05T14:01:16.650Z",
+  "groupAssignmentPending": false,
+  "readyForInternalTesting": true,
+  "internalBuildState": "IN_BETA_TESTING",
+  "betaGroupId": "d811d09d-3800-4275-b5c3-8a9773439b1d",
+  "betaGroupName": "SommoMemory Internal",
+  "internalTesterCount": 2,
+  "additionalTesterIds": [
+    "8f73fef5-1c02-4500-92e6-b8e31f908f11"
+  ],
+  "finalizedAt": "2026-11-05T13:59:51.635Z",
+  "appName": "SommoMemory",
+  "sku": "mymemory-ios",
+  "baseUrl": "https://sommomemory.sommomi.cc"
 }

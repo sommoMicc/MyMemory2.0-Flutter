@@ -3,20 +3,23 @@
 Verified 2026-11-05. This file records internal test distribution and remaining
 production release readiness. No production release has been made.
 
-The current signed release is **3.0.0 (30007)**. Final native artifacts are
-`artifacts/MyMemory-Together-3.0.0-30007.{aab,apk,ipa}`; hashes, certificate and
-source verification are recorded in `artifacts/native-builds-30007.json`.
+The current signed release is **3.0.0 (30008)**. Final native artifacts are
+`artifacts/SommoMemory-3.0.0-30008.{aab,apk,ipa}`; hashes, certificate and
+source verification are recorded in `artifacts/native-builds-30008.json`.
 The IPA SHA-256 is
-`36621dcdd1e18054554f102de201d031bc8ca9cf197ac7490ad8adc47c990846`.
+`87e4639cf8395d6cf422c0ae3b1350819c2618b5d8f6b1caf1bf772a0e1e2f75`.
 
-Apple upload **e456678f-f659-402c-a6ba-251cd03aa967** completed and the build is
-**VALID / IN_BETA_TESTING**, attached to **SommoMemory Internal** with exactly one
-account-holder tester. That tester's prior invitation is accepted (tester state
-INSTALLED); this confirms app access, not installation of every new build.
+Apple upload **25bc7373-20a5-4106-a8e1-5ff3e0560280** completed and the build is
+**VALID / IN_BETA_TESTING**, attached to **SommoMemory Internal** for the two
+existing testers explicitly authorized by the user. No tester was added, removed
+or invited during this distribution. The account-holder tester has app access
+(state INSTALLED); this does not establish installation of this particular build.
+Italian beta notes, the declaration of no nonexempt encryption, metadata URLs
+and exact two-tester group membership were reread through the API.
 `artifacts/testflight-upload.json` is the current API receipt.
 
 The new Android app **cc.sommomi.mymemory** is live on its internal track with
-versionCode **30007**, tester list restricted to the owner. The opt-in link is
+versionCode **30008**, tester list restricted to the owner. The opt-in link is
 https://play.google.com/apps/internaltest/4700857721365894827 . No production
 release was made. See `ANDROID.md` for Console evidence and old-app deletion.
 
@@ -66,10 +69,11 @@ primary locale, SKU `mymemory-ios`, iOS and unrestricted existing-team access.
 On 5 November 2026, the existing record’s Italian public name was changed through
 the API to **SommoMemory** and the Italian beta description was updated. The app
 ID, SKU `mymemory-ios` and bundle identifier `cc.sommomi.mymemory` are unchanged.
-The existing internal group was renamed **SommoMemory Internal**; its ID, sole
-account-holder tester and build relationships were verified unchanged. No new
-app record or tester was created. The signed 30007 artifact above retains its
-original native display name; a later build will carry the updated app name.
+The existing internal group was renamed **SommoMemory Internal**; its ID and
+existing access were preserved. No new app record or tester was created.
+The signed 30008 IPA has both native display name and bundle name **SommoMemory**;
+its bundle identifier and historical signing profile **MyMemory App Store**
+remain unchanged.
 Beta and App Store metadata now point to `https://sommomemory.sommomi.cc`,
 with `/privacy` and `/support` for their respective URLs. The updates were
 verified through the API after public DNS and strict TLS validation of the new
@@ -84,6 +88,20 @@ Apps overview's Transporter-only upload statement. Use:
 ```sh
 node scripts/testflight-upload.mjs app/build/ios/ipa/SommoMemory.ipa
 ```
+
+Finalize an uploaded build using the existing internal group. The default guard
+requires exactly the account-holder tester. The user explicitly authorized the
+two existing testers for 30008; the additional ID must already belong to that
+group, and the finalizer verifies exactly those two members before and after
+build assignment. It never creates, removes or invites testers:
+
+```sh
+node scripts/testflight-finalize.mjs --finalize --build=30008 --additional-tester=8f73fef5-1c02-4500-92e6-b8e31f908f11 --wait=1200
+```
+
+For a later authorized release, replace only the build number if the same two
+existing testers should receive it. Omit `--additional-tester` only when the
+group actually contains solely the account holder.
 
 The uploader supports `--commit-only` to validate the existing receipt/native SHA-256 and resume only its checksum confirmation after completed binary transmission. It creates no new upload reservation and sends no binary parts in this mode; new uploads persist successful-part markers before confirming the checksum. Build 30006 used this recovery after an API connect timeout, and then completed VALID/internal testing.
 
@@ -107,7 +125,7 @@ The app has ordinary HTTPS and BLE networking; it declares no nonexempt encrypti
 ## Android
 
 The user's requested replacement is a **new** app, **cc.sommomi.mymemory**,
-Console app ID **4972469070574777722**. Release **3.0.0 (30007)** is available to
+Console app ID **4972469070574777722**. Release **3.0.0 (30008)** is available to
 internal testers; Google Play App Signing is active. A new dedicated upload key
 is stored outside source control. There is no dependency on recovering the old
 app's signing key for this new package.

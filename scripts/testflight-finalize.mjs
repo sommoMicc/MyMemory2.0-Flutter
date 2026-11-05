@@ -9,7 +9,7 @@ const APP = '6831015201';
 const GROUP = 'd811d09d-3800-4275-b5c3-8a9773439b1d';
 const NOTES = 'Nome aggiornato a SommoMemory: verifica il nome visualizzato nell’app e in TestFlight. Sito e servizio online ora usano https://sommomemory.sommomi.cc. Correzione: punteggio, coppia trovata e risultato compaiono solo dopo che le carte hanno finito di aprirsi; il cambio turno aspetta la completa richiusura di una coppia sbagliata. Durante il flip il tavolo resta bloccato, anche con tocchi rapidi. Verifica in locale, online e Bluetooth, con animazioni normali e Riduci movimento. Scenari a tutto schermo con colline, pianeti oppure onde, personaggi e carte animate. Il movimento ambientale si arresta con Riduci movimento o quando l’app è sospesa. Menu, configurazione e partita devono mantenere contrasto e restare senza scorrimento. Carte con flip 3D, illustrazioni offline nelle collezioni Animali, Spazio e Oceano e retro dedicato. Le righe del tabellone hanno sempre lo stesso numero di carte; tutte le carte devono restare visibili senza scorrere su iPhone e iPad, anche in orizzontale. Collezione e difficoltà vengono ricordate. Prova tutti i tabelloni, Riduci movimento, tastiera, risultati, rivincita e multiplayer online tra iOS, Android e web. Bluetooth offline: verifica su telefoni fisici iPhone e Android in entrambe le direzioni host/ospite, con Internet disattivato, permessi e perdita di connessione.';
 const args = process.argv.slice(2);
-const help = 'Usage: node scripts/testflight-finalize.mjs [--status | --finalize --build=30008] [--wait=1200] [--receipt=artifacts/testflight-upload.json]\nDefault: one read-only status check. --finalize requires the expected build number. --wait polls every 30s, up to 1800s.';
+const help = 'Usage: node scripts/testflight-finalize.mjs [--status | --finalize --build=30008] [--additional-tester=EXISTING_TESTER_ID] [--wait=1200] [--receipt=artifacts/testflight-upload.json]\nDefault: one read-only status check. Finalization requires exactly the account holder unless one existing additional tester ID is explicitly allowed. No memberships are changed. --wait polls every 30s, up to 1800s.';
 
 function assert(value, message) { if (!value) throw new Error(message); }
 function argument(name) { return args.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3); }
@@ -17,10 +17,13 @@ function id(value) { assert(typeof value === 'string' && /^[a-zA-Z0-9-]+$/.test(
 
 async function main() {
   if (args.includes('--help')) { console.log(help); return; }
-  assert(args.every(arg => ['--status', '--finalize'].includes(arg) || /^--(build|wait|receipt)=.+$/.test(arg)), help);
+  assert(args.every(arg => ['--status', '--finalize'].includes(arg) || /^--(build|wait|receipt|additional-tester)=.+$/.test(arg)), help);
   const finalize = args.includes('--finalize');
   assert(!(finalize && args.includes('--status')), 'Choose --status or --finalize.');
   const expectedBuild = argument('build');
+  assert(args.filter(arg => arg.startsWith('--additional-tester=')).length <= 1, 'Only one explicit additional tester ID is supported.');
+  const additionalTesterId = argument('additional-tester');
+  if (additionalTesterId !== undefined) id(additionalTesterId);
   assert(!finalize || /^\d+$/.test(expectedBuild ?? ''), '--finalize requires --build=EXPECTED_BUILD to prevent editing an old receipt.');
   const wait = Number(argument('wait') ?? 0);
   assert(Number.isInteger(wait) && wait >= 0 && wait <= 1800, '--wait must be 0–1800 seconds.');
@@ -72,14 +75,22 @@ async function main() {
     return;
   }
 
-  // Check the existing group and sole account holder before any remote mutation.
+  // Validate the complete existing membership before any remote mutation.
+  // The optional flag allows distribution to an already-present tester only;
+  // it never creates/invites a tester or changes group membership.
   const checked = await request(`/v1/betaGroups/${GROUP}?include=app,betaTesters,builds`);
   const group = checked.data;
   assert(group.attributes.isInternalGroup === true && group.attributes.publicLinkEnabled !== true && group.relationships?.app?.data?.id === APP, 'Existing internal group identity/privacy mismatch.');
   const owners = (await request('/v1/users?filter[roles]=ACCOUNT_HOLDER&fields[users]=username')).data;
-  const testers = checked.included?.filter(item => item.type === 'betaTesters') ?? [];
-  assert(owners.length === 1 && testers.length === 1 && testers[0].attributes.email?.toLowerCase() === owners[0].attributes.username?.toLowerCase(), 'Internal group must contain only the existing account holder.');
-  const ownerTesterId = testers[0].id;
+  const memberIds = group.relationships?.betaTesters?.data?.map(item => item.id) ?? [];
+  const testers = checked.included?.filter(item => item.type === 'betaTesters' && memberIds.includes(item.id)) ?? [];
+  assert(owners.length === 1, 'Exactly one account holder must be identifiable.');
+  const ownerMatches = testers.filter(tester => tester.attributes.email?.toLowerCase() === owners[0].attributes.username?.toLowerCase());
+  assert(ownerMatches.length === 1, 'The existing account-holder tester must remain in the internal group.');
+  const ownerTesterId = ownerMatches[0].id;
+  assert(additionalTesterId !== ownerTesterId, 'The additional tester must be a different existing member.');
+  const expectedTesterIds = new Set([ownerTesterId, ...(additionalTesterId ? [additionalTesterId] : [])]);
+  assert(memberIds.length === expectedTesterIds.size && testers.length === expectedTesterIds.size && memberIds.every(memberId => expectedTesterIds.has(memberId)), 'Internal group membership differs from the explicitly authorized tester IDs. Default is account holder only.');
 
   if (build.attributes.usesNonExemptEncryption !== false) {
     await request(`/v1/builds/${build.id}`, { method: 'PATCH', body: { data: { type: 'builds', id: build.id, attributes: { usesNonExemptEncryption: false } } } });
@@ -98,11 +109,11 @@ async function main() {
     request(`/v1/betaGroups/${GROUP}/relationships/betaTesters?limit=200`),
     request(`/v1/builds/${build.id}/buildBetaDetail`),
   ]);
-  assert(verifiedBuilds.data.some(item => item.id === build.id) && verifiedTesters.data.length === 1 && verifiedTesters.data[0].id === ownerTesterId, 'Final group relationship verification failed.');
+  assert(verifiedBuilds.data.some(item => item.id === build.id) && verifiedTesters.data.length === expectedTesterIds.size && verifiedTesters.data.every(item => expectedTesterIds.has(item.id)), 'Final group relationship verification failed.');
   const internalState = detail.data.attributes.internalBuildState;
   assert(['READY_FOR_BETA_TESTING', 'IN_BETA_TESTING'].includes(internalState), `Build attached but internal state is ${internalState}.`);
-  await save({ buildId: build.id, buildProcessingState: 'VALID', processingState: 'COMPLETE', readyForInternalTesting: true, internalBuildState: internalState, betaGroupId: GROUP, betaGroupName: group.attributes.name, internalTesterCount: 1, notesLocale: 'it', finalizedAt: new Date().toISOString() });
-  console.log(JSON.stringify({ finalized: true, version: receipt.version, build: receipt.build, buildId: build.id, internalBuildState: internalState, group: group.attributes.name, testerCount: 1 }));
+  await save({ buildId: build.id, buildProcessingState: 'VALID', processingState: 'COMPLETE', readyForInternalTesting: true, internalBuildState: internalState, betaGroupId: GROUP, betaGroupName: group.attributes.name, internalTesterCount: expectedTesterIds.size, additionalTesterIds: additionalTesterId ? [additionalTesterId] : [], groupAssignmentPending: false, notesLocale: 'it', finalizedAt: new Date().toISOString() });
+  console.log(JSON.stringify({ finalized: true, version: receipt.version, build: receipt.build, buildId: build.id, internalBuildState: internalState, group: group.attributes.name, testerCount: expectedTesterIds.size }));
 }
 
 main().catch(error => { console.error(error.message); process.exitCode = 1; });
