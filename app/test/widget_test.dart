@@ -394,6 +394,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('card-0')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 320));
+      await tester.pump();
       await tester.tap(find.byKey(ValueKey('card-$second')));
       await tester.pump();
       await tester.tap(thirdCard);
@@ -402,6 +403,7 @@ void main() {
       expect(game.selected, [0, second]);
       expect(tester.widget<MemoryCard>(thirdCard).onTap, isNull);
       await tester.pump(const Duration(milliseconds: 900));
+      await tester.pump();
       expect(game.locked, isFalse);
       expect(game.selected, isEmpty);
       expect(
@@ -526,6 +528,7 @@ void main() {
         publish([0, ...List<int?>.filled(11, null)]);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 320));
+        await tester.pump();
         await tester.tap(find.byKey(const ValueKey('card-1')));
         publish([0, 1, ...List<int?>.filled(10, null)], locked: true);
         await tester.pump();
@@ -559,7 +562,7 @@ void main() {
   }
 
   testWidgets(
-    'A remote reveal interrupting one closing card does not strand the board lock',
+    'A remote reveal waits for the closing cards and finishes before the board unlocks',
     (tester) async {
       tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(disableAnimations: false);
@@ -610,12 +613,302 @@ void main() {
       expect(tester.widget<MemoryCard>(third).onTap, isNull);
       await tester.pump(const Duration(milliseconds: 1));
       await tester.pump();
+      expect(
+        tester.widget<MemoryCard>(third).onTap,
+        isNull,
+        reason: 'The queued reveal must complete its own opening',
+      );
+      await tester.pump(const Duration(milliseconds: 320));
+      await tester.pump();
       expect(tester.widget<MemoryCard>(third).onTap, isNotNull);
       await tester.tap(third);
       expect(online.attempts, [2]);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
       online.dispose();
+    },
+  );
+
+  testWidgets(
+    'Local match, score and final result wait for the last opening flip',
+    (tester) async {
+      tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: false);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(fontFamily: 'Outfit'),
+          home: GameScreen(
+            prefs: prefs,
+            pairs: 6,
+            theme: 'garden',
+            mode: PlayMode.local,
+          ),
+        ),
+      );
+      final dynamic screen = tester.state(find.byType(GameScreen));
+      final game = screen.local as LocalGame;
+      final pairs = <int, List<int>>{};
+      for (var i = 0; i < game.deck.length; i++) {
+        pairs.putIfAbsent(game.deck[i], () => []).add(i);
+      }
+      var completed = 0;
+      for (final indices in pairs.values) {
+        await tester.tap(find.byKey(ValueKey('card-${indices[0]}')));
+        await tester.pump();
+        expect(
+          tester
+              .widget<MemoryCard>(find.byKey(ValueKey('card-${indices[1]}')))
+              .onTap,
+          isNull,
+          reason: 'A new action waits until the first card is fully open',
+        );
+        await tester.pump(const Duration(milliseconds: 320));
+        await tester.pump();
+        await tester.tap(find.byKey(ValueKey('card-${indices[1]}')));
+        await tester.pump();
+        expect(game.scores[0], completed + 1); // Authority is unchanged.
+        expect(playerScore(tester, 'GIOCATORE 1'), '$completed');
+        expect(
+          tester
+              .widget<MemoryCard>(find.byKey(ValueKey('card-${indices[0]}')))
+              .matched,
+          isFalse,
+        );
+        expect(
+          tester
+              .widget<MemoryCard>(find.byKey(ValueKey('card-${indices[1]}')))
+              .matched,
+          isFalse,
+        );
+        expect(find.text('Vince Giocatore 1!'), findsNothing);
+        await tester.pump(const Duration(milliseconds: 319));
+        expect(playerScore(tester, 'GIOCATORE 1'), '$completed');
+        expect(find.text('Vince Giocatore 1!'), findsNothing);
+        await tester.pump(const Duration(milliseconds: 1));
+        await tester.pump();
+        completed++;
+        expect(playerScore(tester, 'GIOCATORE 1'), '$completed');
+        expect(
+          tester
+              .widget<MemoryCard>(find.byKey(ValueKey('card-${indices[1]}')))
+              .matched,
+          isTrue,
+        );
+      }
+      expect(find.text('Vince Giocatore 1!'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  for (final bluetooth in [false, true]) {
+    testWidgets(
+      '${bluetooth ? 'Bluetooth' : 'Online'} queues early revisions and applies events only after the corresponding flip',
+      (tester) async {
+        tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
+            const FakeAccessibilityFeatures(disableAnimations: false);
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final online = _RecordingOnline(prefs);
+        final ble = _RecordingBluetooth();
+        void publish(Map<String, dynamic> frame) {
+          if (bluetooth) {
+            ble.publish(frame);
+          } else {
+            online.publish(frame);
+          }
+        }
+
+        final empty = List<int?>.filled(12, null);
+        publish(presentationFrame(empty));
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(fontFamily: 'Outfit'),
+            home: GameScreen(
+              prefs: prefs,
+              pairs: 6,
+              theme: 'garden',
+              mode: bluetooth ? PlayMode.bluetooth : PlayMode.online,
+              online: bluetooth ? null : online,
+              bluetooth: bluetooth ? ble : null,
+            ),
+          ),
+        );
+        publish(presentationFrame([0, ...empty.skip(1)]));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+        final matched = [0, 0, ...empty.skip(2)];
+        final matchRevision = presentationFrame(
+          matched,
+          matched: [0, 1],
+          score: 1,
+        );
+        publish(matchRevision);
+        publish(
+          matchRevision,
+        ); // Repeated Bluetooth/network heartbeat must not replay events.
+        await tester.pump();
+        expect(
+          tester.widget<MemoryCard>(find.byKey(const ValueKey('card-1'))).value,
+          isNull,
+        );
+        expect(playerScore(tester, 'Tu · TU'), '0');
+        await tester.pump(const Duration(milliseconds: 220));
+        await tester.pump();
+        expect(
+          tester.widget<MemoryCard>(find.byKey(const ValueKey('card-1'))).value,
+          0,
+        );
+        expect(playerScore(tester, 'Tu · TU'), '0');
+        await tester.pump(const Duration(milliseconds: 319));
+        expect(playerScore(tester, 'Tu · TU'), '0');
+        await tester.pump(const Duration(milliseconds: 1));
+        await tester.pump();
+        expect(playerScore(tester, 'Tu · TU'), '1');
+        expect(
+          tester
+              .widget<MemoryCard>(find.byKey(const ValueKey('card-1')))
+              .matched,
+          isTrue,
+        );
+        // Incoming conceal precedes the end of even the first opening animation.
+        publish(
+          presentationFrame(
+            [0, 0, 1, ...empty.skip(3)],
+            matched: [0, 1],
+            score: 1,
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+        publish(
+          presentationFrame(
+            [0, 0, 1, 2, ...empty.skip(4)],
+            matched: [0, 1],
+            score: 1,
+            locked: true,
+          ),
+        );
+        publish(
+          presentationFrame(matched, matched: [0, 1], score: 1, turn: 'guest'),
+        );
+        publish(
+          presentationFrame(matched, matched: [0, 1], score: 1, turn: 'guest'),
+        );
+        await tester.pump();
+        expect(
+          tester.widget<MemoryCard>(find.byKey(const ValueKey('card-2'))).value,
+          1,
+        );
+        expect(find.text('Il tuo turno'), findsOneWidget);
+        await tester.pump(const Duration(milliseconds: 220));
+        await tester.pump();
+        expect(
+          tester.widget<MemoryCard>(find.byKey(const ValueKey('card-3'))).value,
+          2,
+        );
+        expect(find.text('Il tuo turno'), findsOneWidget);
+        await tester.pump(const Duration(milliseconds: 320));
+        await tester.pump();
+        expect(
+          tester.widget<MemoryCard>(find.byKey(const ValueKey('card-2'))).value,
+          isNull,
+        );
+        expect(
+          find.text('Il tuo turno'),
+          findsOneWidget,
+          reason: 'Turn change waits for both reverse flips',
+        );
+        await tester.pump(const Duration(milliseconds: 319));
+        expect(find.text('Il tuo turno'), findsOneWidget);
+        await tester.pump(const Duration(milliseconds: 1));
+        await tester.pump();
+        expect(find.text('Turno di Ospite'), findsOneWidget);
+        publish(presentationFrame(matched, matched: [0, 1], score: 1));
+        await tester.pump();
+        await tester.tap(find.byKey(const ValueKey('card-4')));
+        expect(bluetooth ? ble.attempts : online.attempts, [4]);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+        online.dispose();
+        ble.dispose();
+      },
+    );
+  }
+
+  testWidgets(
+    'Rotation plus reveal and a new round cannot strand presentation or replay stale actions',
+    (tester) async {
+      configureView(
+        tester,
+        const Size(390, 844),
+        const FakeViewPadding(top: 59, bottom: 34),
+      );
+      tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: false);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final online = _RecordingOnline(prefs);
+      final cards = List<int?>.filled(36, null);
+      online.publish(presentationFrame(cards));
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(fontFamily: 'Outfit'),
+          home: GameScreen(
+            prefs: prefs,
+            pairs: 18,
+            theme: 'garden',
+            mode: PlayMode.online,
+            online: online,
+          ),
+        ),
+      );
+      final staleTap = tester
+          .widget<MemoryCard>(find.byKey(const ValueKey('card-0')))
+          .onTap!;
+      cards[20] = 0;
+      online.publish(presentationFrame(cards));
+      tester.view.physicalSize = const Size(844, 390);
+      tester.view.padding = const FakeViewPadding(
+        left: 44,
+        right: 44,
+        bottom: 21,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 640));
+      await tester.pump();
+      expect(
+        tester.widget<MemoryCard>(find.byKey(const ValueKey('card-0'))).onTap,
+        isNotNull,
+      );
+      await tester.tap(find.byKey(const ValueKey('card-0')));
+      expect(online.attempts, [0]);
+      cards[21] = 0;
+      online.publish(
+        presentationFrame(cards, matched: [20, 21], score: 1, finished: true),
+      );
+      await tester.pump();
+      online.publish(presentationFrame(List<int?>.filled(36, null)));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 640));
+      await tester.pump();
+      expect(find.text('Hai vinto!'), findsNothing);
+      expect(playerScore(tester, 'Tu · TU'), '0');
+      staleTap();
+      expect(
+        online.attempts,
+        [0],
+        reason:
+            'An action captured before round reset must not reach the new round',
+      );
+      await tester.tap(find.byKey(const ValueKey('card-0')));
+      expect(online.attempts, [0, 0]);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      online.dispose();
+      debugDefaultTargetPlatformOverride = null;
     },
   );
 
@@ -744,3 +1037,29 @@ class _RecordingBluetooth extends BluetoothController {
     notifyListeners();
   }
 }
+
+String playerScore(WidgetTester tester, String label) => tester
+    .widgetList<StatBox>(find.byType(StatBox))
+    .singleWhere((box) => box.label == label)
+    .value;
+
+Map<String, dynamic> presentationFrame(
+  List<int?> cards, {
+  List<int> matched = const [],
+  int score = 0,
+  String turn = 'host',
+  bool locked = false,
+  bool finished = false,
+}) => {
+  'phase': finished ? 'finished' : 'playing',
+  'theme': 'garden',
+  'cards': cards,
+  'matched': matched,
+  'turn': turn,
+  'lockedUntil': locked ? 999999 : null,
+  'winnerId': finished ? 'host' : null,
+  'players': [
+    {'id': 'host', 'name': 'Tu', 'score': score, 'connected': true},
+    {'id': 'guest', 'name': 'Ospite', 'score': 0, 'connected': true},
+  ],
+};

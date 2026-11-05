@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game.dart';
@@ -957,6 +958,7 @@ class MemoryCard extends StatefulWidget {
     required this.matched,
     this.onTap,
     this.onConcealingChanged,
+    this.onTurningChanged,
   });
   final int index;
   final int? value;
@@ -964,6 +966,7 @@ class MemoryCard extends StatefulWidget {
   final bool matched;
   final VoidCallback? onTap;
   final ValueChanged<bool>? onConcealingChanged;
+  final ValueChanged<bool>? onTurningChanged;
   @override
   State<MemoryCard> createState() => _MemoryCardState();
 }
@@ -974,6 +977,7 @@ class _MemoryCardState extends State<MemoryCard>
   int? faceValue;
   bool reduceMotion = false;
   bool concealing = false;
+  bool turning = false;
   @override
   void initState() {
     super.initState();
@@ -983,9 +987,16 @@ class _MemoryCardState extends State<MemoryCard>
       duration: const Duration(milliseconds: 320),
       value: widget.value == null ? 0 : 1,
     )..addListener(_checkConcealed);
+    // A remounted card is already at its target face, including after rotation.
+    widget.onTurningChanged?.call(false);
   }
 
   void _checkConcealed() {
+    final target = widget.value == null ? 0.0 : 1.0;
+    if (turning && flip.value == target) {
+      turning = false;
+      widget.onTurningChanged?.call(false);
+    }
     if (concealing && flip.value == 0) {
       concealing = false;
       widget.onConcealingChanged?.call(false);
@@ -1014,6 +1025,10 @@ class _MemoryCardState extends State<MemoryCard>
         concealing = true;
         widget.onConcealingChanged?.call(true);
       }
+      if (flip.value != target && !turning) {
+        turning = true;
+        widget.onTurningChanged?.call(true);
+      }
       if (reduceMotion) {
         flip.value = target;
       } else {
@@ -1024,6 +1039,7 @@ class _MemoryCardState extends State<MemoryCard>
 
   @override
   void dispose() {
+    if (turning) widget.onTurningChanged?.call(false);
     if (concealing) widget.onConcealingChanged?.call(false);
     flip.dispose();
     super.dispose();
@@ -1346,27 +1362,190 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
+/// Immutable presentation revision. Authority keeps running independently.
+class _BoardFrame {
+  _BoardFrame({
+    required List<int?> cards,
+    required Set<int> matched,
+    required List<int> scores,
+    required List<Map<String, dynamic>> players,
+    required this.turn,
+    required this.moves,
+    required this.finished,
+    required this.theme,
+    this.winnerId,
+    this.finishReason,
+  }) : cards = List.unmodifiable(cards),
+       matched = Set.unmodifiable(matched),
+       scores = List.unmodifiable(scores),
+       players = List.unmodifiable(
+         players.map((p) => Map<String, dynamic>.unmodifiable(p)),
+       );
+  final List<int?> cards;
+  final Set<int> matched;
+  final List<int> scores;
+  final List<Map<String, dynamic>> players;
+  final Object? turn;
+  final int moves;
+  final bool finished;
+  final String theme;
+  final String? winnerId, finishReason;
+  bool sameCards(_BoardFrame other) =>
+      theme == other.theme && listEquals(cards, other.cards);
+  bool sameEvents(_BoardFrame other) =>
+      turn == other.turn &&
+      moves == other.moves &&
+      finished == other.finished &&
+      winnerId == other.winnerId &&
+      finishReason == other.finishReason &&
+      setEquals(matched, other.matched) &&
+      listEquals(scores, other.scores) &&
+      players.length == other.players.length &&
+      List.generate(
+        players.length,
+        (i) => mapEquals(players[i], other.players[i]),
+      ).every((same) => same);
+}
+
 class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   LocalGame? local;
   bool recorded = false;
   final Set<int> concealingCards = {};
-  bool concealRebuildScheduled = false;
+  final Set<int> turningCards = {};
+  final List<_BoardFrame> pendingFrames = [];
+  _BoardFrame? targetFrame, displayedEvents, lastAuthorityFrame;
+  bool presentationScheduled = false;
+  bool reduceMotion = false;
+  int presentationGeneration = 0;
   bool get boardLocked =>
+      turningCards.isNotEmpty ||
       concealingCards.isNotEmpty ||
+      pendingFrames.isNotEmpty ||
       local?.locked == true ||
-      net?['lockedUntil'] != null;
+      local?.finished == true ||
+      net?['lockedUntil'] != null ||
+      net?['phase'] == 'finished';
 
-  void cardConcealingChanged(int index, bool concealing) {
-    // Update synchronously: a queued tap must be rejected even before rebuild.
+  _BoardFrame captureFrame() {
+    final game = local;
+    final state = net;
+    final players = (state?['players'] as List? ?? [])
+        .cast<Map<String, dynamic>>();
+    return _BoardFrame(
+      cards: game != null
+          ? [
+              for (var i = 0; i < game.deck.length; i++)
+                game.matched.contains(i) || game.selected.contains(i)
+                    ? game.deck[i]
+                    : null,
+            ]
+          : (state?['cards'] as List? ?? [])
+                .map((v) => v == null ? null : int.parse(v.toString()))
+                .toList(),
+      matched: game != null
+          ? game.matched
+          : (state?['matched'] as List? ?? []).cast<int>().toSet(),
+      scores: game != null
+          ? game.scores
+          : [for (final p in players) (p['score'] as num?)?.toInt() ?? 0],
+      players: players,
+      turn: game != null ? game.turn : state?['turn'],
+      moves: game?.moves ?? 0,
+      finished: game?.finished ?? state?['phase'] == 'finished',
+      theme: state?['theme'] as String? ?? widget.theme,
+      winnerId: state?['winnerId'] as String?,
+      finishReason: state?['finishReason'] as String?,
+    );
+  }
+
+  void resetPresentation(_BoardFrame frame) {
+    presentationGeneration++;
+    presentationScheduled = false;
+    turningCards.clear();
+    concealingCards.clear();
+    pendingFrames.clear();
+    targetFrame = displayedEvents = lastAuthorityFrame = frame;
+  }
+
+  void activateFrame(_BoardFrame frame) {
+    final previous = targetFrame;
+    targetFrame = frame;
+    if (!reduceMotion &&
+        previous != null &&
+        previous.cards.length == frame.cards.length) {
+      for (var i = 0; i < frame.cards.length; i++) {
+        if ((previous.cards[i] == null) != (frame.cards[i] == null)) {
+          turningCards.add(i);
+        }
+      }
+    }
+    if (turningCards.isEmpty) displayedEvents = frame;
+  }
+
+  void receiveFrame(_BoardFrame frame) {
+    final previousAuthority = lastAuthorityFrame;
+    if (targetFrame == null ||
+        (previousAuthority?.finished == true && !frame.finished)) {
+      resetPresentation(frame);
+      return;
+    }
+    lastAuthorityFrame = frame;
+    final latest = pendingFrames.isEmpty ? targetFrame! : pendingFrames.last;
+    if (latest.sameCards(frame)) {
+      if (latest.sameEvents(frame)) {
+        return; // Ignore unchanged heartbeats/clock ticks.
+      }
+      if (pendingFrames.isNotEmpty) {
+        pendingFrames[pendingFrames.length - 1] = frame;
+      } else {
+        targetFrame = frame;
+        if (turningCards.isEmpty && concealingCards.isEmpty) {
+          displayedEvents = frame;
+        }
+      }
+    } else if (turningCards.isNotEmpty ||
+        concealingCards.isNotEmpty ||
+        pendingFrames.isNotEmpty) {
+      pendingFrames.add(frame);
+    } else {
+      activateFrame(frame);
+    }
+  }
+
+  void advancePresentation() {
+    if (turningCards.isNotEmpty || concealingCards.isNotEmpty) return;
+    displayedEvents = targetFrame;
+    while (pendingFrames.isNotEmpty) {
+      activateFrame(pendingFrames.removeAt(0));
+      if (turningCards.isNotEmpty) return;
+    }
+  }
+
+  void schedulePresentation() {
+    if (presentationScheduled || !mounted) return;
+    presentationScheduled = true;
+    final generation = presentationGeneration;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || generation != presentationGeneration) return;
+      presentationScheduled = false;
+      setState(advancePresentation);
+    });
+  }
+
+  void cardTurningChanged(int index, bool turning, int generation) {
+    if (generation != presentationGeneration) return;
+    final changed = turning
+        ? turningCards.add(index)
+        : turningCards.remove(index);
+    if (changed) schedulePresentation();
+  }
+
+  void cardConcealingChanged(int index, bool concealing, int generation) {
+    if (generation != presentationGeneration) return;
     final changed = concealing
         ? concealingCards.add(index)
         : concealingCards.remove(index);
-    if (!changed || concealRebuildScheduled || !mounted) return;
-    concealRebuildScheduled = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      concealRebuildScheduled = false;
-      if (mounted) setState(() {});
-    });
+    if (changed) schedulePresentation();
   }
 
   Map<String, dynamic>? get net =>
@@ -1375,14 +1554,22 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool get network => widget.online != null || widget.bluetooth != null;
   bool get connected =>
       widget.online?.connected ?? widget.bluetooth?.connected ?? true;
-  String get gameTheme => net?['theme'] as String? ?? widget.theme;
+  String get gameTheme =>
+      targetFrame?.theme ?? net?['theme'] as String? ?? widget.theme;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     if (!network) _startLocal();
+    resetPresentation(captureFrame());
     widget.online?.addListener(update);
     widget.bluetooth?.addListener(update);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    reduceMotion = MediaQuery.disableAnimationsOf(context);
   }
 
   void _startLocal() {
@@ -1394,10 +1581,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       twoPlayers: widget.mode == PlayMode.local,
     )..addListener(update);
     recorded = false;
+    resetPresentation(captureFrame());
   }
 
   void update() {
     if (!mounted) return;
+    receiveFrame(captureFrame());
     if (local?.finished == true && !recorded) {
       recorded = true;
       if (widget.mode == PlayMode.solo) {
@@ -1422,6 +1611,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    presentationGeneration++;
+    pendingFrames.clear();
     WidgetsBinding.instance.removeObserver(this);
     local?.dispose();
     widget.online?.removeListener(update);
@@ -1468,8 +1659,17 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     if (mounted) Navigator.pop(context);
   }
 
-  void flip(int i) {
-    if (boardLocked) return;
+  void flip(int i, {required int generation}) {
+    if (generation != presentationGeneration || boardLocked) return;
+    if (network &&
+        (!connected ||
+            net?['phase'] != 'playing' ||
+            net?['turn'] != playerId ||
+            ((net?['players'] as List?) ?? []).any(
+              (p) => p['connected'] != true,
+            ))) {
+      return;
+    }
     if (widget.prefs.getBool('haptics') ?? true) {
       HapticFeedback.selectionClick();
     }
@@ -1495,49 +1695,42 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final s = net;
+    final generation = presentationGeneration;
     final waiting = network && (s == null || s['phase'] == 'waiting');
-    final finished = local?.finished ?? s?['phase'] == 'finished';
-    final players =
+    final events = displayedEvents!;
+    final finished = events.finished;
+    final players = events.players;
+    final authorityPlayers =
         (s?['players'] as List?)?.cast<Map<String, dynamic>>() ?? [];
     final active = network ? (s?['turn'] == playerId) : true;
-    final paused = network && players.any((p) => p['connected'] != true);
-    final cards = local != null
-        ? [
-            for (var i = 0; i < local!.deck.length; i++)
-              if (local!.matched.contains(i) || local!.selected.contains(i))
-                local!.deck[i]
-              else
-                null,
-          ]
-        : (s?['cards'] as List? ?? [])
-              .map((v) => v == null ? null : int.parse(v.toString()))
-              .toList();
-    final matched =
-        local?.matched ?? (s?['matched'] as List? ?? []).cast<int>().toSet();
+    final paused =
+        network && authorityPlayers.any((p) => p['connected'] != true);
+    final cards = targetFrame!.cards;
+    final matched = events.matched;
     final error = widget.online?.error ?? widget.bluetooth?.error;
     final code = s?['code']?.toString() ?? widget.online?.code;
     final vote = (s?['rematch'] as List? ?? []).contains(playerId);
     String result = 'Partita completata';
     if (finished && network) {
-      result = s?['winnerId'] == null
+      result = events.winnerId == null
           ? 'Pareggio'
-          : s?['winnerId'] == playerId
+          : events.winnerId == playerId
           ? 'Hai vinto!'
           : 'Hai perso';
     }
     if (finished && local?.twoPlayers == true) {
-      result = local!.scores[0] == local!.scores[1]
+      result = events.scores[0] == events.scores[1]
           ? 'Pareggio'
-          : 'Vince Giocatore ${local!.scores[0] > local!.scores[1] ? 1 : 2}!';
+          : 'Vince Giocatore ${events.scores[0] > events.scores[1] ? 1 : 2}!';
     }
     final status = network
         ? paused
               ? 'In attesa della riconnessione…'
-              : active
+              : events.turn == playerId
               ? 'Il tuo turno'
-              : 'Turno di ${players.where((p) => p['id'] == s?['turn']).firstOrNull?['name'] ?? 'un amico'}'
+              : 'Turno di ${players.where((p) => p['id'] == events.turn).firstOrNull?['name'] ?? 'un amico'}'
         : widget.mode == PlayMode.local
-        ? 'Turno del Giocatore ${local!.turn + 1}'
+        ? 'Turno del Giocatore ${(events.turn as int) + 1}'
         : '${matched.length ~/ 2} / ${widget.pairs} coppie';
     Future<void> copyInvite() async {
       await Clipboard.setData(
@@ -1561,7 +1754,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: StatBox(label: 'TENTATIVI', value: '${local!.moves}'),
+            child: StatBox(label: 'TENTATIVI', value: '${events.moves}'),
           ),
         ] else if (local != null) ...[
           for (var p = 0; p < 2; p++) ...[
@@ -1569,8 +1762,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             Expanded(
               child: StatBox(
                 label: 'GIOCATORE ${p + 1}',
-                value: '${local!.scores[p]}',
-                active: !finished && local!.turn == p,
+                value: '${events.scores[p]}',
+                active: !finished && events.turn == p,
               ),
             ),
           ],
@@ -1582,7 +1775,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 label:
                     '${players[p]['name']}${players[p]['id'] == playerId ? ' · TU' : ''}',
                 value: '${players[p]['score']}',
-                active: !finished && players[p]['id'] == s?['turn'],
+                active: !finished && players[p]['id'] == events.turn,
               ),
             ),
           ],
@@ -1780,8 +1973,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                   value: cards[i],
                                   theme: gameTheme,
                                   matched: matched.contains(i),
+                                  onTurningChanged: (turning) =>
+                                      cardTurningChanged(
+                                        i,
+                                        turning,
+                                        generation,
+                                      ),
                                   onConcealingChanged: (closing) =>
-                                      cardConcealingChanged(i, closing),
+                                      cardConcealingChanged(
+                                        i,
+                                        closing,
+                                        generation,
+                                      ),
                                   onTap:
                                       finished ||
                                           boardLocked ||
@@ -1793,7 +1996,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                                   paused ||
                                                   s?['lockedUntil'] != null)
                                       ? null
-                                      : () => flip(i),
+                                      : () => flip(i, generation: generation),
                                 ),
                               ),
                               if (finished)
@@ -1840,8 +2043,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                         const SizedBox(height: 8),
                                         Text(
                                           local != null
-                                              ? '${clockText(local!.seconds)} · ${local!.moves} tentativi'
-                                              : s?['finishReason'] == 'forfeit'
+                                              ? '${clockText(local!.seconds)} · ${events.moves} tentativi'
+                                              : events.finishReason == 'forfeit'
                                               ? 'L’altro giocatore ha lasciato.'
                                               : 'Partita completata.',
                                           textAlign: TextAlign.center,

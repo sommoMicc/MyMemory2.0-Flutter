@@ -3,30 +3,30 @@
 Verified 2026-11-05. This file records internal test distribution and remaining
 production release readiness. No production release has been made.
 
-The current signed release is **3.0.0 (30006)**. Final native artifacts are
-`artifacts/MyMemory-Together-3.0.0-30006.{aab,apk,ipa}`; hashes, certificate and
-source verification are recorded in `artifacts/native-builds-30006.json`.
+The current signed release is **3.0.0 (30007)**. Final native artifacts are
+`artifacts/MyMemory-Together-3.0.0-30007.{aab,apk,ipa}`; hashes, certificate and
+source verification are recorded in `artifacts/native-builds-30007.json`.
 The IPA SHA-256 is
-`2f9a752b7103e75650b4f65eda769776b447d308e5ea2c034b2c955911fb52d9`.
+`36621dcdd1e18054554f102de201d031bc8ca9cf197ac7490ad8adc47c990846`.
 
-Apple upload **fa57fa4f-fae5-4353-a2b5-a2425871ea73** completed and the build is
+Apple upload **e456678f-f659-402c-a6ba-251cd03aa967** completed and the build is
 **VALID / IN_BETA_TESTING**, attached to **MyMemory Internal** with exactly one
 account-holder tester. That tester's prior invitation is accepted (tester state
 INSTALLED); this confirms app access, not installation of every new build.
 `artifacts/testflight-upload.json` is the current API receipt.
 
 The new Android app **cc.sommomi.mymemory** is live on its internal track with
-versionCode **30006**, tester list restricted to the owner. The opt-in link is
+versionCode **30007**, tester list restricted to the owner. The opt-in link is
 https://play.google.com/apps/internaltest/4700857721365894827 . No production
 release was made. See `ANDROID.md` for Console evidence and old-app deletion.
 
 The UI was implemented with the explicitly requested Astra subagent. Full-viewport animated collection worlds extend behind safe areas, with original code-drawn scenery and bundled Noto characters. Motion stops in background and with reduced motion; reference research is documented in `DESIGN_REFERENCES.md` and `MEMORY_UI_REFERENCES.md`.
-**33 Flutter tests** and analysis pass, including four viewports with realistic
+**37 Flutter tests** and analysis pass, including four viewports with realistic
 iOS safe areas, all 36 cards visible and hit-testable, completion/rematch,
 keyboard entry, settings, waiting rooms and Bluetooth lobby. The illustrated revision adds 320 ms 3D flips, reduced-motion behavior, persistent collection/difficulty, exact equal-length rows at all difficulties, and all 54 offline PNGs with bundled licenses. See `DECKS.md` for primary sources and pinned provenance. The game screens
 do not scroll; Flutter's standard legal-license viewer retains its text scrolling.
 **11 Node tests** pass, including the observed stale-browser-cache regression.
-Native AAB/APK/IPA signatures and release identities were verified. The input-lock regression covers local, online and Bluetooth tables: no third card or queued command is accepted until both mismatch closing flips finish. A remote reveal interrupting a close clears only that card’s conceal flag and cannot strand the board lock. Core engine mismatch guards were already correct and their tests were strengthened; no protocol change was required.
+Native AAB/APK/IPA signatures and release identities were verified. The presentation layer captures immutable authority snapshots: card faces animate first, then scores, matched styling and results appear. Turn changes wait for both mismatch closing flips. Input remains locked during any flip and still checks the latest authority before sending a move. Early remote card changes queue in order; duplicate heartbeats are ignored. Reduced motion settles immediately. Regression tests cover the final pair, early reveal/hide, rotation during reveal and stale callbacks after a new round. Independent review reproduced and verified the rotation fix. Core engine timing and protocol remain unchanged.
 
 ## iOS
 
@@ -96,7 +96,7 @@ The app has ordinary HTTPS and BLE networking; it declares no nonexempt encrypti
 ## Android
 
 The user's requested replacement is a **new** app, **cc.sommomi.mymemory**,
-Console app ID **4972469070574777722**. Release **3.0.0 (30006)** is available to
+Console app ID **4972469070574777722**. Release **3.0.0 (30007)** is available to
 internal testers; Google Play App Signing is active. A new dedicated upload key
 is stored outside source control. There is no dependency on recovering the old
 app's signing key for this new package.

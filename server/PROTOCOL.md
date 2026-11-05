@@ -51,7 +51,15 @@ Card values are string IDs `"0"` through `String(pairs-1)`, mapped to the shared
 `selected` contains exposed indices that have not yet matched. A mismatch remains
 visible for 900ms; `lockedUntil` is the server Unix time in milliseconds. After
 that time the server hides the pair, changes turn, and broadcasts a new state.
-The client also keeps its table input locked until both 320ms closing flips have actually completed; engine unlock alone does not release the visual lock. Reduced motion closes immediately, and remote reveals cancel only the interrupted card’s conceal flag. A successful match retains the turn. `revision` increases on every mutation.
+The client presents immutable snapshots independently of authority. Card targets
+animate first; scores, matched styling and results appear only after opening
+flips complete, and turn changes wait for closing flips. Table input stays locked
+through both opening and closing animations, even after the engine unlocks.
+Remote card changes are queued in order; repeated unchanged snapshots are
+ignored. Reduced motion settles without an artificial animation delay. Input
+still checks the latest authoritative turn and lock, so presentation cannot
+authorize a stale move. A successful match retains the turn. `revision` increases
+on every mutation.
 
 `phase` is `waiting`, `playing` or `finished`. `turn` is null outside active play.
 `winnerId` is null on draws and before completion. `finishReason` is `completed`,

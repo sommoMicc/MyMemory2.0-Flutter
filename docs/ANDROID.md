@@ -13,14 +13,14 @@ testing, and deletion of the historical app. The new Console record is created:
 | Language/category/pricing | Italian `it-IT`, game, free |
 | Internal track ID | `4700857721365894827` |
 | Tester list | MyMemory test interno; selected and saved; one account owner tester |
-| Release | 4, name `3.0.0 (30006) - Blocco carte`; **available to internal testers**, published 5 November 2026 at 10:15 as shown in Console |
-| Binary | Final **3.0.0 (30006)** uploaded and accepted |
+| Release | 5, name `3.0.0 (30007) - Eventi dopo il flip`; **available to internal testers**, published 5 November 2026 at 11:02 as shown in Console |
+| Binary | Final **3.0.0 (30007)** uploaded and accepted |
 | Track status | **Attivo** |
 | App signing | Releases signed by Google Play; no new terms prompt appeared |
 | Production | No production release requested or performed |
 
 [New app dashboard](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/app-dashboard)
-and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/4/details).
+and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/5/details).
 The **live internal opt-in link** is
 [Join the internal test](https://play.google.com/apps/internaltest/4700857721365894827).
 It was opened in the owner's signed-in browser and showed the invitation to test
@@ -33,22 +33,30 @@ store name for this new internal app. This release is **internal only**, not a
 production listing. Console accepted the binary with min API 24, target API 36,
 three ABIs, and ReTrace mapping/native symbols attached.
 
-Build 30006 replaces internal build 30005 with a global board lock while a
-mismatched pair is visible and until both cards have finished closing. A third
-card cannot be selected during that transition, including local, online and
-Bluetooth play. Remote re-opening during a closing animation also releases the
-interrupted animation's lock correctly.
+Build 30007 replaces internal build 30006 with presentation synchronized to the
+actual card animations. Scores, matched-pair styling and the final result appear
+after the opening flip completes; turn changes appear after both cards finish
+closing. Input stays locked during opening, closing and queued presentation
+updates. Rapid remote snapshots preserve the visual sequence without replaying
+heartbeat events. Rotation and new-round resets cannot strand an animation lock
+or replay an old action. The authoritative local, Bluetooth and server engines
+and their 900ms mismatch interval are unchanged.
+
+Before packaging, Flutter analysis and **all 37 Flutter tests passed**, including
+local final-pair events, online/Bluetooth snapshot ordering, complete closing,
+reduced motion, rotation and round-reset regressions. Independent review first
+reproduced the rotation lock and then verified its correction.
 
 Full-screen animated scenery for Animals, Space and Ocean, floating characters,
 reduced-motion and pause handling, illustrated collections, animated card flips,
 complete uniform rows and non-scrolling screens remain. The upload and review
-screens verified versionCode **30006**,
+screens verified versionCode **30007**,
 versionName **3.0.0**; Console reports **zero previously supported devices lost**.
 The owner tester list and invitation link were unchanged.
 
 Uploaded artifact:
-`artifacts/MyMemory-Together-3.0.0-30006.aab`, SHA-256
-`d3ebce5d5c8ba681f3683cd73089460f2b4535926a644258d7a839eb687bd832`.
+`artifacts/MyMemory-Together-3.0.0-30007.aab`, SHA-256
+`5d5089b6ee89e1d8227dc25fb010c699e9624ebe75bcad7e3efad77cf2d13a1a`.
 The dedicated upload certificate SHA-256 is
 `404D6F54025C024007E37F2A25352CB84471268A1C6C0D78C17A9565E12BED67`.
 Private signing materials remain outside the repository.
@@ -76,7 +84,7 @@ Immediately after deletion, the replacement **cc.sommomi.mymemory** app was
 refreshed and verified separately: its then-current 30003 internal release
 remained **Attivo**, with the owner tester list selected and the opt-in link
 enabled. The replacement app and its signing settings were not modified during
-deletion. The current board-lock correction 30006 is recorded above.
+deletion. The current presentation-synchronization update 30007 is recorded above.
 
 The [current official deletion guide](https://support.google.com/googleplay/android-developer/answer/16483176)
 requires an unpublished app, fewer than 1000 active devices, no unresolved review,

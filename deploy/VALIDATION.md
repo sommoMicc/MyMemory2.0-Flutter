@@ -75,3 +75,30 @@ Release `20261105T091658Z`, web entrypoint `main.efe34b0b22b04a97.dart.js`. This
 Thirty-three Flutter tests and static analysis pass: all viewport, image/license, no-scroll, full-row, flip, world-motion/lifecycle, keyboard and multiplayer tests remain; explicit local/online/Bluetooth regressions reject third-card input at mismatch display, conceal start, mid-conceal and 319ms, permitting it after full completion. Reduced motion and remote interruption are covered. Existing local/BLE engine tests were strengthened with a genuine third untouched card and 899ms checks. Eleven Node tests cover the unchanged authority/protocol.
 
 Final native packages are 30006; frozen source and 71 file/asset fingerprints in `artifacts/native-builds-30006.json`. Android internal release 4 is live; Apple receipt `fa57fa4f-fae5-4353-a2b5-a2425871ea73` is COMPLETE/VALID/IN_BETA_TESTING after checksum-only recovery, with no duplicate binary transfer.
+
+## Events after completed flips — 5 November 2026
+
+Release `20261105T100402Z` publishes build 30007 with entrypoint
+`main.9c06ff725d8f5182.dart.js`. Immutable client presentation snapshots defer
+scores, matched styling and the final result until opening flips finish; turn
+changes wait until mismatched cards have finished closing. Actual animation
+callbacks release the visual gate. Remote card changes queue in order and
+unchanged heartbeats are ignored. Authority and its 900ms deadline are unchanged.
+
+All 37 Flutter tests and analysis pass, including local final-pair/result timing,
+early online/Bluetooth reveal and hide, heartbeat deduplication, rotation during
+reveal and stale callbacks after a new round. Independent review reproduced the
+rotation issue before its fix and verified the same regression afterwards.
+
+Public TLS, page/health responses, the prepared entrypoint hash, all 54 PNGs and
+license/manifest bytes match the frozen artifacts. Two public WSS clients joined,
+flipped and left successfully, leaving no test rooms. Browser QA reloaded the
+existing public tab and verified the world, opening flip and complete 36-card
+grid at 390×844. Temporary viewport overrides were reset. Proof:
+`artifacts/game-world-live-30007.png`; deployment receipt:
+`artifacts/web-deploy-30007.json`.
+
+The signed AAB/APK/IPA match all 71 frozen source/asset hashes in
+`artifacts/native-builds-30007.json`. Android internal release 5 is live. Apple
+upload `e456678f-f659-402c-a6ba-251cd03aa967` is COMPLETE/VALID/IN_BETA_TESTING
+and assigned to the existing internal group with its sole owner tester.
