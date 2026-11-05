@@ -47,8 +47,7 @@ This is followed by `state`.
 ```
 
 The sample `cards` is shortened; its actual length is `pairs * 2`.
-Card values are string IDs `"0"` through `String(pairs-1)`, mapped to themed glyphs
-by the client. Hidden values are **never sent**. Matched cards remain visible.
+Card values are string IDs `"0"` through `String(pairs-1)`, mapped to the shared ordered illustrated collections by the client (garden = Animali, cosmos = Spazio, ocean = Oceano). Images are bundled on each device; only card IDs cross the network. Hidden values are **never sent**. Matched cards remain visible.
 `selected` contains exposed indices that have not yet matched. A mismatch remains
 visible for 900ms; `lockedUntil` is the server Unix time in milliseconds. After
 that time the server hides the pair, changes turn, and broadcasts a new state.

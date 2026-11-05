@@ -13,14 +13,14 @@ testing, and deletion of the historical app. The new Console record is created:
 | Language/category/pricing | Italian `it-IT`, game, free |
 | Internal track ID | `4700857721365894827` |
 | Tester list | MyMemory test interno; selected and saved; one account owner tester |
-| Release | 1, name `3.0.0 - Primo test interno`; **available to internal testers**, published 5 November 2026 at 08:27 as shown in Console |
-| Binary | Final **3.0.0 (30003)** uploaded and accepted; preliminary 30002 never uploaded |
+| Release | 2, name `3.0.0 (30004) - Carte illustrate`; **available to internal testers**, published 5 November 2026 at 08:52 as shown in Console |
+| Binary | Final **3.0.0 (30004)** uploaded and accepted |
 | Track status | **Attivo** |
 | App signing | Releases signed by Google Play; no new terms prompt appeared |
 | Production | No production release requested or performed |
 
 [New app dashboard](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/app-dashboard)
-and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/1/details).
+and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/2/details).
 The **live internal opt-in link** is
 [Join the internal test](https://play.google.com/apps/internaltest/4700857721365894827).
 It was opened in the owner's signed-in browser and showed the invitation to test
@@ -33,9 +33,15 @@ store name for this new internal app. This release is **internal only**, not a
 production listing. Console accepted the binary with min API 24, target API 36,
 three ABIs, and ReTrace mapping/native symbols attached.
 
+Build 30004 replaces the earlier internal build 30003 with animated card flips,
+three bundled illustrated collections, and full rows of equally sized cards on
+the non-scrolling board. The upload and review screens verified versionCode
+**30004**, versionName **3.0.0**; Console reports **zero previously supported
+devices lost**. The owner tester list and invitation link were unchanged.
+
 Uploaded artifact:
-`artifacts/MyMemory-Together-3.0.0-30003.aab`, SHA-256
-`bac88b841f8d5616faf909635c8ac8c43b3d917918c7647411192d3dc745e923`.
+`artifacts/MyMemory-Together-3.0.0-30004.aab`, SHA-256
+`329de91e3d70e00678ce7f13ecce8f0d936d476f66dc8fb44d3efbd66d100519`.
 The dedicated upload certificate SHA-256 is
 `404D6F54025C024007E37F2A25352CB84471268A1C6C0D78C17A9565E12BED67`.
 Private signing materials remain outside the repository.
@@ -46,17 +52,24 @@ There was no connected Play tool or configured Play Developer API credential;
 the official [API resource reference](https://developers.google.com/android-publisher/api-ref/rest)
 also exposes no create-app operation, so this work uses the signed-in Console UI.
 
-## Old app deletion readiness
+## Old app deleted — recoverable until 12 November 2026
 
-The historical app's Advanced settings > App availability page shows **Elimina
-app**, and explicitly states that a deleted app can be recovered for **7 days**,
-then is permanently deleted. Opening this dialog is read-only; it requires the
-**developer account registration transaction ID** and old package
-`com.michele.mymemory` before proceeding. No deletion has yet been submitted.
-The new internal release is now ready; deletion is held pending the user's
-specific authorization to enter the private registration-payment identifier into
-Google's deletion form. The identifier was located privately by the parent agent
-and is not recorded in this document or repository.
+The historical **com.michele.mymemory** app (Console ID
+`4975576173768407729`) was deleted on **5 November 2026**, after the replacement
+internal release was available. The user explicitly authorized both deletion and
+transmitting the private registration-receipt identifier to the official Google
+Play deletion form. That identifier is not recorded in this document or repository.
+
+Console confirms **Hai tempo fino al giorno 12 nov 2026 per recuperare questa app
+eliminata** and offers **Recupera app** under Advanced settings > App availability.
+The deletion is recoverable until that displayed deadline; after it, Google makes
+the deletion permanent. No additional irreversible deletion action was requested.
+
+Immediately after deletion, the replacement **cc.sommomi.mymemory** app was
+refreshed and verified separately: its then-current 30003 internal release
+remained **Attivo**, with the owner tester list selected and the opt-in link
+enabled. The replacement app and its signing settings were not modified during
+deletion. The later illustrated update 30004 is the current release recorded above.
 
 The [current official deletion guide](https://support.google.com/googleplay/android-developer/answer/16483176)
 requires an unpublished app, fewer than 1000 active devices, no unresolved review,
@@ -137,4 +150,6 @@ and support pages for the restored service are available at
 `https://mymemory.sommomi.cc/privacy` and `/support`, but Console declarations still
 need to reflect the final app behavior and the user's intended audience.
 
-No Android upload, production submission or republishing action was performed.
+During the initial historical audit, no Android upload, production submission or
+republishing action was performed. The subsequent replacement internal release
+and authorized old-app deletion are recorded above.

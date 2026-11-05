@@ -1,7 +1,7 @@
 name: mymemory
 description: Gioco del memory per Android, iOS e web.
 publish_to: none
-version: 3.0.0+30003
+version: 3.0.0+30004
 environment:
   sdk: '>=3.9.2 <4.0.0'
 dependencies:
@@ -16,6 +16,11 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 flutter:
   uses-material-design: true
+  assets:
+    - assets/decks/
+    - assets/decks/garden/
+    - assets/decks/cosmos/
+    - assets/decks/ocean/
   fonts:
     - family: Outfit
       fonts:

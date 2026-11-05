@@ -39,3 +39,9 @@ a repeated configuration check reports it already configured and active.
 Release `20261105T072907Z` serves the compact UI and plain privacy/support headings. Browser QA verified the existing cached session updates after a normal reload; the bootstrap now loads `main.ae9ada890cc4da3d.dart.js`, and application runtime/configuration files require cache revalidation. `scripts/prepare-web.mjs` runs before deployment and in CI. A regression test simulates an existing cached release and verifies the new entrypoint.
 
 Live browser QA at 390×844: no slogans, mode/configuration/game fit the viewport, invite link pre-fills the room code, two browser clients join and show identical revealed cards, and leaving returns to configuration. All test rooms were removed; `/healthz` reports healthy with zero rooms. Local visual QA also verified all 36 cards at 320×568 and 844×390. Core gameplay/protocol code and Caddy routes are unchanged.
+
+## Illustrated flip release — 5 November 2026
+
+Release `20261105T075152Z`, web entrypoint `main.c98ced8a0357e79e.dart.js`. The existing browser updated normally to the illustrated interface. All 54 Noto 2D PNG assets at 512×512 and attribution/license files are bundled; native AAB/APK/IPA embedded bytes match the frozen catalog in `artifacts/native-builds-30004.json`.
+
+Public browser QA verifies new colored mode cards and deck previews, Animali/Spazio/Oceano selection, rendered animal artwork, live flip, and the 36-card Spazio board at 320×568 and 844×390. The last card is reachable and reveals its Italian semantic label. Rows are complete (6×6 portrait / 12×3 landscape). No main-page scrolling or slogans. Twenty-seven Flutter tests cover all supported card counts across four realistic iOS viewports, flip/reverse, reduced motion, asset decoding, licenses and persisted collection/difficulty. The 11 Node regression tests remain applicable; no gameplay/protocol code changed for image collections.

@@ -40,9 +40,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('18 coppie'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Carte'));
+      await tester.tap(find.text('Collezione'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Sotto il mare'));
+      await tester.tap(find.text('Oceano'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Inizia partita'));
       await tester.pumpAndSettle();
@@ -164,6 +164,171 @@ void main() {
     });
   }
 
+  for (final viewport in viewports) {
+    testWidgets('Every difficulty uses complete rows at ${viewport.$1}', (
+      tester,
+    ) async {
+      configureView(tester, viewport.$1, viewport.$2);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      for (final pairs in [6, 8, 12, 18]) {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(fontFamily: 'Outfit'),
+            home: GameScreen(
+              key: ValueKey(pairs),
+              prefs: prefs,
+              pairs: pairs,
+              theme: 'garden',
+              mode: PlayMode.solo,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final rows = <int, int>{};
+        for (var i = 0; i < pairs * 2; i++) {
+          final card = find.byKey(ValueKey('card-$i'));
+          final rect = tester.getRect(card);
+          rows.update(rect.top.round(), (n) => n + 1, ifAbsent: () => 1);
+          expect(card.hitTestable(), findsOneWidget);
+          expect(rect.shortestSide, greaterThanOrEqualTo(40));
+          expect(
+            rect.bottom,
+            lessThanOrEqualTo(viewport.$1.height - viewport.$2.bottom),
+          );
+        }
+        expect(
+          rows.values.toSet().length,
+          1,
+          reason:
+              '$pairs pairs must have the same number of cards in every row',
+        );
+        expect(tester.takeException(), isNull);
+      }
+      await tester.pumpWidget(const SizedBox());
+      debugDefaultTargetPlatformOverride = null;
+    });
+  }
+
+  testWidgets(
+    'Cards turn in 3D, keep their face while closing, and ignore repeat taps',
+    (tester) async {
+      int? value;
+      var taps = 0;
+      late StateSetter change;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              change = setState;
+              return Center(
+                child: SizedBox(
+                  width: 100,
+                  height: 112,
+                  child: MemoryCard(
+                    index: 0,
+                    value: value,
+                    theme: 'garden',
+                    matched: false,
+                    onTap: () {
+                      taps++;
+                      change(() => value = 0);
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      expect(find.byType(Image), findsNothing);
+      await tester.tap(find.byType(MemoryCard));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 80));
+      final transform = tester
+          .widget<Transform>(find.byKey(const ValueKey('flip-0')))
+          .transform;
+      expect(transform.entry(0, 0), greaterThan(-1));
+      expect(transform.entry(0, 0), lessThan(1));
+      expect(transform.entry(3, 2), isNot(0));
+      expect(find.byType(Image), findsNothing);
+      await tester.tap(find.byType(MemoryCard));
+      expect(taps, 1);
+      await tester.pumpAndSettle();
+      expect(find.byType(Image), findsOneWidget);
+      change(() => value = null);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 80));
+      expect(find.byType(Image), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.byType(Image), findsNothing);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets('Reduced motion reveals the card without a flip', (tester) async {
+    int? value;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: StatefulBuilder(
+            builder: (context, change) => Center(
+              child: SizedBox(
+                width: 100,
+                height: 112,
+                child: MemoryCard(
+                  index: 0,
+                  value: value,
+                  theme: 'garden',
+                  matched: false,
+                  onTap: () => change(() => value = 0),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byType(MemoryCard));
+    await tester.pump();
+    expect(find.byType(Image), findsOneWidget);
+    expect(
+      tester
+          .widget<Transform>(find.byKey(const ValueKey('flip-0')))
+          .transform
+          .entry(0, 0),
+      closeTo(-1, .001),
+    );
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('Collection and difficulty survive reopening the app', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(MyMemory(prefs: prefs));
+    await tester.tap(find.text('Singolo'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Coppie'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('12 coppie'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Collezione'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Spazio'));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(MyMemory(prefs: prefs));
+    await tester.tap(find.text('Singolo'));
+    await tester.pumpAndSettle();
+    expect(find.text('12'), findsOneWidget);
+    expect(find.text('Spazio'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('A complete game shows results and starts a fresh board', (
     tester,
   ) async {
@@ -189,6 +354,7 @@ void main() {
         seen.putIfAbsent(value, () => []).add(index);
       }
       await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
     }
     for (final indices in seen.values) {
       for (final index in indices) {

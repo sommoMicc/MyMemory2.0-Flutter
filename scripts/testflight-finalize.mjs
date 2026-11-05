@@ -7,9 +7,9 @@ import { request, BUNDLE } from './asc.mjs';
 
 const APP = '6831015201';
 const GROUP = 'd811d09d-3800-4275-b5c3-8a9773439b1d';
-const NOTES = 'Interfaccia compatta: tutte le schermate di gioco devono restare visibili senza scorrimento su iPhone e iPad. Prova menu, impostazioni della partita, tabelloni a ogni difficoltà e risultati, anche con caratteri ingranditi. Verifica partite in solitaria, sullo stesso dispositivo e online con Android o web, turni, punteggio e rivincita. Bluetooth offline: l’implementazione deve ancora essere verificata su telefoni fisici iPhone e Android in entrambe le direzioni host/ospite; tieni le app aperte, disattiva Internet e controlla scoperta, permessi e disconnessione.';
+const NOTES = 'Carte con flip 3D, illustrazioni offline nelle collezioni Animali, Spazio e Oceano e retro dedicato. Le righe del tabellone hanno sempre lo stesso numero di carte; tutte le carte devono restare visibili senza scorrere su iPhone e iPad, anche in orizzontale. Collezione e difficoltà vengono ricordate. Prova tutti i tabelloni, Riduci movimento, tastiera, risultati, rivincita e multiplayer online tra iOS, Android e web. Bluetooth offline: verifica su telefoni fisici iPhone e Android in entrambe le direzioni host/ospite, con Internet disattivato, permessi e perdita di connessione.';
 const args = process.argv.slice(2);
-const help = 'Usage: node scripts/testflight-finalize.mjs [--status | --finalize --build=30003] [--wait=1200] [--receipt=artifacts/testflight-upload.json]\nDefault: one read-only status check. --finalize requires the expected build number. --wait polls every 30s, up to 1800s.';
+const help = 'Usage: node scripts/testflight-finalize.mjs [--status | --finalize --build=30004] [--wait=1200] [--receipt=artifacts/testflight-upload.json]\nDefault: one read-only status check. --finalize requires the expected build number. --wait polls every 30s, up to 1800s.';
 
 function assert(value, message) { if (!value) throw new Error(message); }
 function argument(name) { return args.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3); }

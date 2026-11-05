@@ -6,10 +6,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'game.dart';
 import 'online.dart';
 import 'palette.dart';
+import 'decks.dart';
 import 'bluetooth/bluetooth_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await registerDeckLicenses();
   final prefs = await SharedPreferences.getInstance();
   runApp(MyMemory(prefs: prefs));
 }
@@ -79,6 +81,10 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     name = TextEditingController(text: widget.prefs.getString('name') ?? '');
+    final savedPairs = widget.prefs.getInt('game.pairs');
+    if ([6, 8, 12, 18].contains(savedPairs)) pairs = savedPairs!;
+    final savedTheme = widget.prefs.getString('game.collection');
+    if (deckNames.containsKey(savedTheme)) theme = savedTheme!;
     final invite = Uri.base.queryParameters['room'];
     if (invite != null) {
       mode = PlayMode.online;
@@ -217,6 +223,7 @@ class _HomeState extends State<Home> {
                 selected: pairs == p,
                 onSelected: (_) {
                   setState(() => pairs = p);
+                  widget.prefs.setInt('game.pairs', p);
                   Navigator.pop(context);
                 },
               ),
@@ -228,25 +235,49 @@ class _HomeState extends State<Home> {
 
   void chooseTheme() => showDialog<void>(
     context: context,
-    builder: (context) => SimpleDialog(
-      title: const Text('Tema delle carte'),
-      children: [
-        for (final t in themeNames.keys)
-          SimpleDialogOption(
-            onPressed: () {
-              setState(() => theme = t);
-              Navigator.pop(context);
-            },
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            child: Row(
-              children: [
-                Icon(themeIcons[t], color: teal),
-                const SizedBox(width: 12),
-                Text(themeNames[t]!),
+    builder: (context) => Dialog(
+      insetPadding: const EdgeInsets.all(16),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Collezioni',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Chiudi collezioni',
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
+              ),
+              for (final t in deckNames.keys) ...[
+                const SizedBox(height: 8),
+                _CollectionTile(
+                  theme: t,
+                  selected: theme == t,
+                  onTap: () {
+                    setState(() => theme = t);
+                    widget.prefs.setString('game.collection', t);
+                    Navigator.pop(context);
+                  },
+                ),
               ],
-            ),
+            ],
           ),
-      ],
+        ),
+      ),
     ),
   );
 
@@ -390,10 +421,8 @@ class _HomeState extends State<Home> {
                                   onTap: choosePairs,
                                 ),
                                 const SizedBox(height: 8),
-                                _OptionRow(
-                                  icon: themeIcons[theme]!,
-                                  label: 'Carte',
-                                  value: themeNames[theme]!,
+                                _CollectionTile(
+                                  theme: theme,
                                   onTap: chooseTheme,
                                 ),
                                 if (mode == PlayMode.online ||
@@ -715,6 +744,12 @@ class BrandMark extends StatelessWidget {
   );
 }
 
+Color collectionColor(String theme) => switch (theme) {
+  'cosmos' => const Color(0xFF7661B5),
+  'ocean' => const Color(0xFF2589B2),
+  _ => teal,
+};
+
 class ModeTile extends StatelessWidget {
   const ModeTile({
     super.key,
@@ -729,62 +764,179 @@ class ModeTile extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   @override
-  Widget build(BuildContext context) => Semantics(
-    selected: selected,
-    button: true,
-    child: Material(
-      color: selected ? teal.withValues(alpha: .07) : paper,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: selected ? teal : line,
-              width: selected ? 1.5 : 1,
+  Widget build(BuildContext context) {
+    final accent = switch (title) {
+      'In due' => coral,
+      'Online' => const Color(0xFF7661B5),
+      'Bluetooth' => const Color(0xFF2589B2),
+      _ => teal,
+    };
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: accent.withValues(alpha: .20),
+              offset: const Offset(0, 5),
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                children: [
-                  Icon(icon, color: selected ? teal : ink, size: 25),
-                  const Spacer(),
-                  if (selected)
-                    const Icon(
-                      Icons.check_circle_rounded,
-                      color: teal,
-                      size: 16,
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: selected ? teal : ink,
+          ],
+        ),
+        child: Material(
+          color: Color.lerp(paper, accent, .10),
+          borderRadius: BorderRadius.circular(24),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(24),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: accent.withValues(alpha: .25),
+                  width: 1.5,
                 ),
               ),
-              Text(
-                subtitle,
-                style: const TextStyle(fontSize: 12, color: muted),
+              child: LayoutBuilder(
+                builder: (context, c) => Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: _ModeEmblem(
+                          icon: icon,
+                          color: accent,
+                          compact: c.maxHeight < 110,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          color: accent,
+                          size: 18,
+                        ),
+                      ],
+                    ),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(fontSize: 12, color: ink),
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ModeEmblem extends StatelessWidget {
+  const _ModeEmblem({
+    required this.icon,
+    required this.color,
+    required this.compact,
+  });
+  final IconData icon;
+  final Color color;
+  final bool compact;
+  @override
+  Widget build(BuildContext context) => FittedBox(
+    fit: BoxFit.scaleDown,
+    child: SizedBox(
+      width: 110,
+      height: compact ? 48 : 88,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: 12,
+            top: compact ? 1 : 9,
+            child: Transform.rotate(
+              angle: -.20,
+              child: Container(
+                width: compact ? 33 : 49,
+                height: compact ? 40 : 65,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: .28),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+          Transform.rotate(
+            angle: .12,
+            child: Container(
+              width: compact ? 40 : 57,
+              height: compact ? 44 : 73,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: .7),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: .25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(4),
+              child: _CollectionSymbol(
+                theme: icon == Icons.public_rounded
+                    ? 'cosmos'
+                    : icon == Icons.bluetooth_rounded
+                    ? 'ocean'
+                    : 'garden',
+                value: icon == Icons.people_outline_rounded ? 1 : 0,
+                size: compact ? 30 : 46,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 5,
+            top: 1,
+            child: Icon(
+              Icons.star_rounded,
+              size: compact ? 15 : 20,
+              color: coral,
+            ),
+          ),
+          Positioned(
+            left: 4,
+            bottom: 6,
+            child: Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+          ),
+        ],
       ),
     ),
   );
 }
 
-class MemoryCard extends StatelessWidget {
+class MemoryCard extends StatefulWidget {
   const MemoryCard({
     super.key,
     required this.index,
@@ -799,80 +951,306 @@ class MemoryCard extends StatelessWidget {
   final bool matched;
   final VoidCallback? onTap;
   @override
-  Widget build(BuildContext context) {
-    final shown = value != null;
-    final color = shown ? symbolColors[value! % symbolColors.length] : teal;
-    return Semantics(
-      label: matched
-          ? 'Coppia trovata'
-          : shown
-          ? 'Carta ${index + 1}, simbolo ${value! + 1}'
-          : 'Carta ${index + 1}, coperta',
-      button: onTap != null,
-      child: AnimatedOpacity(
-        opacity: matched ? 0.45 : 1,
-        duration: const Duration(milliseconds: 250),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(16),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              decoration: BoxDecoration(
-                color: shown ? Colors.white : teal,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: shown ? color.withValues(alpha: .3) : teal,
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  if (!matched)
-                    BoxShadow(
-                      color: ink.withValues(alpha: .06),
-                      offset: const Offset(0, 5),
-                      blurRadius: 12,
+  State<MemoryCard> createState() => _MemoryCardState();
+}
+
+class _MemoryCardState extends State<MemoryCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController flip;
+  int? faceValue;
+  bool reduceMotion = false;
+  @override
+  void initState() {
+    super.initState();
+    faceValue = widget.value;
+    flip = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
+      value: widget.value == null ? 0 : 1,
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    reduceMotion = MediaQuery.disableAnimationsOf(context);
+    if (reduceMotion) flip.value = widget.value == null ? 0 : 1;
+  }
+
+  @override
+  void didUpdateWidget(MemoryCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value != null) faceValue = widget.value;
+    if ((oldWidget.value == null) != (widget.value == null)) {
+      final target = widget.value == null ? 0.0 : 1.0;
+      if (reduceMotion) {
+        flip.value = target;
+      } else {
+        flip.animateTo(target, curve: Curves.easeInOutCubic);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    flip.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: widget.matched
+        ? 'Coppia trovata'
+        : widget.value != null
+        ? 'Carta ${widget.index + 1}, ${deckLabel(widget.theme, widget.value!) ?? 'simbolo ${widget.value! + 1}'}'
+        : 'Carta ${widget.index + 1}, coperta',
+    button: widget.onTap != null,
+    child: AnimatedBuilder(
+      animation: flip,
+      builder: (context, _) {
+        final front = flip.value >= .5;
+        final angle = flip.value * math.pi;
+        return Transform(
+          key: ValueKey('flip-${widget.index}'),
+          alignment: Alignment.center,
+          transform: Matrix4.identity()
+            ..setEntry(3, 2, .0015)
+            ..rotateY(angle),
+          child: Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.rotationY(front ? math.pi : 0),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onTap == null || flip.isAnimating
+                    ? null
+                    : widget.onTap,
+                borderRadius: BorderRadius.circular(13),
+                child: AnimatedContainer(
+                  duration: reduceMotion
+                      ? Duration.zero
+                      : const Duration(milliseconds: 220),
+                  decoration: BoxDecoration(
+                    color: front
+                        ? (widget.matched
+                              ? const Color(0xFFE5F3DC)
+                              : Colors.white)
+                        : collectionColor(widget.theme),
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(
+                      color: widget.matched
+                          ? const Color(0xFF83B66B)
+                          : front
+                          ? collectionColor(widget.theme).withValues(alpha: .25)
+                          : Colors.white.withValues(alpha: .5),
+                      width: widget.matched ? 2 : 1.5,
                     ),
-                ],
-              ),
-              child: LayoutBuilder(
-                builder: (context, c) {
-                  final side = math.min(c.maxWidth, c.maxHeight);
-                  if (shown) {
-                    return Center(
-                      child: Icon(
-                        symbols[theme]![value! % 18],
-                        color: color,
-                        size: side * .49,
+                    boxShadow: [
+                      BoxShadow(
+                        color: collectionColor(
+                          widget.theme,
+                        ).withValues(alpha: widget.matched ? .06 : .19),
+                        offset: const Offset(0, 3),
+                        blurRadius: 1,
                       ),
-                    );
-                  }
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: CustomPaint(
-                      painter: BackPattern(),
-                      child: Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: teal,
-                            border: Border.all(
-                              color: paper.withValues(alpha: .5),
+                    ],
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, c) {
+                      final side = math.min(c.maxWidth, c.maxHeight);
+                      if (front && faceValue != null) {
+                        return Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.all(side * .12),
+                              child: _CollectionSymbol(
+                                theme: widget.theme,
+                                value: faceValue!,
+                                size: side * .66,
+                              ),
                             ),
-                            borderRadius: BorderRadius.circular(13),
+                            if (widget.matched)
+                              Positioned(
+                                right: 2,
+                                bottom: 2,
+                                child: Icon(
+                                  Icons.check_circle_rounded,
+                                  color: const Color(0xFF65974E),
+                                  size: math.max(11, side * .19),
+                                ),
+                              ),
+                          ],
+                        );
+                      }
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(11),
+                        child: CustomPaint(
+                          painter: BackPattern(theme: widget.theme),
+                          child: Center(
+                            child: Container(
+                              width: side * .56,
+                              height: side * .56,
+                              decoration: BoxDecoration(
+                                color: paper.withValues(alpha: .13),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: paper.withValues(alpha: .55),
+                                ),
+                              ),
+                              child: Icon(
+                                switch (widget.theme) {
+                                  'cosmos' => Icons.auto_awesome_rounded,
+                                  'ocean' => Icons.water_rounded,
+                                  _ => Icons.pets_rounded,
+                                },
+                                color: paper,
+                                size: side * .32,
+                              ),
+                            ),
                           ),
-                          child: Icon(
-                            Icons.spa_outlined,
-                            color: paper.withValues(alpha: .9),
-                            size: side * .29,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    ),
+  );
+}
+
+class _CollectionSymbol extends StatelessWidget {
+  const _CollectionSymbol({
+    required this.theme,
+    required this.value,
+    required this.size,
+  });
+  final String theme;
+  final int value;
+  final double size;
+  @override
+  Widget build(BuildContext context) {
+    final path = deckAsset(theme, value);
+    if (path != null) {
+      return Image.asset(
+        path,
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.medium,
+        excludeFromSemantics: true,
+      );
+    }
+    return Icon(
+      symbols[theme]![value % 18],
+      color: symbolColors[value % symbolColors.length],
+      size: size,
+    );
+  }
+}
+
+class _CollectionTile extends StatelessWidget {
+  const _CollectionTile({
+    required this.theme,
+    required this.onTap,
+    this.selected = false,
+  });
+  final String theme;
+  final VoidCallback onTap;
+  final bool selected;
+  @override
+  Widget build(BuildContext context) {
+    final color = collectionColor(theme);
+    return Material(
+      color: Color.lerp(paper, color, .09),
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          height: 76,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: color.withValues(alpha: selected ? .7 : .23),
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Collezione',
+                      style: TextStyle(fontSize: 11, color: muted),
+                    ),
+                    Text(
+                      deckNames[theme]!,
+                      style: const TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                width: 112,
+                height: 58,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    for (var i = 0; i < 3; i++)
+                      Positioned(
+                        left: i * 31.0,
+                        top: i == 1 ? 0 : 7,
+                        child: Transform.rotate(
+                          angle: (i - 1) * .16,
+                          child: Container(
+                            width: 44,
+                            height: 49,
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: color.withValues(alpha: .2),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: color.withValues(alpha: .13),
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: _CollectionSymbol(
+                              theme: theme,
+                              value: i,
+                              size: 35,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(width: 4),
+              Icon(
+                selected
+                    ? Icons.check_circle_rounded
+                    : Icons.chevron_right_rounded,
+                color: color,
+                size: 20,
+              ),
+            ],
           ),
         ),
       ),
@@ -881,20 +1259,39 @@ class MemoryCard extends StatelessWidget {
 }
 
 class BackPattern extends CustomPainter {
+  const BackPattern({this.theme = 'garden'});
+  final String theme;
   @override
   void paint(Canvas canvas, Size size) {
-    final p = Paint()
-      ..color = paper.withValues(alpha: .13)
+    final paint = Paint()
+      ..color = paper.withValues(alpha: .18)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    for (double x = -size.height; x < size.width + size.height; x += 19) {
-      canvas.drawLine(Offset(x, 0), Offset(x + size.height, size.height), p);
-      canvas.drawLine(Offset(x, 0), Offset(x - size.height, size.height), p);
+      ..strokeWidth = 1.2;
+    for (double x = 8; x < size.width; x += 19) {
+      for (double y = 8; y < size.height; y += 20) {
+        if (theme == 'cosmos') {
+          canvas.drawLine(Offset(x - 2, y), Offset(x + 2, y), paint);
+          canvas.drawLine(Offset(x, y - 2), Offset(x, y + 2), paint);
+        } else if (theme == 'ocean') {
+          canvas.drawArc(
+            Rect.fromCircle(center: Offset(x, y), radius: 5),
+            0,
+            math.pi,
+            false,
+            paint,
+          );
+        } else {
+          canvas.drawOval(
+            Rect.fromCenter(center: Offset(x, y), width: 4, height: 7),
+            paint,
+          );
+        }
+      }
     }
   }
 
   @override
-  bool shouldRepaint(BackPattern oldDelegate) => false;
+  bool shouldRepaint(BackPattern oldDelegate) => oldDelegate.theme != theme;
 }
 
 class GameScreen extends StatefulWidget {
@@ -1159,11 +1556,26 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                           tooltip: 'Torna alla home',
                           icon: const Icon(Icons.arrow_back_rounded),
                         ),
-                        const BrandMark(size: 26),
+                        Container(
+                          width: 32,
+                          height: 32,
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: collectionColor(
+                              gameTheme,
+                            ).withValues(alpha: .12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: _CollectionSymbol(
+                            theme: gameTheme,
+                            value: 0,
+                            size: 26,
+                          ),
+                        ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            themeNames[gameTheme]!,
+                            deckNames[gameTheme]!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -1335,13 +1747,25 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(
-                                        result,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontSize: 23,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.stars_rounded,
+                                            color: Color(0xFFDAA12D),
+                                            size: 32,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              result,
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontSize: 23,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
@@ -1417,7 +1841,8 @@ class _FittedBoard extends StatelessWidget {
       var cardHeight = 0.0;
       var area = 0.0;
       for (var n = 2; n <= math.min(count, 12); n++) {
-        final rows = (count / n).ceil();
+        if (count % n != 0) continue;
+        final rows = count ~/ n;
         final w = math.min(120.0, (c.maxWidth - gap * (n - 1)) / n);
         final h = math.min(138.0, (c.maxHeight - gap * (rows - 1)) / rows);
         final fitWidth = math.min(w, h * .9);
@@ -1430,20 +1855,28 @@ class _FittedBoard extends StatelessWidget {
           cardHeight = fitHeight;
         }
       }
+      final rows = count ~/ columns;
       return Center(
         child: SizedBox(
           width: columns * cardWidth + (columns - 1) * gap,
-          child: Wrap(
-            spacing: gap,
-            runSpacing: gap,
-            alignment: WrapAlignment.center,
+          height: rows * cardHeight + (rows - 1) * gap,
+          child: Column(
             children: [
-              for (var i = 0; i < count; i++)
-                SizedBox(
-                  width: cardWidth,
-                  height: cardHeight,
-                  child: itemBuilder(i),
+              for (var row = 0; row < rows; row++) ...[
+                if (row > 0) const SizedBox(height: gap),
+                Row(
+                  children: [
+                    for (var column = 0; column < columns; column++) ...[
+                      if (column > 0) const SizedBox(width: gap),
+                      SizedBox(
+                        width: cardWidth,
+                        height: cardHeight,
+                        child: itemBuilder(row * columns + column),
+                      ),
+                    ],
+                  ],
                 ),
+              ],
             ],
           ),
         ),

@@ -1,28 +1,29 @@
 # MyMemory release readiness
 
-Verified 2026-11-05. This file records preparation, not store publication.
+Verified 2026-11-05. This file records internal test distribution and remaining
+production release readiness. No production release has been made.
 
-The current signed release is **3.0.0 (30003)**. Final native artifacts are
-`artifacts/MyMemory-Together-3.0.0-30003.{aab,apk,ipa}`; hashes, certificate and
-source verification are recorded in `artifacts/native-builds-30003.json`.
+The current signed release is **3.0.0 (30004)**. Final native artifacts are
+`artifacts/MyMemory-Together-3.0.0-30004.{aab,apk,ipa}`; hashes, certificate and
+source verification are recorded in `artifacts/native-builds-30004.json`.
 The IPA SHA-256 is
-`47ee9d12a370c24e518e78f75cc0e11fc76e810a6a6c5f8adfc13fffb0c575cd`.
+`0047c023f0098dbf019754f75349928ff2b5b1005435458c717b16b479ae039b`.
 
-Apple upload **4bf310e0-8722-472f-ae1c-180d7079f352** completed and the build is
+Apple upload **95af8eae-402a-4b59-93f5-5eab63b43ab6** completed and the build is
 **VALID / IN_BETA_TESTING**, attached to **MyMemory Internal** with exactly one
 account-holder tester. That tester's prior invitation is accepted (tester state
 INSTALLED); this confirms app access, not installation of every new build.
 `artifacts/testflight-upload.json` is the current API receipt.
 
 The new Android app **cc.sommomi.mymemory** is live on its internal track with
-versionCode **30003**, tester list restricted to the owner. The opt-in link is
+versionCode **30004**, tester list restricted to the owner. The opt-in link is
 https://play.google.com/apps/internaltest/4700857721365894827 . No production
 release was made. See `ANDROID.md` for Console evidence and old-app deletion.
 
 The compact UI was implemented with the explicitly requested Astra subagent.
-**18 Flutter tests** and analysis pass, including four viewports with realistic
+**27 Flutter tests** and analysis pass, including four viewports with realistic
 iOS safe areas, all 36 cards visible and hit-testable, completion/rematch,
-keyboard entry, settings, waiting rooms and Bluetooth lobby. The game screens
+keyboard entry, settings, waiting rooms and Bluetooth lobby. The illustrated revision adds 320 ms 3D flips, reduced-motion behavior, persistent collection/difficulty, exact equal-length rows at all difficulties, and all 54 offline PNGs with bundled licenses. See `DECKS.md` for primary sources and pinned provenance. The game screens
 do not scroll; Flutter's standard legal-license viewer retains its text scrolling.
 **11 Node tests** pass, including the observed stale-browser-cache regression.
 Native AAB/APK/IPA signatures and release identities were verified.
@@ -93,15 +94,18 @@ The app has ordinary HTTPS and BLE networking; it declares no nonexempt encrypti
 ## Android
 
 The user's requested replacement is a **new** app, **cc.sommomi.mymemory**,
-Console app ID **4972469070574777722**. Release **3.0.0 (30003)** is available to
+Console app ID **4972469070574777722**. Release **3.0.0 (30004)** is available to
 internal testers; Google Play App Signing is active. A new dedicated upload key
 is stored outside source control. There is no dependency on recovering the old
 app's signing key for this new package.
 
-The old **com.michele.mymemory** listing remains unpublished, with historical
-versionCode2/version0.9 and no Play App Signing. Its recoverable deletion is
-prepared but awaits permission to transmit the private registration-payment ID
-required by Google. Nothing has been deleted yet. Full evidence: `ANDROID.md`.
+The old **com.michele.mymemory** listing (historical versionCode2/version0.9, no
+Play App Signing) was deleted on **2026-11-05**, following the user's explicit
+confirmation to delete it and use the registration-receipt identifier in Google's
+official form. Console confirms it can be recovered until **2026-11-12** and
+offers **Recupera app**. The private identifier is not stored in this repository.
+The new app's internal track was refreshed after deletion and remains **Attivo**.
+Full evidence: `ANDROID.md`.
 
 ## Offline Bluetooth
 
