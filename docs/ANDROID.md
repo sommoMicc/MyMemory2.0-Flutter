@@ -14,14 +14,14 @@ testing, and deletion of the historical app. The new Console record is created:
 | Language/category/pricing | Italian `it-IT`, game, free |
 | Internal track ID | `4700857721365894827` |
 | Tester list | MyMemory test interno; selected and saved; one account owner tester |
-| Release | 7, name `3.0.0 (30009) - Gemme e Paola`; **available to internal testers**, published 5 November 2026 at 16:46 as shown in Console |
-| Binary | Final **3.0.0 (30009)** uploaded and accepted |
+| Release | 9, name `3.0.0 (30011) - Suoni e anteprima`; **available to internal testers**, published 5 November 2026 at 18:09 as shown in Console |
+| Binary | Final **3.0.0 (30011)** uploaded and accepted |
 | Track status | **Attivo** |
 | App signing | Releases signed by Google Play; no new terms prompt appeared |
 | Production | No production release requested or performed |
 
 [New app dashboard](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/app-dashboard)
-and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/7/details).
+and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/9/details).
 The **live internal opt-in link** is
 [Join the internal test](https://play.google.com/apps/internaltest/4700857721365894827).
 It was opened in the owner's signed-in browser and showed the invitation to test
@@ -34,16 +34,34 @@ store name for this new internal app. This release is **internal only**, not a
 production listing. Console accepted the binary with min API 24, target API 36,
 three ABIs, and ReTrace mapping/native symbols attached.
 
-Build **30009** replaces internal build 30008. The final binary uses
+Build **30011** replaces the intermediate internal build 30010. The final binary uses
 `wss://sommomemory.sommomi.cc/ws`; the public service is
 `https://sommomemory.sommomi.cc`. Only this new domain is associated with native
 invites; legacy-host intent filters were removed before the final rebuild, as the
 user requested. API, domain associations and TLS were verified live before upload.
 Package, signing identity, internal track and owner-only tester
 list are unchanged. Proof of the active release:
-`artifacts/play-internal-live-30009.jpg`.
+`artifacts/play-internal-live-30011.jpg`.
 
-The release adds game-only gems (100 once per new profile, 20 per verified complete
+This version includes optional original sound cues and haptic feedback for card
+flips, matches, mismatches and turns, with saved sound/haptics preferences. The
+audio is bundled PCM WAV; lifecycle changes stop pending feedback and iOS uses
+the ambient audio category. The generator is kept outside the app under
+`scripts/synthesize-feedback.py`: only the WAV and NOTICE are bundled. The final
+archive and AssetManifest contain **zero `.py`/`.pyc` files**. Android 30010 was
+briefly active as release 8 at 18:01 and has now been superseded by 30011, with no
+rollback or tester changes.
+
+A full room now returns a public snapshot of its two players, current scores and
+final result if available. Manual refresh uses a separate read-only request: it
+cannot claim a seat or reveal cards, profile data, balances or session tokens.
+Full-room status precedes theme compatibility, while actual entry still checks
+supported decks. Terminal entry/session errors cancel retry loops and discard
+pending entry actions; transport failures remain retryable. Snapshot immutability,
+late socket messages, refresh without joining, and unchanged frame/rate limits
+are covered by server and client tests.
+
+The current release also includes game-only gems (100 once per new profile, 20 per verified complete
 game), permanent deck unlocks and optional cross-device profiles via a recovery
 code. There are no payments, real-money purchases or account-balance merges.
 Four decks are free: Animals, Space, Ocean and **Paola**, whose 18 syllables are
@@ -58,11 +76,11 @@ Invites use verified Android App Links on `sommomemory.sommomi.cc` and the expli
 Signing** certificate SHA-256
 `CF88459A498AE9C368EE97B9BFDCC74BEABF6C1AA73140CFF3931CAD85A97313`, distinct
 from the upload certificate below. Older clients are rejected with an update
-message before receiving a deck they cannot render. All **28 Node tests passed**,
+message before receiving a deck they cannot render. All **31 Node tests passed**,
 including economy concurrency, restart/recovery, credentials, paid-host access
 and old/new WebSocket compatibility. Native package, signatures, all 108 PNGs,
 syllables, licenses and the final new-domain configuration were verified against
-the frozen source; see local `artifacts/native-builds-30009.json`.
+the frozen source; see local `artifacts/native-builds-30011.json`.
 
 The presentation synchronization introduced in build 30007 remains. Scores,
 matched-pair styling and the final result follow the actual card animations and appear
@@ -73,21 +91,24 @@ heartbeat events. Rotation and new-round resets cannot strand an animation lock
 or replay an old action. The authoritative local, Bluetooth and server engines
 and their 900ms mismatch interval are unchanged.
 
-For that synchronization update, Flutter analysis and **all 37 Flutter tests passed**, including
+At the final runtime freeze, Flutter analysis and **all 91 Flutter tests passed**, including
 local final-pair events, online/Bluetooth snapshot ordering, complete closing,
 reduced motion, rotation and round-reset regressions. Independent review first
 reproduced the rotation lock and then verified its correction.
+The final packaging regression verifies that the audio AssetManifest contains
+only WAV and NOTICE, with no Python files. Live public-preview verification also
+confirmed a read-only refresh from an in-progress 0–1 score to a final 5–1 result.
 
 Full-screen animated scenery for Animals, Space and Ocean, floating characters,
 reduced-motion and pause handling, illustrated collections, animated card flips,
 complete uniform rows and non-scrolling screens remain. The upload and review
-screens verified versionCode **30009**,
+screens verified versionCode **30011**,
 versionName **3.0.0**; Console reports **zero previously supported devices lost**.
 The owner tester list and invitation link were unchanged.
 
 Uploaded artifact:
-`artifacts/SommoMemory-3.0.0-30009.aab`, SHA-256
-`a5d9b6491f8ee1d492ccc5cf6321ecdfb201adcdc4bdb45a98d400302be8fdb9`.
+`artifacts/SommoMemory-3.0.0-30011.aab`, SHA-256
+`08f1b10f936c710a123d96829b897970ab18141543f4beb05e9a32c2408884e9`.
 The dedicated upload certificate SHA-256 is
 `404D6F54025C024007E37F2A25352CB84471268A1C6C0D78C17A9565E12BED67`.
 Private signing materials remain outside the repository.
@@ -120,7 +141,7 @@ explains that testers see a temporary name before the app's first review. A
 complete Store listing and review are separate from the internal binary release;
 neither production publication nor a first-review submission was performed.
 
-Build **30009 is the current live internal version**, with SommoMemory as its
+Build **30011 is the current live internal version**, with SommoMemory as its
 installed launcher name. The incomplete Store draft does not prevent this
 authorized internal binary update. No production release was created.
 
@@ -141,7 +162,7 @@ Immediately after deletion, the replacement **cc.sommomi.mymemory** app was
 refreshed and verified separately: its then-current 30003 internal release
 remained **Attivo**, with the owner tester list selected and the opt-in link
 enabled. The replacement app and its signing settings were not modified during
-deletion. The current SommoMemory update 30009 is recorded above.
+deletion. The current SommoMemory update 30011 is recorded above.
 
 The [current official deletion guide](https://support.google.com/googleplay/android-developer/answer/16483176)
 requires an unpublished app, fewer than 1000 active devices, no unresolved review,

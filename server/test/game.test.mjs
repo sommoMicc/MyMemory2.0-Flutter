@@ -36,6 +36,43 @@ test('deck capabilities are strict, bounded and checked before any room or seat 
   }
 });
 
+test('full-room previews precede theme compatibility and expose only copied public scores/results', () => {
+  const game = new GameEngine();
+  const first = game.create({ name: 'Alice', pairs: 6, theme: 'paola', profileId: 'private-profile-a', supportedDecks: ['paola'] });
+  const second = game.join({ code: first.code, name: 'Bob', profileId: 'private-profile-b', supportedDecks: ['paola'] });
+  const room = game.room(first.code);
+  const pair = room.board.flatMap((value, index) => value === room.board[0] ? [index] : []);
+  pair.forEach(index => game.flip(first.code, first.playerId, index));
+  const revision = room.revision;
+  let rejected;
+  try { game.join({ code: first.code, name: 'Old client' }); } catch (error) { rejected = error; }
+  assert.equal(rejected.code, 'ROOM_FULL');
+  const preview = rejected.roomPreview;
+  assert.deepEqual(Object.keys(preview).sort(), ['code', 'phase', 'players', 'winnerId', 'finishReason'].sort());
+  assert.deepEqual(preview.players.map(p => p.score), [1, 0]);
+  assert.equal(preview.phase, 'playing');
+  for (const player of preview.players) assert.deepEqual(Object.keys(player).sort(), ['id', 'name', 'score', 'connected'].sort());
+  for (const secret of [first.token, second.token, 'private-profile-a', 'private-profile-b', 'tokenHash', 'cards', 'board', 'selected'])
+    assert.equal(JSON.stringify(preview).includes(secret), false);
+  assert.equal(room.players.length, 2);
+  assert.equal(room.revision, revision);
+  for (let value = 0; value < room.pairs; value++) {
+    const indices = room.board.flatMap((card, index) => card === String(value) && !room.matched.includes(index) ? [index] : []);
+    indices.forEach(index => game.flip(first.code, first.playerId, index));
+  }
+  const finished = game.preview({ code: first.code });
+  assert.equal(finished.phase, 'finished');
+  assert.equal(finished.winnerId, first.playerId);
+  assert.equal(finished.finishReason, 'completed');
+  assert.deepEqual(finished.players.map(p => p.score), [6, 0]);
+  assert.deepEqual(preview.players.map(p => p.score), [1, 0]);
+  preview.players[0].name = 'Changed copy';
+  assert.equal(room.players[0].name, 'Alice');
+  const cosmos = game.create({ name: 'Legacy', pairs: 6, theme: 'cosmos' });
+  assert.doesNotThrow(() => game.join({ code: cosmos.code, name: 'Legacy too' }));
+  assert.throws(() => game.join({ code: cosmos.code, name: 'Third', supportedDecks: ['garden'] }), { code: 'ROOM_FULL' });
+});
+
 test('public state never reveals hidden identities, tokens or internal board', () => {
   const { game, first } = setup();
   const state = game.state(first.code);

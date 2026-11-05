@@ -11,7 +11,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.json': 'application/json', '.wasm': 'application/wasm', '.css': 'text/css', '.png': 'image/png',
   '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2',
-  '.ttf': 'font/ttf', '.bin': 'application/octet-stream' };
+  '.ttf': 'font/ttf', '.wav': 'audio/wav', '.bin': 'application/octet-stream' };
 
 export function startServer({ port = Number(process.env.PORT || 8787), host = process.env.HOST || '127.0.0.1',
   dataDir = process.env.DATA_DIR || resolve(here, '../data'),
@@ -136,7 +136,8 @@ export function startServer({ port = Number(process.env.PORT || 8787), host = pr
           sockets.set(ws, { ws, ...session });
           send(ws, { type: 'session', ...session });
           send(ws, engine.state(session.code));
-        } else if (message.type === 'ping') send(ws, { type: 'pong', time: Date.now() });
+        } else if (message.type === 'preview') send(ws, { type: 'roomPreview', roomPreview: engine.preview(message) });
+        else if (message.type === 'ping') send(ws, { type: 'pong', time: Date.now() });
         else {
           if (!current) throw new GameError('NO_SESSION', 'Entra in una stanza per giocare.');
           switch (message.type) {
@@ -154,7 +155,9 @@ export function startServer({ port = Number(process.env.PORT || 8787), host = pr
         const safe = error instanceof GameError || error instanceof EconomyError;
         if (!safe) console.error('Request failed:', error.message);
         send(ws, { type: 'error', code: safe ? error.code : 'SERVER_ERROR',
-          message: safe ? error.message : 'Errore del servizio. Riprova tra poco.' });
+          message: safe ? error.message : 'Errore del servizio. Riprova tra poco.',
+          ...(error instanceof GameError && error.code === 'ROOM_FULL' && error.roomPreview ?
+            { roomPreview: error.roomPreview } : {}) });
       }
     });
     ws.on('close', () => {

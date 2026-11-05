@@ -4,10 +4,13 @@ import { mkdirSync, readFileSync, writeFileSync, renameSync, existsSync } from '
 import { join } from 'node:path';
 
 export class GameError extends Error {
-  constructor(code, message) { super(message); this.code = code; }
+  constructor(code, message, { roomPreview } = {}) {
+    super(message); this.code = code;
+    if (roomPreview) this.roomPreview = roomPreview;
+  }
 }
 
-const fail = (code, message) => { throw new GameError(code, message); };
+const fail = (code, message, details) => { throw new GameError(code, message, details); };
 const tokenHash = token => createHash('sha256').update(token).digest('hex');
 const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const themes = ['garden', 'cosmos', 'ocean', 'paola', 'food', 'sports', 'travel'];
@@ -114,14 +117,33 @@ export class GameEngine extends EventEmitter {
       score: 0, connected: true, disconnectedAt: null, left: false, tokenHash: tokenHash(token) } };
   }
 
-  assertSupported(theme, supportedDecks) {
+  capabilities(supportedDecks) {
     const supported = supportedDecks === undefined ? legacyThemes : supportedDecks;
     if (!Array.isArray(supported) || supported.length > 10 ||
         supported.some(id => typeof id !== 'string' || !themes.includes(id)) ||
         new Set(supported).size !== supported.length) {
       fail('INVALID_CAPABILITIES', 'Invia un elenco valido delle collezioni supportate.');
     }
+    return supported;
+  }
+
+  assertSupported(theme, supportedDecks) {
+    const supported = this.capabilities(supportedDecks);
     if (!supported.includes(theme)) fail('UPDATE_REQUIRED', 'Aggiorna SommoMemory per giocare con questa collezione.');
+  }
+
+  roomPreview(room) {
+    return { code: room.code, phase: room.phase,
+      players: room.players.slice(0, 2).map(({ id, name, score, connected }) => ({ id, name, score, connected })),
+      winnerId: room.winnerId, finishReason: room.finishReason };
+  }
+
+  preview({ code }) {
+    this.tick();
+    const room = this.room(code);
+    if (room.players.length !== 2 || !['playing', 'finished'].includes(room.phase))
+      fail('ROOM_NOT_FOUND', 'Questa anteprima non è disponibile.');
+    return this.roomPreview(room);
   }
 
   create({ name, pairs = 8, theme = 'garden', profileId, supportedDecks }) {
@@ -148,8 +170,11 @@ export class GameEngine extends EventEmitter {
   join({ code, name, profileId, supportedDecks }) {
     this.tick();
     const room = this.room(code);
+    this.capabilities(supportedDecks);
+    // Full-room previews contain no card/theme data and need no rendering support.
+    if (room.phase !== 'waiting' || room.players.length !== 1)
+      fail('ROOM_FULL', 'La stanza è già al completo.', { roomPreview: this.roomPreview(room) });
     this.assertSupported(room.theme, supportedDecks);
-    if (room.phase !== 'waiting' || room.players.length !== 1) fail('ROOM_FULL', 'La stanza è già al completo.');
     const { player, token } = this.newPlayer(name);
     if (profileId) player.profileId = profileId;
     room.players.push(player);

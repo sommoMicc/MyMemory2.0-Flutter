@@ -1,0 +1,11 @@
+SommoMemory game feedback sounds
+
+Original procedural synthesis created for this project on 5 November 2026.
+No recordings, sound libraries, third-party samples or musical quotations used.
+The reproducible generator is scripts/synthesize-feedback.py in the source repository; it is not bundled in the app. The resulting sounds and generator
+may be used, modified and redistributed with this project without attribution.
+
+Sprite: game_feedback.wav, mono signed PCM16, 22050 Hz, 3800 ms.
+Silent unlock: 0-15 ms; flip: 40-95 ms; match: 1100-1300 ms;
+mismatch: 2350-2510 ms; turn: 3550-3660 ms.
+At least one second of silence separates the audible cues to absorb UI jank.

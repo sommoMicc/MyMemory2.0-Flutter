@@ -15,6 +15,25 @@ Future<void> until(bool Function() condition) async {
   }
 }
 
+Map<String, dynamic> previewFrame({bool finished = false}) => {
+  'code': 'ABC234',
+  'phase': finished ? 'finished' : 'playing',
+  'players': [
+    {
+      'id': 'alice',
+      'name': 'Alice',
+      'score': finished ? 6 : 3,
+      'connected': true,
+      'token': 'must-be-discarded',
+    },
+    {'id': 'bob', 'name': 'Bob', 'score': finished ? 0 : 2, 'connected': false},
+  ],
+  'winnerId': finished ? 'alice' : null,
+  'finishReason': finished ? 'completed' : null,
+  'cards': ['must-be-discarded'],
+  'profileId': 'must-be-discarded',
+};
+
 class PeerServer {
   late final HttpServer server;
   final List<WebSocket> sockets = [];
@@ -70,6 +89,163 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test(
+    'public preview model whitelists fields and keeps old frames immutable',
+    () {
+      final source = previewFrame();
+      final model = RoomPreview.fromJson(source);
+      (source['players'] as List).first['score'] = 18;
+      expect(model.players.first['score'], 3);
+      expect(
+        model.players.first.keys,
+        unorderedEquals(['id', 'name', 'score', 'connected']),
+      );
+      expect(() => model.players.add({}), throwsUnsupportedError);
+      expect(() => model.players.first['score'] = 9, throwsUnsupportedError);
+      expect(
+        () => RoomPreview.fromJson({...previewFrame(), 'players': []}),
+        throwsFormatException,
+      );
+      expect(
+        () => RoomPreview.fromJson({
+          ...previewFrame(finished: true),
+          'winnerId': 'stranger',
+        }),
+        throwsFormatException,
+      );
+    },
+  );
+
+  test(
+    'full room has no session and manual preview refresh is read-only, final and immutable',
+    () async {
+      SharedPreferences.setMockInitialValues({
+        'room.code': 'OLD234',
+        'room.token': 'old-token',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final server = PeerServer();
+      await server.start((socket, action) {
+        if (action['type'] == 'join') {
+          socket.add(
+            jsonEncode({
+              'type': 'error',
+              'code': 'ROOM_FULL',
+              'message': 'La stanza è già al completo.',
+              'roomPreview': previewFrame(),
+            }),
+          );
+          // Already queued responses on a refused/old generation cannot restore a seat.
+          PeerServer.accepted(socket);
+        } else if (action['type'] == 'preview') {
+          socket.add(
+            jsonEncode({
+              'type': 'roomPreview',
+              'roomPreview': previewFrame(finished: true),
+            }),
+          );
+        }
+      });
+      final online = OnlineGame(prefs, serverUrl: server.url);
+      try {
+        await online.open({
+          'type': 'join',
+          'code': 'ABC234',
+          'name': 'Third',
+          'profileToken': 'profile-secret',
+        });
+        await until(() => online.roomPreview != null);
+        final first = online.roomPreview!;
+        expect(first.players.map((p) => p['score']), [3, 2]);
+        expect(online.errorCode, 'ROOM_FULL');
+        expect(online.terminalError, isTrue);
+        expect(online.canRetry, isFalse);
+        expect(online.canRefreshPreview, isTrue);
+        expect(online.connected, isFalse);
+        expect(online.hasSession, isFalse);
+        expect(online.state, isNull);
+        expect(online.playerId, isNull);
+        await until(() => prefs.getString('room.token') == null);
+        await online.open(null);
+        online.flip(0);
+        online.rematch();
+        expect(server.actions.length, 1);
+        await online.refreshPreview();
+        await until(() => online.roomPreview?.finished == true);
+        expect(online.roomPreview!.players.map((p) => p['score']), [6, 0]);
+        expect(online.roomPreview!.winnerId, 'alice');
+        expect(first.players.map((p) => p['score']), [3, 2]);
+        expect(server.actions.map((a) => a['type']), ['join', 'preview']);
+        expect(server.actions.last.containsKey('profileToken'), isFalse);
+        expect(server.actions.last.containsKey('token'), isFalse);
+        expect(online.hasSession, isFalse);
+        expect(online.state, isNull);
+        await online.leave();
+        expect(online.roomPreview, isNull);
+        expect(online.terminalError, isFalse);
+        expect(online.errorCode, isNull);
+      } finally {
+        online.dispose();
+        await server.close();
+      }
+    },
+  );
+
+  test(
+    'terminal denials never retry, discard malformed preview and allow a new explicit action',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final server = PeerServer();
+      await server.start((socket, action) {
+        if (action['type'] == 'create') {
+          PeerServer.accepted(socket);
+          return;
+        }
+        final update = action['code'] == 'UPD234';
+        socket.add(
+          jsonEncode({
+            'type': 'error',
+            'code': update ? 'UPDATE_REQUIRED' : 'ROOM_FULL',
+            'message': update
+                ? 'Aggiorna SommoMemory.'
+                : 'La stanza è già al completo.',
+            'roomPreview': {
+              'code': 'ABC234',
+              'cards': ['not-a-game'],
+            },
+          }),
+        );
+      });
+      final online = OnlineGame(prefs, serverUrl: server.url);
+      try {
+        await online.open({'type': 'join', 'code': 'UPD234', 'name': 'Third'});
+        await until(() => online.terminalError);
+        expect(online.errorCode, 'UPDATE_REQUIRED');
+        expect(online.canRetry, isFalse);
+        await online.open(null);
+        expect(server.actions.length, 1);
+        await online.open({'type': 'join', 'code': 'ABC234', 'name': 'Third'});
+        await until(() => online.errorCode == 'ROOM_FULL');
+        expect(online.roomPreview, isNull);
+        expect(online.canRefreshPreview, isFalse);
+        expect(online.state, isNull);
+        expect(online.hasSession, isFalse);
+        await online.open({
+          'type': 'create',
+          'name': 'Alice',
+          'theme': 'garden',
+        });
+        await until(() => online.state != null);
+        expect(online.errorCode, isNull);
+        expect(online.terminalError, isFalse);
+      } finally {
+        online.dispose();
+        await server.close();
+      }
+    },
+  );
+
+  test(
     'rejected create displays server error and manual retry retains action',
     () async {
       SharedPreferences.setMockInitialValues({
@@ -105,6 +281,9 @@ void main() {
         });
         await until(() => online.error == 'Il servizio è occupato.');
         expect(online.connected, isFalse);
+        expect(online.canRetry, isTrue);
+        expect(online.terminalError, isFalse);
+        expect(online.errorCode, 'SERVER_FULL');
         expect(online.hasSession, isFalse);
         expect(prefs.getString('room.token'), isNull);
         await online.open(null);
@@ -114,6 +293,7 @@ void main() {
         expect(online.code, 'ABC234');
         expect(online.playerId, 'alice');
         expect(online.error, isNull);
+        expect(server.actions.first['supportedDecks'], contains('cosmos'));
       } finally {
         online.dispose();
         await server.close();
@@ -146,8 +326,10 @@ void main() {
         await until(() => prefs.getString('room.token') == null);
         expect(online.hasSession, isFalse);
         expect(online.state, isNull);
+        expect(online.terminalError, isTrue);
+        expect(online.canRetry, isFalse);
         await online.open(null);
-        expect(online.error, contains('Torna alla home'));
+        expect(online.error, 'La sessione è scaduta.');
         expect(server.actions.length, 1);
         expect(server.actions.single['type'], 'resume');
       } finally {
@@ -188,6 +370,8 @@ void main() {
         expect(online.hasSession, isFalse);
         expect(online.connected, isFalse);
         expect(online.state, isNull);
+        expect(online.terminalError, isFalse);
+        expect(prefs.getString('room.token'), isNull);
         await until(() => server.actions.any((a) => a['type'] == 'leave'));
       } finally {
         online.dispose();
@@ -215,6 +399,10 @@ void main() {
         expect(online.connected, isFalse);
         expect(online.hasSession, isFalse);
         expect(online.state, isNull);
+        expect(online.terminalError, isTrue);
+        expect(prefs.getString('room.token'), 'secret-session-token');
+        await online.open(null);
+        expect(server.actions.length, 1);
       } finally {
         online.dispose();
         await server.close();
@@ -235,6 +423,8 @@ void main() {
         await online.open({'type': 'create', 'name': 'Alice'});
         expect(online.connected, isFalse);
         expect(online.error, contains('Controlla Internet'));
+        expect(online.canRetry, isTrue);
+        expect(online.terminalError, isFalse);
       } finally {
         online.dispose();
       }

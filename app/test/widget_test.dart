@@ -44,9 +44,114 @@ void main() {
     (const Size(1024, 768), const FakeViewPadding(top: 24, bottom: 20)),
   ];
   for (final viewport in viewports) {
+    testWidgets(
+      'Terminal room errors and full-room preview fit ${viewport.$1}',
+      (tester) async {
+        configureView(tester, viewport.$1, viewport.$2);
+        SharedPreferences.setMockInitialValues({
+          'sound': false,
+          'haptics': false,
+        });
+        final prefs = await SharedPreferences.getInstance();
+        final online = _TerminalOnline(prefs)
+          ..errorCode = 'UPDATE_REQUIRED'
+          ..error = 'Aggiorna SommoMemory per giocare con questa collezione.';
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => GameScreen(
+                        prefs: prefs,
+                        pairs: 18,
+                        theme: 'cosmos',
+                        mode: PlayMode.online,
+                        online: online,
+                      ),
+                    ),
+                  ),
+                  child: const Text('Apri partita'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('Apri partita'));
+        await tester.pumpAndSettle();
+        expect(find.text('Aggiornamento necessario'), findsOneWidget);
+        expect(find.text('Connessione alla partita…'), findsNothing);
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+        expect(find.byTooltip('Riprova connessione'), findsNothing);
+        expect(find.byType(MemoryCard), findsNothing);
+        expect(find.text('Torna alla home').hitTestable(), findsOneWidget);
+        final surface = tester
+            .widgetList<Material>(
+              find.ancestor(
+                of: find.text(online.error!),
+                matching: find.byType(Material),
+              ),
+            )
+            .firstWhere((m) => m.color != null);
+        expect(surface.color!.a, 1);
+        expect(tester.takeException(), isNull);
+        for (final finished in [false, true]) {
+          online.showPreview(
+            RoomPreview(
+              code: 'ABC123',
+              phase: finished ? 'finished' : 'playing',
+              players: [
+                {'id': 'one', 'name': 'Michele', 'score': 5, 'connected': true},
+                {'id': 'two', 'name': 'Paola', 'score': 3, 'connected': true},
+              ],
+              winnerId: finished ? 'one' : null,
+              finishReason: finished ? 'completed' : null,
+            ),
+          );
+          await tester.pumpAndSettle();
+          expect(find.text('Stanza completa'), findsOneWidget);
+          expect(find.text('Michele'), findsOneWidget);
+          expect(find.text('Paola'), findsOneWidget);
+          expect(find.text('5 coppie'), findsOneWidget);
+          expect(find.text('3 coppie'), findsOneWidget);
+          expect(
+            find.text(
+              finished
+                  ? 'Risultato finale · Vince Michele'
+                  : 'Partita in corso · Stanza ABC123',
+            ),
+            findsOneWidget,
+          );
+          expect(find.text('Cambia stanza').hitTestable(), findsOneWidget);
+          expect(find.byType(MemoryCard), findsNothing);
+          expect(find.byType(Scrollable), findsNothing);
+          expect(tester.takeException(), isNull);
+        }
+        await tester.tap(find.byTooltip('Aggiorna anteprima'));
+        await tester.pumpAndSettle();
+        expect(online.refreshCalls, 1);
+        expect(find.byType(MemoryCard), findsNothing);
+        await tester.tap(find.text('Cambia stanza'));
+        await tester.pumpAndSettle();
+        expect(find.text('Una pausa?'), findsNothing);
+        expect(find.text('Apri partita'), findsOneWidget);
+        expect(online.leaveCalls, 1);
+        await tester.pumpWidget(const SizedBox());
+        online.dispose();
+        debugDefaultTargetPlatformOverride = null;
+      },
+    );
+  }
+
+  for (final viewport in viewports) {
     testWidgets('Setup and all 36 cards fit ${viewport.$1}', (tester) async {
       configureView(tester, viewport.$1, viewport.$2);
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'sound': false,
+        'haptics': false,
+      });
       final prefs = await SharedPreferences.getInstance();
       await tester.pumpWidget(MyMemory(prefs: prefs));
       await tester.pumpAndSettle();
@@ -132,6 +237,8 @@ void main() {
       await tester.tap(find.text('Annulla'));
       tester.view.resetViewInsets();
       await tester.pumpAndSettle();
+      await prefs.setBool('sound', true);
+      await prefs.setBool('haptics', true);
       await tester.tap(find.byTooltip('Come si gioca e impostazioni'));
       await tester.pumpAndSettle();
       for (final tab in ['Regole', 'Info', 'Preferenze']) {
@@ -139,6 +246,15 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
       }
+      expect(find.text('Suoni'), findsOneWidget);
+      expect(find.text('Vibrazioni'), findsOneWidget);
+      await tester.tap(find.text('Suoni'));
+      await tester.pumpAndSettle();
+      expect(prefs.getBool('sound'), false);
+      expect(prefs.getBool('haptics') ?? true, true);
+      await tester.tap(find.text('Vibrazioni'));
+      await tester.pumpAndSettle();
+      expect(prefs.getBool('haptics'), false);
       await tester.tap(find.byTooltip('Chiudi'));
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Scegli modalità'));
@@ -188,7 +304,10 @@ void main() {
       tester,
     ) async {
       configureView(tester, viewport.$1, viewport.$2);
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'sound': false,
+        'haptics': false,
+      });
       final prefs = await SharedPreferences.getInstance();
       for (final pairs in [6, 8, 12, 18]) {
         await tester.pumpWidget(
@@ -373,7 +492,10 @@ void main() {
     (tester) async {
       tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(disableAnimations: false);
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'sound': false,
+        'haptics': false,
+      });
       final prefs = await SharedPreferences.getInstance();
       await tester.pumpWidget(
         MaterialApp(
@@ -447,7 +569,10 @@ void main() {
   testWidgets(
     'Reduced motion releases a mismatch as soon as its faces are hidden',
     (tester) async {
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'sound': false,
+        'haptics': false,
+      });
       final prefs = await SharedPreferences.getInstance();
       await tester.pumpWidget(
         MaterialApp(
@@ -488,7 +613,10 @@ void main() {
       (tester) async {
         tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
             const FakeAccessibilityFeatures(disableAnimations: false);
-        SharedPreferences.setMockInitialValues({});
+        SharedPreferences.setMockInitialValues({
+          'sound': false,
+          'haptics': false,
+        });
         final prefs = await SharedPreferences.getInstance();
         final online = _RecordingOnline(prefs);
         final ble = _RecordingBluetooth();
@@ -571,7 +699,10 @@ void main() {
     (tester) async {
       tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(disableAnimations: false);
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'sound': false,
+        'haptics': false,
+      });
       final prefs = await SharedPreferences.getInstance();
       final online = _RecordingOnline(prefs);
       void publish(List<int?> cards, {bool locked = false}) => online.publish({
@@ -639,7 +770,10 @@ void main() {
     (tester) async {
       tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(disableAnimations: false);
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'sound': false,
+        'haptics': false,
+      });
       final prefs = await SharedPreferences.getInstance();
       await tester.pumpWidget(
         MaterialApp(
@@ -714,7 +848,10 @@ void main() {
       (tester) async {
         tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
             const FakeAccessibilityFeatures(disableAnimations: false);
-        SharedPreferences.setMockInitialValues({});
+        SharedPreferences.setMockInitialValues({
+          'sound': false,
+          'haptics': false,
+        });
         final prefs = await SharedPreferences.getInstance();
         final online = _RecordingOnline(prefs);
         final ble = _RecordingBluetooth();
@@ -853,7 +990,10 @@ void main() {
       );
       tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(disableAnimations: false);
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'sound': false,
+        'haptics': false,
+      });
       final prefs = await SharedPreferences.getInstance();
       final online = _RecordingOnline(prefs);
       final cards = List<int?>.filled(36, null);
@@ -922,7 +1062,10 @@ void main() {
       'Wallet, paginated collections and profile fit ${viewport.$1}',
       (tester) async {
         configureView(tester, viewport.$1, viewport.$2);
-        SharedPreferences.setMockInitialValues({});
+        SharedPreferences.setMockInitialValues({
+          'sound': false,
+          'haptics': false,
+        });
         final prefs = await SharedPreferences.getInstance();
         final economy = _UiEconomy(prefs);
         await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
@@ -978,7 +1121,10 @@ void main() {
         const Size(320, 568),
         const FakeViewPadding(top: 20),
       );
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'sound': false,
+        'haptics': false,
+      });
       final prefs = await SharedPreferences.getInstance();
       final economy = _UiEconomy(prefs);
       await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
@@ -1023,7 +1169,10 @@ void main() {
   testWidgets(
     'A validated ticket is claimed once only after the completed final flip',
     (tester) async {
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'sound': false,
+        'haptics': false,
+      });
       final prefs = await SharedPreferences.getInstance();
       final economy = _UiEconomy(prefs)
         ..holdReward = Completer<RewardResult?>();
@@ -1072,7 +1221,10 @@ void main() {
   testWidgets(
     'Cold and warm invitations keep the profile and confirm leaving an active game',
     (tester) async {
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'sound': false,
+        'haptics': false,
+      });
       final prefs = await SharedPreferences.getInstance();
       final economy = _UiEconomy(prefs);
       final incoming = StreamController<Uri>();
@@ -1119,7 +1271,7 @@ void main() {
   testWidgets('Wallet refresh preserves an in-progress name edit', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'sound': false, 'haptics': false});
     final prefs = await SharedPreferences.getInstance();
     final economy = _UiEconomy(prefs);
     await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
@@ -1142,7 +1294,7 @@ void main() {
   });
 
   testWidgets('Opening profile cancels a pending ticket start', (tester) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'sound': false, 'haptics': false});
     final prefs = await SharedPreferences.getInstance();
     final economy = _UiEconomy(prefs)..holdTicket = Completer<GameTicket?>();
     await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
@@ -1180,7 +1332,10 @@ void main() {
         const Size(320, 568),
         const FakeViewPadding(top: 20),
       );
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'sound': false,
+        'haptics': false,
+      });
       final prefs = await SharedPreferences.getInstance();
       await tester.pumpWidget(MyMemory(prefs: prefs));
       await tester.tap(find.text('Singolo'));
@@ -1257,7 +1412,10 @@ void main() {
   testWidgets(
     'An offline name remains local after reopening without claiming cloud sync',
     (tester) async {
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'sound': false,
+        'haptics': false,
+      });
       final prefs = await SharedPreferences.getInstance();
       final economy = _UiEconomy(prefs)..failNameSave = true;
       await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
@@ -1289,7 +1447,7 @@ void main() {
   testWidgets('Collection and difficulty survive reopening the app', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'sound': false, 'haptics': false});
     final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(MyMemory(prefs: prefs));
     await tester.tap(find.text('Singolo'));
@@ -1315,7 +1473,7 @@ void main() {
     tester,
   ) async {
     configureView(tester, const Size(320, 568), const FakeViewPadding(top: 20));
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'sound': false, 'haptics': false});
     final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(MyMemory(prefs: prefs));
     await tester.tap(find.text('Singolo'));
@@ -1577,5 +1735,35 @@ class _UiEconomy extends EconomyController {
     claimedMoves = List.of(moves);
     return holdReward?.future ??
         Future.value(const RewardResult(gems: 20, granted: true));
+  }
+}
+
+class _TerminalOnline extends OnlineGame {
+  _TerminalOnline(super.prefs);
+  RoomPreview? preview;
+  int leaveCalls = 0, refreshCalls = 0;
+  @override
+  bool get canRefreshPreview => preview != null;
+  @override
+  Future<void> refreshPreview() async {
+    refreshCalls++;
+  }
+
+  @override
+  bool get terminalError => true;
+  @override
+  bool get canRetry => false;
+  @override
+  RoomPreview? get roomPreview => preview;
+  void showPreview(RoomPreview value) {
+    preview = value;
+    errorCode = 'ROOM_FULL';
+    error = 'Questa stanza è completa.';
+    notifyListeners();
+  }
+
+  @override
+  Future<void> leave() async {
+    leaveCalls++;
   }
 }

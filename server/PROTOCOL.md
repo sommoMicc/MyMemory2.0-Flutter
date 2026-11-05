@@ -15,6 +15,7 @@ room sessions and profile sessions are independent credentials.
 | `flip` | `index` (integer, zero based) | Reveals one card if permitted by server. |
 | `rematch` | none | Votes to replay. Both connected players must vote. |
 | `leave` | none | Leaves the room, forfeits active play, and invalidates this seat's token. |
+| `preview` | `code` | Reads a full room's public score/result snapshot without taking a seat or creating a session. |
 | `ping` | none | Returns `pong` with server time. |
 
 One active session per socket. Leave it before creating or joining another room.
@@ -22,12 +23,16 @@ Player names are trimmed and limited to 24 visible Unicode characters.
 New clients send `supportedDecks` on **every create, join and resume**: an array
 of at most 10 distinct canonical deck IDs from the supported theme list. Unknown
 IDs, duplicates, nonstrings and nonarrays yield `INVALID_CAPABILITIES`. Omission
-means exactly the legacy three decks `garden`, `cosmos`, `ocean`. An unavailable
-room theme yields `UPDATE_REQUIRED` with **Aggiorna SommoMemory per giocare con
+means exactly the legacy three decks `garden`, `cosmos`, `ocean`. For an available
+seat, an unsupported room theme yields `UPDATE_REQUIRED` with **Aggiorna SommoMemory per giocare con
 questa collezione.**, before occupying a seat, reconnecting a player, replacing
 an existing socket or sending any state. Updated clients send all seven known
 IDs; old free-deck rooms continue to accept old and new clients. No protocol
 version bump is needed.
+For a valid capabilities payload, an already full room returns `ROOM_FULL`
+**before** checking theme compatibility. Its limited preview needs no deck
+rendering support; legacy clients can still see this denial safely. Malformed
+capability arrays remain `INVALID_CAPABILITIES` and never mutate a seat.
 
 ## Server messages
 
@@ -98,6 +103,46 @@ remain compatible. See [ECONOMY_PROTOCOL.md](../docs/ECONOMY_PROTOCOL.md).
 
 `error`: `{type:"error",code,message}`. `message` is suitable for display in Italian.
 `left`: `{type:"left"}` confirms departure. `pong`: `{type:"pong",time}`.
+
+`ROOM_FULL` additionally includes `roomPreview`:
+
+```json
+{
+  "code": "ABC234",
+  "phase": "finished",
+  "players": [
+    {"id":"alice","name":"Alice","score":5,"connected":true},
+    {"id":"bob","name":"Bob","score":3,"connected":false}
+  ],
+  "winnerId": "alice",
+  "finishReason": "completed"
+}
+```
+
+This public object contains exactly code, phase, two players (room player ID,
+chosen name, score, connected flag), winnerId and finishReason. It contains no
+cards, hidden identities, deck/pair metadata, session/profile credentials,
+profile IDs, wallet balances or rewards. In-progress previews use `phase:"playing"`
+and null result fields. Finished previews distinguish a draw (`winnerId:null`)
+from a winner and include `completed` or `forfeit`. Preview requests never enroll
+the requester; a subsequent `flip` from that socket still returns `NO_SESSION`.
+
+The preview is a copied snapshot, not a live subscription. An explicit
+`{type:"preview",code}` refresh returns
+`{type:"roomPreview",roomPreview:{...}}` with the same whitelist, without a
+`session` or game `state`. The client can close the connection after receiving
+it. Only full two-player playing/finished rooms expose this endpoint; missing,
+expired or waiting rooms return `ROOM_NOT_FOUND`. No new authentication is
+needed. Existing 4KiB frame, 30 messages/10s and 32 connections/address limits
+apply unchanged; there is no automatic polling or spectator gameplay.
+
+The client keeps `roomPreview` separate from playable `state`. ROOM_FULL,
+UPDATE_REQUIRED and invalid/expired sessions are terminal: clear pending entry
+actions and room credentials, cancel retries/heartbeats and ignore queued old
+socket messages. `open(null)` does not reopen a terminal session. Manual preview
+refresh is a separate read-only action; a new explicit create/join can start a
+new workflow. Initial transport failures and temporary SERVER_FULL remain
+manually retryable.
 
 ## Operational behavior
 

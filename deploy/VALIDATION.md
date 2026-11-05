@@ -1,6 +1,6 @@
 # Sommonas deployment verification
 
-Current release: **30009**, served only at <https://sommomemory.sommomi.cc>.
+Current release: **30011**, served only at <https://sommomemory.sommomi.cc>.
 See the final section for current verification. Earlier sections preserve the
 restoration history and contain superseded domains/builds.
 
@@ -215,3 +215,95 @@ native build receipt. Local browser QA separately completed a valid game
 profile in a separate browser origin without merging balances, and verified
 persistence after reload. Its isolated test database and recovery credentials
 were removed; no recovery code is stored in the repository.
+
+
+## Sound, haptics and lobby preview — build 30010
+
+Final release `20261105T165724Z`, entrypoint `main.680a99b16bad88c8.dart.js`, SHA-256
+`680a99b16bad88c8c468d7ddc4cc2df9b4635a3ccafa602a7b6673e1b8617a06`.
+AAB, APK, IPA and web were rebuilt with explicit production API/WebSocket URLs.
+All 207 frozen source/configuration/asset hashes remain unchanged. Native app
+identity, signing certificates, provisioned domains and owner-only testing groups
+are unchanged. No store membership or production publication was requested.
+
+The original PCM sound sprite, its notice and reproducible synthesis generator
+are bundled and byte-identical in AAB/APK/IPA and the public web build. Public
+HTTPS serves the WAV as `audio/wav`. The four cues use one serialized player,
+with more than one second of silence between sprite regions. Sound/haptic
+preferences are independent and persistent; lifecycle suspension invalidates
+queued effects. iOS audio is configured as ambient to respect silent mode.
+Actual hardware haptics, the iPhone silent switch and browser-specific audio
+permission behavior still require physical/device checks.
+
+The public runtime, all 108 deck PNGs, catalog/license files, audio assets,
+privacy/support/invite fallback, profile catalog and the three association JSON
+routes were checked over normal verified HTTPS. Domain support remains only
+`sommomemory.sommomi.cc`; HSTS remains `max-age=15552000` without
+`includeSubDomains`. Root owns the subsequent public browser QA for three-client
+lobby preview and sound/settings; no duplicate CUA sessions were opened here.
+
+Deployment used the owner-confirmed LAN endpoint `michele@192.168.0.126:22`,
+existing private key and strict trusted host-key alias `192.168.0.164`. SQLite and
+its capability key retain their original file identities and mode 0600 in the
+same `mymemory-data` volume. No local database was transferred or data reset.
+The unchanged Caddy route remains active; all unrelated site definitions retain
+SHA-256 `3f5beb947168dcf9baede9d1f90eca2bea7c7f6c42ed21244d8470e4e44d9936`.
+The container is healthy, non-root and read-only outside its data/tmp mounts.
+
+Before packaging, analysis was clean, **90 Flutter tests** and **31 Node tests**
+passed. Package signatures, versions, single-domain entitlements, Android 16KB
+alignment and all bundled media/provenance bytes were verified. Receipts:
+`artifacts/native-builds-30010.json` and `artifacts/web-deploy-30010.json`.
+
+
+## Final packaging correction — build 30011
+
+Current release `20261105T170656Z`, entrypoint `main.a12dd1190440433c.dart.js`, SHA-256
+`a12dd1190440433cbfbb1d4d193eb5b6302b1e8bb7bd896788a8353b3e8d773a`.
+All 207 final source/configuration/asset hashes match the signed packages and
+production build. The neutral online-preview header and singular pair label are
+also included. Analysis was clean, 91 full Flutter tests and 31 Node tests
+passed, followed by four focused viewport checks after the final header wording.
+
+Apple rejected the previous 30010 upload with code 90035 because the reproducible
+Python synthesis generator was inadvertently included in Flutter assets. The
+failed receipt is preserved separately. Build 30011 moves that generator to
+`scripts/synthesize-feedback.py` and explicitly declares only the WAV and NOTICE
+as audio assets. The AAB, APK, IPA and generated web tree were checked for **zero
+Python files**, and their asset manifests exclude the old generator. The former
+public generator asset URL now returns HTTP 404. The generator remains in source
+for reproducibility; its contents are never bundled as app code or media.
+
+Signatures, app identity, version 30011, the existing provisioned single-domain
+entitlement/Keychain group, Android 16KB alignment, all 108 illustrated PNGs and
+the original WAV/NOTICE were verified. Public verified HTTPS serves the matching
+runtime, media bytes, catalog, privacy/support/invitation routes and association
+JSON; audio retains `audio/wav`. Root owns subsequent public three-client lobby,
+settings and audio QA. Store upload agents received only the verified 30011
+artifacts; this section does not substitute for Apple's processing result.
+
+LAN deployment reused the same private key/strict host-key alias and retained
+exactly the same SQLite and capability-key file identities, mode 0600, and
+`mymemory-data` volume. Caddy remained configured and active, all unrelated site
+source hashes unchanged. The container is healthy and non-root. Receipts:
+`artifacts/native-builds-30011.json`, `artifacts/web-deploy-30011.json`.
+
+### Public browser QA — final 30011
+
+Verified the final public build at 390×844 with two disposable WebSocket players
+and a third browser visitor. ROOM_FULL displayed both names and the actual 0–1
+score without issuing the visitor a playing session. After the match completed,
+**Aggiorna anteprima** displayed 5–1 and the correct winner. The header identifies
+the room rather than showing the visitor's previously selected deck. Both
+participants explicitly left after QA, removing the test room. Earlier disposable
+QA rooms were also removed; no account tokens or recovery codes are in proofs.
+
+The removed-room invitation displayed **Partita non disponibile** and its full
+message on an opaque, high-contrast surface, with an immediate return action and
+no misleading connection/retry state. The sound setting was switched off and
+back on independently of haptics. Final safe screenshots:
+`artifacts/room-preview-live-30011.png`,
+`artifacts/room-preview-final-30011.png`,
+`artifacts/room-error-live-30011.png`. The temporary viewport override was reset.
+Physical iPhone/Android sound output and haptic strength remain device checks;
+automated tests verify cue ordering, configuration and lifecycle behavior.

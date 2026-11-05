@@ -107,6 +107,61 @@ test('legacy sockets cannot occupy or resume a new-deck seat; capable clients jo
   } finally { await server.close(); }
 });
 
+test('public preview socket reads scores/final result without a seat, cards or credentials', async () => {
+  const server = startServer({ port: 0, dataDir: null });
+  await once(server.http, 'listening');
+  const url = `ws://127.0.0.1:${server.http.address().port}/ws`;
+  try {
+    const first = server.engine.create({ name: 'Alice', pairs: 6, theme: 'paola', supportedDecks: ['paola'] });
+    const second = server.engine.join({ code: first.code, name: 'Bob', supportedDecks: ['paola'] });
+    const room = server.engine.room(first.code), spectator = await connect(url);
+    const pair = room.board.flatMap((card, index) => card === room.board[0] ? [index] : []);
+    pair.forEach(index => server.engine.flip(first.code, first.playerId, index));
+    spectator.send({ type: 'join', code: first.code, name: 'Third' });
+    const denied = await spectator.next();
+    assert.equal(denied.code, 'ROOM_FULL');
+    assert.deepEqual(denied.roomPreview.players.map(p => p.name), ['Alice', 'Bob']);
+    assert.deepEqual(denied.roomPreview.players.map(p => p.score), [1, 0]);
+    assert.equal(room.players.length, 2);
+    spectator.send({ type: 'flip', index: 0 });
+    assert.equal((await spectator.next()).code, 'NO_SESSION');
+    spectator.send({ type: 'preview', code: first.code });
+    const initial = await spectator.next();
+    assert.equal(initial.type, 'roomPreview');
+    for (const secret of ['cards', 'board', 'token', 'profile', first.token, second.token]) assert.equal(JSON.stringify(initial).includes(secret), false);
+    for (let value = 0; value < room.pairs; value++) {
+      const indices = room.board.flatMap((card, index) => card === String(value) && !room.matched.includes(index) ? [index] : []);
+      indices.forEach(index => server.engine.flip(first.code, first.playerId, index));
+    }
+    spectator.send({ type: 'preview', code: first.code });
+    const final = (await spectator.next()).roomPreview;
+    assert.equal(final.phase, 'finished');
+    assert.equal(final.winnerId, first.playerId);
+    assert.deepEqual(final.players.map(p => p.score), [6, 0]);
+    assert.deepEqual(initial.roomPreview.players.map(p => p.score), [1, 0]);
+    spectator.send({ type: 'flip', index: 1 });
+    assert.equal((await spectator.next()).code, 'NO_SESSION');
+    assert.equal(room.players.length, 2);
+  } finally { await server.close(); }
+});
+
+test('public previews retain socket rate and frame limits', async () => {
+  const server = startServer({ port: 0, dataDir: null });
+  await once(server.http, 'listening');
+  const url = `ws://127.0.0.1:${server.http.address().port}/ws`;
+  try {
+    const room = server.engine.create({ name: 'A', pairs: 6 });
+    server.engine.join({ code: room.code, name: 'B' });
+    const flood = await connect(url), closed = once(flood.ws, 'close');
+    for (let i = 0; i < 31; i++) flood.send({ type: 'preview', code: room.code });
+    assert.equal((await closed)[0], 1008);
+    const large = await connect(url), oversized = once(large.ws, 'close');
+    large.send({ type: 'preview', code: room.code, padding: 'x'.repeat(5000) });
+    assert.equal((await oversized)[0], 1009);
+    assert.equal(server.engine.room(room.code).players.length, 2);
+  } finally { await server.close(); }
+});
+
 test('associated domain files are public JSON, including the root iOS alias, without SPA fallback', async () => {
   const server = startServer({ port: 0, dataDir: null });
   await once(server.http, 'listening');

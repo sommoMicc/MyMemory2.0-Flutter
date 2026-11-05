@@ -1,0 +1,57 @@
+{
+  "appId": "6831015201",
+  "bundleId": "cc.sommomi.mymemory",
+  "version": "3.0.0",
+  "build": "30010",
+  "sha256": "fcc4c8a183dfc9f008fa5a3a65a1c4bf7a42b2a307061e7e1dd9bb342fcef88a",
+  "buildUploadId": "6571666e-68b4-4e93-9bb5-61a9eaaac06a",
+  "createdAt": "2026-11-05T16:59:44.483Z",
+  "buildUploadFileId": "f4700766-44e4-421b-84a3-8c3b2cc0bebe",
+  "binaryPartsUploaded": [
+    {
+      "part": 1,
+      "offset": 10485760,
+      "length": 5242880
+    },
+    {
+      "part": 2,
+      "offset": 15728640,
+      "length": 5242880
+    },
+    {
+      "part": 3,
+      "offset": 20971520,
+      "length": 3347261
+    },
+    {
+      "part": 4,
+      "offset": 0,
+      "length": 5242880
+    },
+    {
+      "part": 5,
+      "offset": 5242880,
+      "length": 5242880
+    }
+  ],
+  "binaryUploadCompleteAt": "2026-11-05T16:59:49.759Z",
+  "committedAt": "2026-11-05T16:59:52.609Z",
+  "assetDeliveryState": {
+    "errors": [],
+    "warnings": [],
+    "state": "COMPLETE"
+  },
+  "processingState": "FAILED",
+  "buildProcessingState": null,
+  "lastCheckedAt": "2026-11-05T17:00:46.996Z",
+  "readyForInternalTesting": false,
+  "processingErrors": [
+    {
+      "code": "90035",
+      "description": "Invalid Signature. Code object is not signed at all. The file at path “Runner.app/Frameworks/App.framework/flutter_assets/assets/audio/synthesize.py” is not properly signed. Make sure you have signed your application with a distribution certificate, not an ad hoc certificate or a development certificate. Verify that the code signing settings in Xcode are correct at the target level (which override any values at the project level). Additionally, make sure the bundle you are uploading was built using a Release target in Xcode, not a Simulator target. If you are certain your code signing settings are correct, choose “Clean All” in Xcode, delete the “build” directory in the Finder, and rebuild your release target. For more information, please consult https://developer.apple.com/support/code-signing."
+    }
+  ],
+  "failedAt": "2026-11-05T17:01:30.552Z",
+  "supersededByPlannedBuild": "30011",
+  "recoveryPlan": "Rebuild without bundled Python generator; do not retry build 30010."
+}

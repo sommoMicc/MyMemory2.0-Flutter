@@ -3,33 +3,85 @@
 Verified 2026-11-05. This file records internal test distribution and remaining
 production release readiness. No production release has been made.
 
-The current signed release is **3.0.0 (30009)**. Final native artifacts are
-`artifacts/SommoMemory-3.0.0-30009.{aab,apk,ipa}`; hashes, certificate and
-source verification are recorded in `artifacts/native-builds-30009.json`.
+The current signed release is **3.0.0 (30011)**. Final native artifacts are
+`artifacts/SommoMemory-3.0.0-30011.{aab,apk,ipa}`; hashes, certificate and
+source verification are recorded in `artifacts/native-builds-30011.json`.
 The IPA SHA-256 is
-`2f644873011d066ca03d1774f39d21f8ee660174dbfc88876cf03f295f0af828`.
+`79bd46bc83d1e21856f4e3b742d1458e74a58ce62210b95239a6f0c2b47907b2`.
 
-Apple upload **4f5f9066-a6d9-4973-87ab-d205849d5772** completed and the build is
+Apple upload **ed02d40e-9a06-4456-ac48-5e7ca969e6f9** completed and the build is
 **VALID / IN_BETA_TESTING**, attached to **SommoMemory Internal** for the two
 existing testers explicitly authorized by the user. No tester was added, removed
 or invited during this distribution. The account-holder tester has app access
 (state INSTALLED); this does not establish installation of this particular build.
 Italian beta notes, the declaration of no nonexempt encryption, metadata URLs
 and exact two-tester group membership were reread through the API.
-`artifacts/testflight-upload.json` is the current API receipt.
+`artifacts/testflight-upload.json` is the current successful API receipt; the
+failed 30010 attempt and corrected replacement are documented below.
 
 The new Android app **cc.sommomi.mymemory** is live on its internal track with
-versionCode **30009**, tester list restricted to the owner. The opt-in link is
+versionCode **30011**, tester list restricted to the owner. The opt-in link is
 https://play.google.com/apps/internaltest/4700857721365894827 . No production
 release was made. See `ANDROID.md` for Console evidence and old-app deletion.
 
 The UI was implemented with the explicitly requested Astra subagent. Full-viewport animated collection worlds extend behind safe areas, with original code-drawn scenery and bundled Noto characters. Motion stops in background and with reduced motion; reference research is documented in `DESIGN_REFERENCES.md` and `MEMORY_UI_REFERENCES.md`.
-**71 Flutter tests** and analysis pass, including four viewports with realistic
+**91 Flutter tests** and analysis pass, including four viewports with realistic
 iOS safe areas, all 36 cards visible and hit-testable, completion/rematch,
 keyboard entry, settings, waiting rooms and Bluetooth lobby. The illustrated revision adds 320 ms 3D flips, reduced-motion behavior, persistent collection/difficulty, exact equal-length rows at all difficulties, and all 108 offline PNGs with bundled licenses, plus 18 text syllables in Paola. See `DECKS.md` for primary sources and pinned provenance. The game screens
 do not scroll; Flutter's standard legal-license viewer retains its text scrolling.
-**28 Node tests** pass, including the observed stale-browser-cache regression.
+**31 Node tests** pass, including the observed stale-browser-cache regression.
 Native AAB/APK/IPA signatures and release identities were verified. The presentation layer captures immutable authority snapshots: card faces animate first, then scores, matched styling and results appear. Turn changes wait for both mismatch closing flips. Input remains locked during any flip and still checks the latest authority before sending a move. Early remote card changes queue in order; duplicate heartbeats are ignored. Reduced motion settles immediately. Regression tests cover the final pair, early reveal/hide, rotation during reveal and stale callbacks after a new round. Independent review reproduced and verified the rotation fix. The reveal and close presentation rules remain intact.
+
+## 30011 features and validation
+
+The replacement is **3.0.0 (30011)** on all platforms. The audio synthesis
+source is now `scripts/synthesize-feedback.py`, outside Flutter assets; only
+the original WAVs and NOTICE are explicitly bundled. The verified IPA contains
+zero `.py`/`.pyc` files. Its SHA-256 is
+`79bd46bc83d1e21856f4e3b742d1458e74a58ce62210b95239a6f0c2b47907b2`;
+`artifacts/native-builds-30011.json` records signatures, 207 frozen files and
+91 Flutter / 31 Node tests. The 30010 features and Italian beta notes below are
+retained for 30011. After the final build go-ahead, Apple upload
+`ed02d40e-9a06-4456-ac48-5e7ca969e6f9` completed binary delivery without
+errors or warnings and passed Apple validation: **VALID / IN_BETA_TESTING**.
+It is attached to the existing internal group for exactly the two existing
+testers authorized by the user; no invitations or membership changes were made.
+
+The verified Italian beta notes cover higher-contrast notices in every
+collection, including the update-required message over Spazio; terminal online
+errors that end the connection state; and a read-only full-room preview showing
+the two current players, scores and final result when available. Preview refresh
+is manual through **Aggiorna** and never grants a third playing slot or move
+access.
+
+Original card, match, mismatch and turn sounds/haptics are coordinated with the
+card animations. **Suoni** and **Vibrazioni** are independently selectable and
+persisted. Beta checks must include event timing, repeated snapshots, rapid
+taps, rotation, reduced motion, iPhone silent mode and background/foreground
+transitions. Audio, vibration, physical Bluetooth and operating-system link
+behavior still need device validation; automated checks are not evidence of those
+hardware checks. No real-money purchase or production submission is included.
+
+## 30010 — Apple validation rejected
+
+Build **3.0.0 (30010)** passed analysis, 90 Flutter tests and 31 Node tests.
+The signed IPA SHA-256 is
+`fcc4c8a183dfc9f008fa5a3a65a1c4bf7a42b2a307061e7e1dd9bb342fcef88a`;
+`artifacts/native-builds-30010.json` records 207 frozen source files, 108 PNGs,
+original WAV audio and provenance, signatures and unchanged native identity.
+After deployment and final go-ahead, binary delivery completed under Apple
+upload `6571666e-68b4-4e93-9bb5-61a9eaaac06a`. Apple then rejected it with
+validation error **90035 / Invalid Signature**, identifying the bundled source
+file `Runner.app/Frameworks/App.framework/flutter_assets/assets/audio/synthesize.py`
+as an unsigned code object. Local deep/strict code-sign checks had passed; they
+did not establish acceptance of that script by Apple. The generator was moved
+outside the bundled asset directory for 30011, which Apple accepted. No valid
+30010 build was created or assigned to testers; 30009 stayed available while the
+corrected replacement was built.
+The app record, SKU, bundle identifier and existing two-tester internal group
+remain unchanged. The sanitized historical receipt
+`artifacts/testflight-upload-30010-failed.json` records FAILED and the Apple
+validation error without private upload URLs. Build 30010 will not be retried.
 
 ## 30009 features and validation
 
@@ -63,7 +115,7 @@ profile deletion. No App Store production privacy declaration or App Review subm
 Bundle identifier: `cc.sommomi.mymemory`. Apple team: `L6CS7PYA4B`.
 The bundle was registered through the configured App Store Connect API key
 (resource `M5DK5NJ6KP`). Associated Domains is now enabled on that same bundle.
-The App Store distribution profile used by the verified 30009 archive is
+The App Store distribution profile used by the verified 30011 archive is
 `SommoMemory App Store Links`, UUID `f4f89090-799a-486e-b289-1e0546b0df6f`,
 resource `66Z2SB723S`: API verified ACTIVE / IOS_APP_STORE, expiring
 2027-10-09. Enabling the capability automatically invalidated the historical
@@ -104,7 +156,7 @@ the API to **SommoMemory** and the Italian beta description was updated. The app
 ID, SKU `mymemory-ios` and bundle identifier `cc.sommomi.mymemory` are unchanged.
 The existing internal group was renamed **SommoMemory Internal**; its ID and
 existing access were preserved. No new app record or tester was created.
-The signed 30009 IPA has native display name and bundle name **SommoMemory**
+The signed 30011 IPA has native display name and bundle name **SommoMemory**
 and the same bundle identifier. It uses **SommoMemory App Store Links** for the
 Associated Domains entitlement, with only `applinks:sommomemory.sommomi.cc`;
 its keychain group is limited to `L6CS7PYA4B.cc.sommomi.mymemory`.
@@ -125,12 +177,13 @@ node scripts/testflight-upload.mjs app/build/ios/ipa/SommoMemory.ipa
 
 Finalize an uploaded build using the existing internal group. The default guard
 requires exactly the account-holder tester. The user explicitly authorized the
-two existing testers for 30008 and 30009; the additional ID must already belong to that
+same two existing testers for subsequent internal releases; the additional ID
+must already belong to that
 group, and the finalizer verifies exactly those two members before and after
 build assignment. It never creates, removes or invites testers:
 
 ```sh
-node scripts/testflight-finalize.mjs --finalize --build=30009 --additional-tester=8f73fef5-1c02-4500-92e6-b8e31f908f11 --wait=1200
+node scripts/testflight-finalize.mjs --finalize --build=30011 --additional-tester=8f73fef5-1c02-4500-92e6-b8e31f908f11 --wait=1200
 ```
 
 For a later authorized release, replace only the build number if the same two
@@ -159,7 +212,7 @@ The app has ordinary HTTPS and BLE networking; it declares no nonexempt encrypti
 ## Android
 
 The user's requested replacement is a **new** app, **cc.sommomi.mymemory**,
-Console app ID **4972469070574777722**. Release **3.0.0 (30009)** is available to
+Console app ID **4972469070574777722**. Release **3.0.0 (30011)** is available to
 internal testers; Google Play App Signing is active. A new dedicated upload key
 is stored outside source control. There is no dependency on recovering the old
 app's signing key for this new package.

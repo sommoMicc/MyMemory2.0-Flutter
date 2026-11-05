@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game.dart';
+import 'game_feedback.dart';
 import 'online.dart';
 import 'palette.dart';
 import 'decks.dart';
@@ -953,16 +954,26 @@ class _SettingsDialogState extends State<_SettingsDialog> {
               onSelectionChanged: (v) => setState(() => section = v.first),
             ),
             const SizedBox(height: 16),
-            if (section == 0)
+            if (section == 0) ...[
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Feedback tattile'),
+                title: const Text('Suoni'),
+                value: widget.prefs.getBool('sound') ?? true,
+                onChanged: (v) {
+                  widget.prefs.setBool('sound', v);
+                  setState(() {});
+                },
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Vibrazioni'),
                 value: widget.prefs.getBool('haptics') ?? true,
                 onChanged: (v) {
                   widget.prefs.setBool('haptics', v);
                   setState(() {});
                 },
               ),
+            ],
             if (section == 1)
               const Text(
                 'Gira due carte e trova le coppie. Una coppia ti dà un altro turno; un errore passa il turno all’altro giocatore.\n\nOnline: condividi il codice stanza. Bluetooth: un telefono ospita, l’altro cerca la partita.',
@@ -1641,6 +1652,7 @@ class GameScreen extends StatefulWidget {
     this.bluetooth,
     this.economy,
     this.ticket,
+    this.feedback,
   });
   final SharedPreferences prefs;
   final int pairs;
@@ -1650,6 +1662,7 @@ class GameScreen extends StatefulWidget {
   final BluetoothController? bluetooth;
   final EconomyController? economy;
   final GameTicket? ticket;
+  final GameFeedback? feedback;
   @override
   State<GameScreen> createState() => _GameScreenState();
 }
@@ -1721,6 +1734,9 @@ class _BoardFrame {
 }
 
 class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
+  late final GameFeedback gameFeedback;
+  bool feedbackForeground = true;
+  bool muteFeedbackUntilSettled = false;
   LocalGame? local;
   GameTicket? activeTicket;
   final List<int> acceptedMoves = [];
@@ -1799,6 +1815,16 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   void activateFrame(_BoardFrame frame) {
     final previous = targetFrame;
     targetFrame = frame;
+    if (!muteFeedbackUntilSettled &&
+        previous != null &&
+        previous.cards.isNotEmpty &&
+        previous.cards.length == frame.cards.length &&
+        List.generate(
+          frame.cards.length,
+          (i) => i,
+        ).any((i) => previous.cards[i] == null && frame.cards[i] != null)) {
+      gameFeedback.play(GameFeedbackEvent.flip);
+    }
     if (!reduceMotion &&
         previous != null &&
         previous.cards.length == frame.cards.length) {
@@ -1808,7 +1834,46 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         }
       }
     }
-    if (turningCards.isEmpty) displayedEvents = frame;
+    if (turningCards.isEmpty) displayFrame(frame);
+  }
+
+  /// Outcomes belong to the settled presentation, never the authority's head.
+  void displayFrame(_BoardFrame frame) {
+    final previous = displayedEvents;
+    displayedEvents = frame;
+    if (muteFeedbackUntilSettled) {
+      if (pendingFrames.isEmpty &&
+          turningCards.isEmpty &&
+          concealingCards.isEmpty) {
+        muteFeedbackUntilSettled = false;
+      }
+      return;
+    }
+    if (previous == null ||
+        previous.cards.isEmpty ||
+        previous.cards.length != frame.cards.length ||
+        previous.roundId != frame.roundId) {
+      return;
+    }
+    if (frame.matched.length > previous.matched.length) {
+      gameFeedback.play(GameFeedbackEvent.match);
+    } else {
+      final revealed = [
+        for (var i = 0; i < frame.cards.length; i++)
+          if (frame.cards[i] != null && !frame.matched.contains(i)) i,
+      ];
+      if (revealed.length == 2 &&
+          frame.cards[revealed[0]] != frame.cards[revealed[1]] &&
+          revealed.any((i) => previous.cards[i] != frame.cards[i])) {
+        gameFeedback.play(GameFeedbackEvent.mismatch);
+      }
+    }
+    if (!frame.finished &&
+        previous.turn != null &&
+        frame.turn != null &&
+        frame.turn != previous.turn) {
+      gameFeedback.play(GameFeedbackEvent.turn);
+    }
   }
 
   void receiveFrame(_BoardFrame frame) {
@@ -1829,7 +1894,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       } else {
         targetFrame = frame;
         if (turningCards.isEmpty && concealingCards.isEmpty) {
-          displayedEvents = frame;
+          displayFrame(frame);
         }
       }
     } else if (turningCards.isNotEmpty ||
@@ -1843,7 +1908,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   void advancePresentation() {
     if (turningCards.isNotEmpty || concealingCards.isNotEmpty) return;
-    displayedEvents = targetFrame;
+    displayFrame(targetFrame!);
     while (pendingFrames.isNotEmpty) {
       activateFrame(pendingFrames.removeAt(0));
       if (turningCards.isNotEmpty) return;
@@ -1889,6 +1954,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    gameFeedback = widget.feedback ?? GameFeedback(widget.prefs);
+    feedbackForeground =
+        WidgetsBinding.instance.lifecycleState == null ||
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+    gameFeedback.setActive(feedbackForeground);
     activeTicket = widget.ticket;
     if (!network) _startLocal();
     resetPresentation(captureFrame());
@@ -1920,6 +1990,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   void update() {
     if (!mounted) return;
+    if (network && !connected) muteFeedbackUntilSettled = true;
+    gameFeedback.setActive(feedbackForeground && (!network || connected));
     receiveFrame(captureFrame());
     if (local?.finished == true && !recorded) {
       recorded = true;
@@ -1936,8 +2008,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    feedbackForeground = state == AppLifecycleState.resumed;
+    if (!feedbackForeground) muteFeedbackUntilSettled = true;
+    gameFeedback.setActive(feedbackForeground && (!network || connected));
     if (state == AppLifecycleState.resumed &&
         widget.online != null &&
+        !widget.online!.terminalError &&
         !widget.online!.connected) {
       widget.online!.open(null);
     }
@@ -1945,6 +2021,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    if (widget.feedback == null) gameFeedback.dispose();
     presentationGeneration++;
     pendingFrames.clear();
     WidgetsBinding.instance.removeObserver(this);
@@ -1955,6 +2032,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   Future<void> exit() async {
+    if (network && net == null) {
+      await widget.online?.leave();
+      await widget.bluetooth?.leave();
+      if (mounted) Navigator.pop(context);
+      return;
+    }
     if (!network && local!.finished) {
       if (mounted) Navigator.pop(context);
       return;
@@ -2004,9 +2087,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             ))) {
       return;
     }
-    if (widget.prefs.getBool('haptics') ?? true) {
-      HapticFeedback.selectionClick();
-    }
+    muteFeedbackUntilSettled = false;
+    gameFeedback.unlock();
     if (local != null) {
       if (local!.flip(i)) acceptedMoves.add(i);
     } else if (widget.online != null) {
@@ -2250,16 +2332,23 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                               ).withValues(alpha: .12),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: _CollectionSymbol(
-                              theme: gameTheme,
-                              value: 0,
-                              size: 26,
-                            ),
+                            child: widget.online?.roomPreview != null
+                                ? const Icon(
+                                    Icons.people_alt_rounded,
+                                    color: ink,
+                                  )
+                                : _CollectionSymbol(
+                                    theme: gameTheme,
+                                    value: 0,
+                                    size: 26,
+                                  ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              deckNames[gameTheme]!,
+                              widget.online?.roomPreview != null
+                                  ? 'Stanza ${widget.online!.roomPreview!.code}'
+                                  : deckNames[gameTheme]!,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -2295,88 +2384,32 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                             ),
                         ],
                       ),
-                      if (error != null || !connected && network)
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                error ??
-                                    widget.online?.status ??
-                                    widget.bluetooth?.status ??
-                                    'Connessione…',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: coral,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                            if (widget.online != null && !connected)
-                              IconButton(
-                                tooltip: 'Riprova connessione',
-                                onPressed: () => widget.online!.open(null),
-                                icon: const Icon(Icons.refresh_rounded),
-                              ),
-                          ],
+                      if (!waiting && (error != null || !connected && network))
+                        _WorldNotice(
+                          message:
+                              error ??
+                              widget.online?.status ??
+                              widget.bluetooth?.status ??
+                              'Connessione…',
+                          error: error != null,
+                          action: widget.online?.canRetry == true
+                              ? IconButton(
+                                  tooltip: 'Riprova connessione',
+                                  onPressed: () => widget.online!.open(null),
+                                  icon: const Icon(Icons.refresh_rounded),
+                                )
+                              : null,
                         ),
                       if (waiting)
                         Expanded(
-                          child: LayoutBuilder(
-                            builder: (context, c) => Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (c.maxHeight > 300) ...[
-                                    const Icon(
-                                      Icons.people_outline_rounded,
-                                      size: 56,
-                                      color: teal,
-                                    ),
-                                    const SizedBox(height: 20),
-                                  ],
-                                  Text(
-                                    s == null
-                                        ? 'Connessione alla partita…'
-                                        : 'In attesa del secondo giocatore',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 21,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    widget.mode == PlayMode.bluetooth
-                                        ? 'Sul secondo telefono scegli Bluetooth e cerca la partita.'
-                                        : 'Condividi il codice per entrare nella stanza.',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(color: muted),
-                                  ),
-                                  if (code != null) ...[
-                                    const SizedBox(height: 12),
-                                    SelectableText(
-                                      code,
-                                      style: const TextStyle(
-                                        fontSize: 34,
-                                        letterSpacing: 5,
-                                        fontWeight: FontWeight.w600,
-                                        color: teal,
-                                      ),
-                                    ),
-                                    if (widget.online != null)
-                                      TextButton.icon(
-                                        onPressed: copyInvite,
-                                        icon: const Icon(
-                                          Icons.copy_rounded,
-                                          size: 18,
-                                        ),
-                                        label: const Text('Copia invito'),
-                                      ),
-                                  ],
-                                ],
-                              ),
-                            ),
+                          child: _RoomStatusPanel(
+                            online: widget.online,
+                            error: error,
+                            waitingForPlayer: s != null,
+                            bluetooth: widget.mode == PlayMode.bluetooth,
+                            code: code,
+                            onBack: exit,
+                            onCopy: code != null ? copyInvite : null,
                           ),
                         ),
                       if (!waiting) ...[
@@ -2384,14 +2417,26 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                         scores,
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: Text(
-                            finished ? 'Partita terminata' : status,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: ink,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: paper,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 2,
+                              ),
+                              child: Text(
+                                finished ? 'Partita terminata' : status,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: ink,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -2814,28 +2859,19 @@ class _BluetoothLobbyState extends State<BluetoothLobby> {
                     },
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      if (ble.scanning)
-                        const Padding(
-                          padding: EdgeInsets.only(right: 10),
-                          child: SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        ),
-                      Expanded(
-                        child: Text(
-                          ble.error ?? ble.status,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: ble.error == null ? teal : coral,
-                          ),
-                        ),
-                      ),
-                    ],
+                  _WorldNotice(
+                    message: ble.error ?? ble.status,
+                    error: ble.error != null,
+                    action: ble.scanning
+                        ? const Padding(
+                            padding: EdgeInsets.all(10),
+                            child: SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : null,
                   ),
                   const SizedBox(height: 8),
                   Expanded(
@@ -2869,10 +2905,7 @@ class _NearbyPeersState extends State<_NearbyPeers> {
     builder: (context, c) {
       if (widget.peers.isEmpty) {
         return const Center(
-          child: Text(
-            'Nessuna partita trovata',
-            style: TextStyle(color: muted),
-          ),
+          child: _WorldNotice(message: 'Nessuna partita trovata'),
         );
       }
       final perPage = math.max(1, ((c.maxHeight - 48) / 64).floor());
@@ -2931,4 +2964,261 @@ class _NearbyPeersState extends State<_NearbyPeers> {
       );
     },
   );
+}
+
+/// A fixed, opaque surface keeps status readable over every collection world.
+class _WorldNotice extends StatelessWidget {
+  const _WorldNotice({required this.message, this.error = false, this.action});
+  final String message;
+  final bool error;
+  final Widget? action;
+  @override
+  Widget build(BuildContext context) => Material(
+    color: error ? const Color(0xFFFFE8DF) : paper,
+    borderRadius: BorderRadius.circular(12),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            error ? Icons.error_outline_rounded : Icons.info_outline_rounded,
+            color: ink,
+            size: 19,
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              message,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: ink, fontSize: 13),
+            ),
+          ),
+          ?action,
+        ],
+      ),
+    ),
+  );
+}
+
+class _RoomStatusPanel extends StatelessWidget {
+  const _RoomStatusPanel({
+    required this.online,
+    required this.error,
+    required this.waitingForPlayer,
+    required this.bluetooth,
+    required this.code,
+    required this.onBack,
+    this.onCopy,
+  });
+  final OnlineGame? online;
+  final String? error, code;
+  final bool waitingForPlayer, bluetooth;
+  final VoidCallback onBack;
+  final VoidCallback? onCopy;
+  @override
+  Widget build(BuildContext context) {
+    final preview = online?.roomPreview;
+    final terminal = online?.terminalError == true;
+    final failed = error != null;
+    final reconnecting =
+        waitingForPlayer && online != null && !online!.connected && !terminal;
+    final update = online?.errorCode == 'UPDATE_REQUIRED';
+    final title = preview != null
+        ? 'Stanza completa'
+        : update
+        ? 'Aggiornamento necessario'
+        : failed || terminal
+        ? 'Partita non disponibile'
+        : reconnecting
+        ? 'Riconnessione…'
+        : waitingForPlayer
+        ? 'In attesa del secondo giocatore'
+        : 'Connessione alla partita…';
+    final description = preview != null
+        ? 'I due posti sono occupati. Non sei entrato nella partita.'
+        : failed || terminal
+        ? error ?? 'Questa stanza non è più disponibile.'
+        : reconnecting
+        ? online!.status
+        : waitingForPlayer
+        ? bluetooth
+              ? 'Sul secondo telefono scegli Bluetooth e cerca la partita.'
+              : 'Condividi il codice per entrare nella stanza.'
+        : online?.status ?? 'Prepariamo la partita…';
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxHeight < 330;
+        final players = preview?.players ?? <Map<String, dynamic>>[];
+        final winner = players
+            .where((p) => p['id'] == preview?.winnerId)
+            .firstOrNull?['name'];
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Material(
+              color: paper,
+              borderRadius: BorderRadius.circular(22),
+              child: Padding(
+                padding: EdgeInsets.all(compact ? 12 : 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: ink,
+                        fontSize: compact ? 20 : 23,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: compact ? 6 : 10),
+                    Text(
+                      description,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: ink, fontSize: 14),
+                    ),
+                    if (preview != null) ...[
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          for (var i = 0; i < players.length; i++) ...[
+                            if (i > 0) const SizedBox(width: 8),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8E2F3),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '${players[i]['name']}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: ink,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${players[i]['score']} ${players[i]['score'] == 1 ? 'coppia' : 'coppie'}',
+                                      style: const TextStyle(
+                                        color: ink,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        preview.phase == 'finished'
+                            ? preview.winnerId == null
+                                  ? 'Risultato finale · Pareggio'
+                                  : 'Risultato finale · Vince ${winner ?? 'un giocatore'}'
+                            : 'Partita in corso · Stanza ${preview.code}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: ink,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                    if (preview != null)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 4),
+                        child: Text(
+                          'Anteprima statica · aggiorna per il risultato',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: ink, fontSize: 11),
+                        ),
+                      ),
+                    if (update) ...[
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Aggiorna SommoMemory da TestFlight o Google Play, poi riapri l’invito.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: ink, fontSize: 13),
+                      ),
+                    ],
+                    if (!failed &&
+                        !terminal &&
+                        preview == null &&
+                        code != null) ...[
+                      const SizedBox(height: 8),
+                      SelectableText(
+                        code!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: ink,
+                          fontSize: 30,
+                          letterSpacing: 4,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (!bluetooth && onCopy != null)
+                        TextButton.icon(
+                          onPressed: onCopy,
+                          icon: const Icon(Icons.copy_rounded, size: 18),
+                          label: const Text('Copia invito'),
+                        ),
+                    ],
+                    if (failed || terminal || preview != null) ...[
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FilledButton(
+                              style: FilledButton.styleFrom(
+                                minimumSize: const Size(48, 44),
+                              ),
+                              onPressed: onBack,
+                              child: Text(
+                                preview != null
+                                    ? 'Cambia stanza'
+                                    : 'Torna alla home',
+                              ),
+                            ),
+                          ),
+                          if (preview != null) ...[
+                            const SizedBox(width: 8),
+                            IconButton(
+                              tooltip: 'Aggiorna anteprima',
+                              onPressed: online?.canRefreshPreview == true
+                                  ? () => online!.refreshPreview()
+                                  : null,
+                              icon: const Icon(Icons.refresh_rounded),
+                            ),
+                          ],
+                          if (online?.canRetry == true) ...[
+                            const SizedBox(width: 8),
+                            IconButton(
+                              onPressed: () => online!.open(null),
+                              tooltip: 'Riprova connessione',
+                              icon: const Icon(Icons.refresh_rounded),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }

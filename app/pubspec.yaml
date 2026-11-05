@@ -1,7 +1,7 @@
 name: mymemory
 description: Gioco del memory per Android, iOS e web.
 publish_to: none
-version: 3.0.0+30009
+version: 3.0.0+30011
 environment:
   sdk: '>=3.10.0 <4.0.0'
 dependencies:
@@ -14,6 +14,7 @@ dependencies:
   flutter_secure_storage: ^11.2.0
   app_links: ^7.2.2
   url_launcher: ^6.3.3
+  audioplayers: ^6.8.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -21,6 +22,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/audio/game_feedback.wav
+    - assets/audio/NOTICE.txt
     - assets/decks/
     - assets/decks/garden/
     - assets/decks/cosmos/

@@ -5,6 +5,73 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'decks.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+class RoomPreview {
+  RoomPreview({
+    required this.code,
+    required this.phase,
+    required List<Map<String, dynamic>> players,
+    this.winnerId,
+    this.finishReason,
+  }) : players = List.unmodifiable(
+         players.map((player) => Map<String, dynamic>.unmodifiable(player)),
+       );
+
+  final String code, phase;
+  final List<Map<String, dynamic>> players;
+  final String? winnerId, finishReason;
+  bool get finished => phase == 'finished';
+
+  factory RoomPreview.fromJson(Map<String, dynamic> json) {
+    final code = json['code'], phase = json['phase'], raw = json['players'];
+    if (code is! String ||
+        !RegExp(r'^[A-Z2-9]{6}$').hasMatch(code) ||
+        !['playing', 'finished'].contains(phase) ||
+        raw is! List ||
+        raw.length != 2) {
+      throw const FormatException('Invalid room preview');
+    }
+    final players = <Map<String, dynamic>>[];
+    for (final value in raw) {
+      if (value is! Map) throw const FormatException('Invalid preview player');
+      final id = value['id'], name = value['name'], score = value['score'];
+      if (id is! String ||
+          id.isEmpty ||
+          id.length > 128 ||
+          name is! String ||
+          name.runes.length > 24 ||
+          score is! int ||
+          score < 0 ||
+          score > 18 ||
+          value['connected'] is! bool) {
+        throw const FormatException('Invalid preview player');
+      }
+      players.add({
+        'id': id,
+        'name': name,
+        'score': score,
+        'connected': value['connected'],
+      });
+    }
+    if (players[0]['id'] == players[1]['id']) {
+      throw const FormatException('Invalid preview players');
+    }
+    final winnerId = json['winnerId'], finishReason = json['finishReason'];
+    if ((winnerId != null && !players.any((p) => p['id'] == winnerId)) ||
+        ![null, 'completed', 'forfeit'].contains(finishReason) ||
+        (phase == 'finished' && finishReason == null) ||
+        (phase == 'playing' && (winnerId != null || finishReason != null))) {
+      throw const FormatException('Invalid preview result');
+    }
+    return RoomPreview(
+      code: code,
+      phase: phase as String,
+      players: players,
+      winnerId: winnerId as String?,
+      finishReason: finishReason as String?,
+    );
+  }
+}
+
 class OnlineGame extends ChangeNotifier {
   OnlineGame(this.prefs, {String? serverUrl})
     : _serverUrl = serverUrl ?? endpoint,
@@ -25,18 +92,33 @@ class OnlineGame extends ChangeNotifier {
   String? _roomCode, _token;
   DateTime? _lastSeen;
   Map<String, dynamic>? state;
-  String? playerId, error;
+  String? playerId, error, errorCode;
+  RoomPreview? _roomPreview;
+  bool _terminalError = false;
   String status = 'Connessione…';
   bool connected = false, _closed = false, _connecting = false;
   int _attempt = 0, _generation = 0;
   String? get code => _roomCode;
   bool get hasSession => _roomCode != null && _token != null;
+  RoomPreview? get roomPreview => _roomPreview;
+  bool get terminalError => _terminalError;
+  bool get canRefreshPreview =>
+      !_closed && !_connecting && !connected && _roomPreview != null;
+  bool get canRetry =>
+      !_closed &&
+      !_terminalError &&
+      !_connecting &&
+      !connected &&
+      (_pendingAction != null || hasSession);
 
   bool _current(int generation) => !_closed && generation == _generation;
 
   Future<void> open(Map<String, dynamic>? action) async {
-    if (_connecting || _closed) return;
+    if (_connecting || _closed || (_terminalError && action == null)) return;
     _connecting = true;
+    _terminalError = false;
+    _roomPreview = null;
+    errorCode = null;
     final generation = ++_generation;
     if (action != null) {
       _pendingAction = {...action, 'supportedDecks': deckNames.keys.toList()};
@@ -96,36 +178,71 @@ class OnlineGame extends ChangeNotifier {
                 _handshake?.cancel();
                 unawaited(_saveSession());
                 status = 'Online';
+                errorCode = null;
+                _roomPreview = null;
                 break;
               case 'state':
                 state = msg;
                 error = null;
+                errorCode = null;
                 status = 'Online';
                 _attempt = 0;
                 break;
+              case 'roomPreview':
+                if (_pendingAction?['type'] != 'preview' ||
+                    msg['roomPreview'] is! Map) {
+                  throw const FormatException('Unexpected room preview');
+                }
+                _roomPreview = RoomPreview.fromJson(
+                  Map<String, dynamic>.from(msg['roomPreview'] as Map),
+                );
+                _endSession('La stanza è già al completo.', code: 'ROOM_FULL');
+                return;
               case 'error':
                 error = msg['message'] as String? ?? 'Operazione non riuscita';
-                if ([
-                      'ROOM_NOT_FOUND',
-                      'INVALID_TOKEN',
-                      'ROOM_EXPIRED',
-                      'INVALID_SESSION',
-                      'NO_SESSION',
-                      'UPDATE_REQUIRED',
-                    ].contains(msg['code']) ||
-                    !hasSession) {
-                  _endSession(error!);
+                errorCode = msg['code'] is String
+                    ? msg['code'] as String
+                    : null;
+                _roomPreview = null;
+                if (errorCode == 'ROOM_FULL' && msg['roomPreview'] is Map) {
+                  try {
+                    _roomPreview = RoomPreview.fromJson(
+                      Map<String, dynamic>.from(msg['roomPreview'] as Map),
+                    );
+                  } on FormatException {
+                    // A malformed optional preview cannot turn a denial into a game.
+                  }
+                }
+                final terminal = [
+                  'ROOM_NOT_FOUND',
+                  'INVALID_TOKEN',
+                  'ROOM_EXPIRED',
+                  'INVALID_SESSION',
+                  'NO_SESSION',
+                  'UPDATE_REQUIRED',
+                  'ROOM_FULL',
+                  'INVALID_CAPABILITIES',
+                  'INVALID_NAME',
+                  'INVALID_OPTIONS',
+                  'DECK_LOCKED',
+                ].contains(errorCode);
+                if (terminal || !hasSession) {
+                  _endSession(error!, retryable: !terminal);
                   return;
                 }
                 break;
               case 'left':
-                _endSession(error ?? 'Hai lasciato la stanza.');
+                _endSession(
+                  error ?? 'Hai lasciato la stanza.',
+                  code: errorCode ?? 'LEFT',
+                );
                 return;
             }
             _changed();
           } catch (_) {
             _endSession(
               'Risposta del servizio non valida. Riprova dalla home.',
+              code: 'INVALID_RESPONSE',
             );
           }
         },
@@ -137,6 +254,7 @@ class OnlineGame extends ChangeNotifier {
             _endSession(
               'Partita aperta in un’altra scheda o su un altro dispositivo.',
               clearStoredSession: false,
+              code: 'SESSION_TRANSFERRED',
             );
           } else {
             _lost(generation);
@@ -170,18 +288,24 @@ class OnlineGame extends ChangeNotifier {
     } catch (_) {
       _lost(generation);
     } finally {
-      if (_current(generation)) _connecting = false;
+      if (_current(generation)) {
+        _connecting = false;
+        _changed();
+      }
     }
   }
 
   void _lost(int generation) {
     if (!_current(generation)) return;
     connected = false;
+    _terminalError = false;
+    _roomPreview = null;
     _handshake?.cancel();
     _heartbeat?.cancel();
     if (hasSession) {
       status = 'Riconnessione…';
       error = null;
+      errorCode = null;
       if (_retry?.isActive != true) {
         final delay = [1, 2, 4, 8, 15][_attempt.clamp(0, 4)];
         _attempt++;
@@ -191,11 +315,13 @@ class OnlineGame extends ChangeNotifier {
       status = 'Connessione non riuscita';
       error =
           'Impossibile raggiungere il servizio. Controlla Internet e riprova.';
+      errorCode = 'CONNECTION_FAILED';
     }
     _changed();
   }
 
   void send(Map<String, dynamic> action) {
+    if (_terminalError) return;
     if (!connected || _channel == null) {
       error = 'Attendi la connessione';
       _changed();
@@ -210,6 +336,12 @@ class OnlineGame extends ChangeNotifier {
 
   void flip(int index) => send({'type': 'flip', 'index': index});
   void rematch() => send({'type': 'rematch'});
+
+  Future<void> refreshPreview() async {
+    if (!canRefreshPreview) return;
+    final room = _roomPreview!.code;
+    await open({'type': 'preview', 'code': room});
+  }
 
   Future<void> _saveSession() {
     final room = _roomCode, token = _token;
@@ -235,16 +367,24 @@ class OnlineGame extends ChangeNotifier {
     return _saveSession();
   }
 
-  void _endSession(String reason, {bool clearStoredSession = true}) {
+  void _endSession(
+    String reason, {
+    bool clearStoredSession = true,
+    bool retryable = false,
+    String? code,
+  }) {
     ++_generation;
     _connecting = false;
     _retry?.cancel();
     _heartbeat?.cancel();
     _handshake?.cancel();
     connected = false;
+    _terminalError = !retryable;
+    if (!retryable) _pendingAction = null;
     state = null;
     playerId = null;
     error = reason;
+    if (code != null) errorCode = code;
     status = 'Partita non disponibile';
     if (clearStoredSession) {
       unawaited(_clearSession());
@@ -283,6 +423,9 @@ class OnlineGame extends ChangeNotifier {
     state = null;
     playerId = null;
     error = null;
+    errorCode = null;
+    _roomPreview = null;
+    _terminalError = false;
     status = 'Disconnesso';
     await _clearSession();
     await _detachChannel();

@@ -8,12 +8,18 @@ Android/iOS clients also use `/ws`. Caddy overwrites `X-Forwarded-For` with the 
 and is the sole public path to the private listener. `TRUST_PROXY=1` enables the
 backend's per-address connection limits using that trusted header.
 
-Build the web client in `app/`, run the server tests, then run:
+Build the web client in `app/`, run the server tests, then deploy through the
+owner-confirmed LAN address using the existing key and trusted host-key alias:
 
 ```sh
-bash deploy/deploy.sh
-ssh sommonas 'python3 /srv/mymemory/current/deploy/configure_proxy.py'
-ssh sommonas 'python3 /srv/mymemory/current/deploy/configure_proxy.py --apply'
+MYMEMORY_TARGET=michele@192.168.0.126 MYMEMORY_SSH_PORT=22 \
+  MYMEMORY_HOST_KEY_ALIAS=192.168.0.164 bash deploy/deploy.sh
+ssh -p 22 -o StrictHostKeyChecking=yes -o HostKeyAlias=192.168.0.164 \
+  -i "$HOME/.ssh/id_ed25519" michele@192.168.0.126 \
+  'python3 /srv/mymemory/current/deploy/configure_proxy.py'
+ssh -p 22 -o StrictHostKeyChecking=yes -o HostKeyAlias=192.168.0.164 \
+  -i "$HOME/.ssh/id_ed25519" michele@192.168.0.126 \
+  'python3 /srv/mymemory/current/deploy/configure_proxy.py --apply'
 ```
 
 For deployment away from the home LAN, use the existing public SSH forwarding
