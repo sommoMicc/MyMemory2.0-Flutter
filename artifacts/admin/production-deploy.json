@@ -1,0 +1,180 @@
+{
+  "verifiedAt": "2026-11-05T21:43:45.093300+00:00",
+  "release": "20261105T213905Z-admin",
+  "parentRelease": "20261105T194451Z-privacy",
+  "publicOrigin": "https://sommomemory.sommomi.cc",
+  "adminUrl": "https://sommomemory.sommomi.cc/admin",
+  "derivedFromActiveNasSnapshot": true,
+  "changedBaselineFiles": [
+    "server/package-lock.json",
+    "server/package.json",
+    "server/public/privacy.html",
+    "server/src/economy.mjs",
+    "server/src/game.mjs",
+    "server/src/server.mjs",
+    "deploy/compose.yaml"
+  ],
+  "sourceSha256": {
+    "server/src/economy-http.mjs": "26f890559bbe7e03d6c3ecdf28c66a73eeeee32615d540522218df3ad18dd5a9",
+    "server/src/admin.mjs": "16dcd333a4349b82ba0cc35b34a942345a7c8ac2594e47e598f9141e7f345048",
+    "server/src/economy.mjs": "7600c10040f1b42a6ffb11cdc6092fc31fd7d68304a8c03d1f3f750a38aa707d",
+    "server/src/auth-http.mjs": "5a52a5eaa2e5df2840515e005b15db13011d29ef0d9029f5cfea7d1712d127c7",
+    "server/src/game.mjs": "e22fae912aa13fd063fbf7bdff676aab03c008d5f9e0ee54820675c2bfcba7f2",
+    "server/src/server.mjs": "3cea1035271282272555fa88be4ac369ea17378cc9117ca919e1885083216b65",
+    "server/src/auth.mjs": "d919270a719753561ee7e5a1738964af7994eab1b7a52a23c0b615d10108cead",
+    "server/src/admin-data.mjs": "9551daad7af02aa1c2fe00f375df0a686fe5d7d5518c43f510f8071e483d7410",
+    "server/src/admin-schema.mjs": "691ec4d3b5cf2a7b3e93fb81f9530f679935d9fa218179a8ef817929d09a563a",
+    "server/public/delete-account.html": "42b3ddf290c37a2844a914dda54210127832949fea2a9ee083cb561f3447cb95",
+    "server/public/admin.html": "cb0c5c234ff87612c0fc23e91641e10c257dc22104cc9ed133706e04e8c2baf1",
+    "server/public/support.html": "ad514cfce25740c93cc1451ecdb2f17704c9ee03dc8a4d2764292d2747ca4201",
+    "server/public/admin.css": "9a8a43dda6bef0fcf601a000e9cb1c57659c157f7a38f78279e2f411c5f0fd66",
+    "server/public/account-deletion.js": "bf45905cf6fb089af7cbca471b83357308f598da7f28aa3c1ce3e03b98c9c3fc",
+    "server/public/admin.js": "fc7c4b3fd0caaf9e3da9e9596986f6d3ccfc93f6453c38ac20ba106eaf8472be",
+    "server/public/privacy.html": "4027986f4727888ddbc723f7590308d8de5d2f34f79dafd8ab00c353d4c15bbb",
+    "server/public/.well-known/apple-app-site-association": "60bb93b62dcf49ab0aed621e6156168ec2594c97aa684a96b190a13505818f78",
+    "server/public/.well-known/assetlinks.json": "c961fb82cdb9438da95ac24311e1b61ec0618d56020dd75c4a82504f326dd8b3"
+  },
+  "unreleasedArenaCodeIncluded": false,
+  "webBinariesByteIdentical": true,
+  "providerSourceByteIdentical": true,
+  "privateRuntimeFilesUnchanged": true,
+  "backup": {
+    "path": "/data/backups/20261105T213905Z-admin",
+    "quickCheck": "ok",
+    "capabilityKeyCopyVerified": true,
+    "counts": {
+      "profiles": 43,
+      "tokens": 43,
+      "ledger": 79,
+      "auth_identities": 2
+    },
+    "rooms": {
+      "count": 4,
+      "finished": 4,
+      "connectedPlayers": 0
+    }
+  },
+  "dataPreservation": {
+    "missingPreexistingRows": {
+      "profiles": 0,
+      "tokens": 0,
+      "ledger": 0,
+      "auth_identities": 0
+    },
+    "counts": {
+      "profiles": 43,
+      "tokens": 43,
+      "ledger": 79,
+      "auth_identities": 2,
+      "admin_passkeys": 0,
+      "admin_matches": 3
+    },
+    "quickCheck": "ok"
+  },
+  "tests": {
+    "workspace": {
+      "passed": 91,
+      "failed": 0
+    },
+    "releaseCandidate": {
+      "passed": 65,
+      "failed": 0
+    },
+    "containerNode24": {
+      "passed": 64,
+      "failed": 0,
+      "note": "Web cache test runs in candidate checkout; its build helper is intentionally not packaged in the runtime image."
+    }
+  },
+  "publicVerification": {
+    "verifiedAt": "2026-11-05T21:41:44.087Z",
+    "origin": "https://sommomemory.sommomi.cc",
+    "checks": {
+      "/admin": {
+        "status": 200,
+        "sha256": "cb0c5c234ff87612c0fc23e91641e10c257dc22104cc9ed133706e04e8c2baf1",
+        "cacheControl": "no-store"
+      },
+      "/admin/admin.js": {
+        "status": 200,
+        "sha256": "fc7c4b3fd0caaf9e3da9e9596986f6d3ccfc93f6453c38ac20ba106eaf8472be",
+        "cacheControl": "no-store"
+      },
+      "/admin/admin.css": {
+        "status": 200,
+        "sha256": "9a8a43dda6bef0fcf601a000e9cb1c57659c157f7a38f78279e2f411c5f0fd66",
+        "cacheControl": "no-store"
+      },
+      "/admin/webauthn.js": {
+        "status": 200,
+        "sha256": "29bb0699b45bc39a350d992a13bfc1a4d40d89531390581e1f57f1142c6e221d",
+        "cacheControl": "no-store"
+      },
+      "/privacy": {
+        "status": 200,
+        "sha256": "4027986f4727888ddbc723f7590308d8de5d2f34f79dafd8ab00c353d4c15bbb",
+        "cacheControl": "no-cache"
+      },
+      "/admin/api/dashboard": {
+        "status": 401
+      },
+      "/admin/api/passkeys": {
+        "status": 401
+      }
+    },
+    "status": {
+      "configured": false,
+      "authenticated": false
+    },
+    "wrongOriginStatus": 403,
+    "health": {
+      "ok": true,
+      "service": "mymemory",
+      "protocol": 1,
+      "rooms": 4
+    },
+    "providers": {
+      "web": [
+        "apple",
+        "google"
+      ],
+      "ios": [
+        "apple",
+        "google"
+      ],
+      "android": [
+        "apple",
+        "google"
+      ]
+    },
+    "webMainJsPath": "main.8e7b05f3a382bc22.dart.js"
+  },
+  "browserVerification": {
+    "url": "https://sommomemory.sommomi.cc/admin",
+    "httpStatus": 200,
+    "secureContext": true,
+    "passkeyApiAvailable": true,
+    "initialEnrollmentVisible": true,
+    "tokenFieldEmpty": true,
+    "adminDataHidden": true,
+    "desktop": "1280\u00d7900",
+    "mobile": "390\u00d7844",
+    "mobileOverflow": false,
+    "pageErrors": [],
+    "passkeyCreated": false
+  },
+  "enrollment": {
+    "enrollmentOptionsStatus": 200,
+    "relyingPartyId": "sommomemory.sommomi.cc",
+    "userVerification": "required",
+    "secureChallengeCookie": true,
+    "passkeyRegistered": false,
+    "expiresAt": "2026-11-05T22:12:23.743Z",
+    "expiresAtRome": "05/11/26, 23:12"
+  },
+  "activationCodeIncluded": false,
+  "containerHealth": "healthy",
+  "readOnlyRootFilesystemPreserved": true,
+  "rollbackNeeded": false,
+  "noGitStagingOrCommit": true
+}

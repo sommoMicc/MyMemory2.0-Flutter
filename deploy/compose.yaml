@@ -16,6 +16,7 @@ services:
       WEB_DIR: /app/web
       ALLOWED_ORIGINS: https://sommomemory.sommomi.cc
       TRUST_PROXY: "1"
+      ADMIN_ORIGIN: https://sommomemory.sommomi.cc
     ports:
       - "127.0.0.1:8798:8798"
     volumes:

@@ -1,0 +1,28 @@
+{
+  "verifiedAt": "2026-11-05T17:58:44.039292+00:00",
+  "packageName": "cc.sommomi.mymemory",
+  "googlePlayAppId": "4972469070574777722",
+  "source": "Google Play Console App integrity > App signing > official public certificates.zip download",
+  "sourceUrl": "https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/keymanagement",
+  "playAppSigning": {
+    "purpose": "Android OAuth client for installations distributed by Google Play",
+    "certificateEntry": "deployment_cert.der",
+    "sha1": "D4:7E:1C:82:90:06:03:C9:BF:EC:C0:D7:81:7F:15:7B:45:7C:C6:7C",
+    "sha256": "CF:88:45:9A:49:8A:E9:C3:68:EE:97:B9:BF:DC:C7:4B:EA:BF:6C:1A:A7:31:40:CF:F3:93:1C:AD:85:A9:73:13",
+    "matchesPublishedAssetLinks": true,
+    "privateKeyIncluded": false,
+    "publicCertificateStoredExternally": true
+  },
+  "upload": {
+    "purpose": "Upload signing only; not the OAuth certificate for Google Play installations",
+    "sha1": "13:94:8C:A7:BE:2D:67:F8:4D:6D:27:27:5E:D6:84:01:AF:7E:32:B6",
+    "sha256": "40:4D:6F:54:02:5C:02:40:07:E3:7F:2A:25:35:2C:B8:44:71:26:8A:1C:6C:0D:78:C1:7A:95:65:E1:2B:ED:67"
+  },
+  "debug": {
+    "purpose": "Separate optional Android OAuth client for local debug builds only",
+    "sha1": "47:3B:FC:FB:63:F4:71:3F:B0:C5:36:AE:5D:F9:8E:5A:AB:34:38:AF",
+    "sha256": "19:1B:9E:32:6C:16:5B:BC:4A:81:BB:EB:73:38:7C:4A:F7:89:AD:01:68:FA:88:A0:81:1A:A7:0C:95:F0:08:FC",
+    "verificationSource": "apksigner verify --print-certs on local app-debug.apk during activation preflight"
+  },
+  "privateKeyOrCredentialsInReceipt": false
+}

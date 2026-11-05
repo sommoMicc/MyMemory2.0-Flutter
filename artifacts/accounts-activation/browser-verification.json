@@ -1,0 +1,48 @@
+{
+  "verifiedOn": "2026-11-05",
+  "publicOrigin": "https://sommomemory.sommomi.cc",
+  "web": {
+    "profilePanelVisible": true,
+    "guestProfileRetained": true,
+    "appleAndGoogleButtonsVisible": true,
+    "appleAuthorizationPageOpened": true,
+    "appleApplicationName": "SommoMemory Accounts",
+    "googleAccountChooserOpened": true,
+    "googleScopes": ["openid", "email", "profile"],
+    "providerConsentCompleted": false,
+    "personalAccountLinkedForTesting": false,
+    "screenshot": "artifacts/accounts-activation/accounts-live.jpg"
+  },
+  "googlePlay": {
+    "packageName": "cc.sommomi.mymemory",
+    "versionName": "3.0.0",
+    "versionCode": 30012,
+    "track": "internal",
+    "trackId": "4700857721365894827",
+    "releaseId": "10",
+    "releaseName": "3.0.0 (30012) - Account Apple e Google",
+    "consoleStatus": "Disponibile per i tester interni",
+    "existingTesterAudienceChanged": false,
+    "testerUrl": "https://play.google.com/apps/internaltest/4700857721365894827",
+    "screenshot": "artifacts/accounts-activation/android-internal-30012.jpg",
+    "dataSafetyPublicSubmissionPerformed": false,
+    "dataSafetyAudit": "artifacts/android-accounts-data-safety-audit.json"
+  },
+  "testFlight": {
+    "build": "30012",
+    "processingState": "VALID",
+    "internalBuildState": "IN_BETA_TESTING",
+    "group": "SommoMemory Internal",
+    "existingTesterCount": 2,
+    "existingTesterAudienceChanged": false,
+    "receipt": "artifacts/testflight-upload-30012.json"
+  },
+  "applePrivacy": {
+    "configuredDataTypes": 10,
+    "linkedToUser": true,
+    "advertisingTracking": false,
+    "status": "awaiting_user_confirmation_of_publication_declaration",
+    "audit": "artifacts/apple-accounts-privacy-audit.json",
+    "reviewScreenshot": "artifacts/accounts-activation/apple-privacy-publish-review.jpg"
+  }
+}

@@ -2,7 +2,7 @@ import { DECKS, RULES, EconomyError } from './economy.mjs';
 
 const BODY_LIMIT = 64 * 1024;
 const invalid = () => new EconomyError('INVALID_BODY', 'Invia un oggetto JSON valido.');
-async function body(req) {
+export async function readJsonBody(req) {
   if (!/^application\/json(?:\s*;.*)?$/i.test(req.headers['content-type'] || ''))
     throw new EconomyError('CONTENT_TYPE', 'Usa il formato JSON.', 415);
   const length = Number(req.headers['content-length']);
@@ -33,8 +33,9 @@ async function body(req) {
   if (!result || typeof result !== 'object' || Array.isArray(result)) throw invalid();
   return result;
 }
+const body = readJsonBody;
 
-export function economyApi({ store, origins, addressOf, now = Date.now }) {
+export function economyApi({ store, origins, addressOf, now = Date.now, auth }) {
   const counters = new Map();
   function limit(key, max, span) {
     const time = now();
@@ -61,7 +62,13 @@ export function economyApi({ store, origins, addressOf, now = Date.now }) {
       }
       const address = addressOf(req);
       limit(`all:${address}`, 240, 600_000);
-      if (pathname === '/api/v1/catalog' && req.method === 'GET') { reply(200, { decks: DECKS, rules: RULES }); return; }
+      if (pathname === '/api/v1/catalog' && req.method === 'GET') {
+        const existing = new Set(DECKS.map(deck => deck.id));
+        const additional = store.catalog.decks.filter(deck => deck.contentReady && !existing.has(deck.id))
+          .map(deck => ({ id: deck.id, price: deck.price, free: deck.price === 0 }));
+        reply(200, { decks: [...DECKS, ...additional], rules: RULES,
+          arenas: store.catalog.arenas, rankedEnabled: store.catalog.rankedEnabled }); return;
+      }
       if (pathname === '/api/v1/profiles' && req.method === 'POST') {
         limit(`create:${address}`, 10, 86_400_000);
         await body(req);
@@ -71,7 +78,10 @@ export function economyApi({ store, origins, addressOf, now = Date.now }) {
         if (req.method !== 'POST') throw new EconomyError('METHOD_NOT_ALLOWED', 'Metodo non valido.', 405);
         limit(`restore:${address}`, 20, 600_000);
         const input = await body(req);
-        reply(200, pathname.endsWith('/preview') ? { profile: store.recoveryProfile(input.recoveryCode) } : store.restore(input));
+        if (pathname.endsWith('/preview')) {
+          const { linkedProviders, recoveryEnabled, ...profile } = store.recoveryProfile(input.recoveryCode);
+          reply(200, { profile });
+        } else reply(200, store.restore(input));
         return;
       }
       const token = req.headers.authorization?.match(/^Bearer ([A-Za-z0-9_-]{43})$/)?.[1];
@@ -81,9 +91,9 @@ export function economyApi({ store, origins, addressOf, now = Date.now }) {
       if (route === 'GET /api/v1/profile') result = { profile: store.profile(id) };
       else if (route === 'GET /api/v1/profile/ledger') result = store.ledger(id);
       else if (route === 'PATCH /api/v1/profile') result = store.updateProfile(id, await body(req));
-      else if (route === 'DELETE /api/v1/profile') result = store.deleteProfile(id, await body(req));
-      else if (route === 'POST /api/v1/profile/recovery') result = store.recovery(id, await body(req));
-      else if (route === 'POST /api/v1/profile/recovery/rotate') result = store.recovery(id, await body(req), true);
+      else if (route === 'DELETE /api/v1/profile') result = auth ? auth.deleteProfile(token, await body(req)) : store.deleteProfile(id, await body(req));
+      else if (route === 'POST /api/v1/profile/recovery') { auth?.requireRecent(token); result = store.recovery(id, await body(req)); }
+      else if (route === 'POST /api/v1/profile/recovery/rotate') { auth?.requireRecent(token); result = store.recovery(id, await body(req), true); }
       else if (route === 'POST /api/v1/profile/logout') { await body(req); result = store.logout(token); }
       else if (route === 'POST /api/v1/wallet/unlock') result = store.unlock(id, await body(req));
       else if (route === 'POST /api/v1/games/tickets') result = store.issueTicket(id, await body(req));

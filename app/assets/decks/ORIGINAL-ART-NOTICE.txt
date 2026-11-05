@@ -1,0 +1,9 @@
+ORIGINAL SOMMOMEMORY DECK ART
+
+162 original card illustrations were generated with the OpenAI ImageGen built-in tool from prompts recorded in the manifest below.
+
+Source manifest: scripts/arena-original-art.json
+Crop pipeline: scripts/slice-arena-atlases.py
+Every card record names its source atlas, atlas SHA-256, prompt, grid cell, crop bounds, and output SHA-256.
+
+These illustrations are separate from the Noto Emoji assets. No third-party SPDX license is asserted for this generated artwork.

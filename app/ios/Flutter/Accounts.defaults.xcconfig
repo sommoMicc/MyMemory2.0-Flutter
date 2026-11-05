@@ -1,0 +1,4 @@
+// Guest builds keep their existing signing capabilities. Opt into account
+// capabilities only after configuring Apple and regenerating provisioning.
+SOMMOMEMORY_ENTITLEMENTS = Runner/Runner.entitlements
+GOOGLE_REVERSED_CLIENT_ID = sommomemory-google-unconfigured

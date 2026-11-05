@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Elimina account · SommoMemory</title>
+  <style>
+    body{font:17px/1.65 system-ui,sans-serif;color:#243c35;background:#faf8f1;max-width:720px;margin:48px auto;padding:0 24px}
+    h1{font-size:34px;line-height:1.2}h2{font-size:23px;margin-top:32px}a{color:#256850}
+    label{display:block;font-weight:600;margin-bottom:8px}input{display:block;box-sizing:border-box;width:100%;padding:14px;font:inherit;border:1px solid #7b827e;border-radius:10px}
+    button,.action{display:inline-block;font:inherit;padding:12px 18px;border:0;border-radius:10px;background:#207b73;color:white;margin:12px 8px 0 0;cursor:pointer;text-decoration:none}
+    button.secondary{color:#243c35;background:#e6e6dc}button.danger{background:#9f2929}button:disabled{opacity:.6;cursor:wait}
+    :focus-visible{outline:3px solid #b97d14;outline-offset:4px}section{margin:24px 0}#status{min-height:1.65em}#status.error{color:#9f2929}
+    [hidden]{display:none!important}small{color:#52665c}#preview{padding:20px;border:1px solid #b6c7be;border-radius:12px}
+  </style>
+  <script src="/account-deletion.js" defer></script>
+</head>
+<body>
+  <a href="/">← SommoMemory</a>
+  <h1>Elimina il tuo account SommoMemory</h1>
+  <p>Puoi eliminare il profilo e i dati associati anche senza reinstallare l'app. La cancellazione rimuove gemme, collezioni sbloccate, nome, personalizzazioni, metodi di accesso e sessioni. È definitiva.</p>
+  <section aria-labelledby="browser-title">
+    <h2 id="browser-title">Accedi con Apple o Google</h2>
+    <p>Apri il gioco nel browser. Se necessario accedi dalla sezione <strong>Salva e collega</strong>, controlla di aver aperto il profilo giusto, poi scegli <strong>Gestisci → Elimina profilo</strong>. Puoi usare anche una sessione già aperta.</p>
+    <a class="action" href="/?account=delete">Apri il profilo nel browser</a>
+    <p><small>Questa operazione elimina solo il profilo SommoMemory, non il tuo account Apple o Google.</small></p>
+  </section>
+  <section aria-labelledby="code-title" id="recovery-section">
+    <h2 id="code-title">Usa il codice di recupero</h2>
+    <p>Se hai conservato il codice personale, puoi verificare e cancellare il profilo direttamente qui. Prima mostriamo quale profilo verrà eliminato.</p>
+    <form id="recovery-form" autocomplete="off">
+      <label for="recovery-code">Codice di recupero</label>
+      <input id="recovery-code" name="recovery-code" type="password" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="100" required aria-describedby="code-help">
+      <small id="code-help">Il codice comincia con SMM. Non condividerlo con altre persone.</small><br>
+      <button type="submit" id="verify">Verifica profilo</button>
+    </form>
+    <div id="preview" hidden>
+      <h3>Eliminare questo profilo?</h3>
+      <p id="profile-summary"></p>
+      <p>Perderai definitivamente le sue gemme e collezioni. Gli altri dispositivi perderanno l'accesso al servizio. I dispositivi offline non ricevono subito la cancellazione; i limiti della pulizia locale sono descritti nella privacy.</p>
+      <button type="button" id="confirm-delete" class="danger">Elimina definitivamente</button>
+      <button type="button" id="cancel" class="secondary">Annulla</button>
+    </div>
+  </section>
+  <p id="status" role="status" aria-live="polite"></p>
+  <noscript><p>Per verificare il codice occorre abilitare JavaScript. In alternativa apri SommoMemory e usa Profilo → Gestisci → Elimina profilo.</p></noscript>
+  <p><a href="/privacy">Privacy</a> · <a href="/support">Assistenza</a></p>
+</body>
+</html>

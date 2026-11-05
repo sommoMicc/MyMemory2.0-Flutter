@@ -23,8 +23,11 @@ test('real HTTP concurrent unlock/claims are atomic, authenticated and idempoten
   try {
     const { body: guest } = await api('/profiles', { method: 'POST', data: {} });
     const token = guest.token;
+    server.economy.db.prepare('UPDATE profiles SET crowns=300,peak_crowns=300 WHERE id=?').run(guest.profile.id);
     const catalog = await api('/catalog');
-    assert.deepEqual(catalog.body.decks.map(d => [d.id, d.price]), [['garden', 0], ['cosmos', 0], ['ocean', 0], ['paola', 0], ['food', 200], ['sports', 300], ['travel', 400]]);
+    for (const deck of server.economy.catalog.decks.filter(d => d.contentReady))
+      assert.ok(catalog.body.decks.some(item => item.id === deck.id && item.price === deck.price));
+    assert.equal(catalog.body.rankedEnabled, server.economy.catalog.rankedEnabled);
     assert.equal((await api('/profile')).status, 401);
     for (let game = 0; game < 5; game++) {
       const { body: issued } = await api('/games/tickets', { token, method: 'POST', data: { mode: 'solo', pairs: 6, theme: 'garden', requestId: `game_request_${game}` } });
@@ -93,6 +96,7 @@ test('WebSocket enforces owned host deck, allows guest access, and does not leak
       const result = server.economy.issueTicket(owner.profile.id, { mode: 'solo', pairs: 6, theme: 'garden', requestId: `issue_game_${game}` });
       server.economy.claim(owner.profile.id, { ticketId: result.ticket.id, moves: solution(result.ticket.board), requestId: `finish_game_${game}` });
     }
+    server.economy.db.prepare('UPDATE profiles SET crowns=300,peak_crowns=300 WHERE id=?').run(owner.profile.id);
     await api('/wallet/unlock', { token: owner.token, method: 'POST', data: { deckId: 'food', requestId: 'unlock_food_1' } });
     host.send({ type: 'create', name: 'A', pairs: 6, theme: 'food', profileToken: owner.token, supportedDecks: ['food'] });
     const session = await host.next();

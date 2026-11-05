@@ -379,8 +379,11 @@ class BluetoothController extends ChangeNotifier {
         final allowed = supported == null
             ? const ['garden', 'cosmos', 'ocean']
             : supported is List &&
-                  supported.length <= 10 &&
-                  supported.every((value) => value is String)
+                  supported.length <= 64 &&
+                  supported.toSet().length == supported.length &&
+                  supported.every(
+                    (value) => value is String && deckNames.containsKey(value),
+                  )
             ? supported
             : const [];
         if (!allowed.contains(game.theme)) {

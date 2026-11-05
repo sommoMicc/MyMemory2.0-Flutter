@@ -1,0 +1,105 @@
+{
+  "release": "20261105T180636Z-accounts",
+  "previousRelease": "20261105T170656Z",
+  "publicOrigin": "https://sommomemory.sommomi.cc",
+  "webBuild": {
+    "version": "3.0.0",
+    "build": 30012
+  },
+  "authenticationState": "foundation deployed; Apple and Google unconfigured and hidden",
+  "oauthConfigCreated": false,
+  "privateKeysTransferred": false,
+  "nativeArtifactsUploaded": false,
+  "portsChanged": false,
+  "persistentVolume": "mymemory-data",
+  "privateBackup": {
+    "backup": "/data/backups/20261105T180636Z-accounts",
+    "sqliteOnlineBackup": true,
+    "quickCheck": "ok",
+    "capabilityKeyCopyVerified": true,
+    "databaseBytes": 122880,
+    "counts": {
+      "profiles": 25,
+      "tokens": 25,
+      "owned_decks": 0,
+      "ledger": 41,
+      "tickets": 82,
+      "online_rounds": 1
+    }
+  },
+  "roomsBeforeDeployment": {
+    "roomCount": 2,
+    "phases": {
+      "finished": 2
+    },
+    "connectedPlayers": 0,
+    "recentPlaying": 0
+  },
+  "verification": {
+    "health": {
+      "ok": true,
+      "service": "mymemory",
+      "protocol": 1,
+      "rooms": 2
+    },
+    "providers": {
+      "web": {
+        "httpStatus": 200,
+        "providerCount": 0
+      },
+      "ios": {
+        "httpStatus": 200,
+        "providerCount": 0
+      },
+      "android": {
+        "httpStatus": 200,
+        "providerCount": 0
+      }
+    },
+    "deletion": {
+      "status": 200,
+      "cacheControl": "no-store",
+      "contentSecurityPolicy": "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    },
+    "privacyIncludesOptionalLogin": true,
+    "web": {
+      "version": "3.0.0",
+      "build": "30012",
+      "mainJsPath": "main.8e7b05f3a382bc22.dart.js",
+      "sha256": "8e7b05f3a382bc2223e586649d7929791895700ee6e87e11d3a37674f82b3853",
+      "bootstrapCacheControl": "no-cache"
+    }
+  },
+  "dataPreservation": {
+    "priorProfilesPreserved": true,
+    "priorSessionTokensPreserved": true,
+    "invalidNewSessionIds": 0,
+    "databaseQuickCheck": "ok",
+    "profiles": 25,
+    "tokens": 25,
+    "ledgerEntries": 41,
+    "linkedProviderIdentities": 0
+  },
+  "broadTestsAlreadyPassed": {
+    "flutter": 114,
+    "node": 53
+  },
+  "rollbackNeeded": false,
+  "verifiedAt": "2026-11-05T18:08:26Z",
+  "containerHealth": "healthy",
+  "sourceSha256": {
+    "app/pubspec.yaml": "98c8f94a1b0dca42d2a885733bd024bbbb4fecfaec5a15e484610079b06e8122",
+    "server/package-lock.json": "39b8ef082a69091f0328199a1243a8faf7f50207290759eb1de789b1e9dbbd13",
+    "server/src/auth.mjs": "c3182a5ee2453338e822d236e584383a13b64c183c46a0829d1f1a6cfaf15532",
+    "server/src/auth-http.mjs": "5a52a5eaa2e5df2840515e005b15db13011d29ef0d9029f5cfea7d1712d127c7",
+    "server/src/economy.mjs": "541c9a017bc639510996fd84ea1ce0bd8ef75697b5583f669e9a2bff57646242",
+    "server/src/economy-http.mjs": "26f890559bbe7e03d6c3ecdf28c66a73eeeee32615d540522218df3ad18dd5a9",
+    "server/src/server.mjs": "1aa56f6e758b287d61334b2b7d5be87f7a9521959a21a3d6662307acb9863c77",
+    "server/src/game.mjs": "b6601b6b67baf47958c71aca11f1da8fb7e5e6c737aff44d6d8ef21d503229f8",
+    "server/public/delete-account.html": "42b3ddf290c37a2844a914dda54210127832949fea2a9ee083cb561f3447cb95",
+    "server/public/account-deletion.js": "bf45905cf6fb089af7cbca471b83357308f598da7f28aa3c1ce3e03b98c9c3fc",
+    "app/lib/economy.dart": "3e80909e3eb1a9d46378e3bd775f74d9e5847644e2158f7b69539600277eda72",
+    "app/lib/ui/profile_panel.dart": "bf86b40215acf7c8a08b1868a16e2fdac750aa4abd5ad1e0af79b3310c1582d8",
+    "app/lib/main.dart": "e8913eae603f5620753aa9cf189c04c692b4095a5ed9736ed7909edc5be504af"
+  }
+}

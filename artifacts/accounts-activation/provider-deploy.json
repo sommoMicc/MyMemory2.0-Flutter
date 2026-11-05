@@ -1,0 +1,166 @@
+{
+  "verifiedAt": "2026-11-05T19:38:35Z",
+  "release": "20261105T193354Z-accounts-live",
+  "previousRelease": "20261105T180636Z-accounts",
+  "publicOrigin": "https://sommomemory.sommomi.cc",
+  "containerHealth": "healthy",
+  "state": "Apple and Google runtime enabled on web, iOS and Android discovery",
+  "endpoints": {
+    "health": "https://sommomemory.sommomi.cc/healthz",
+    "providerDiscovery": [
+      "https://sommomemory.sommomi.cc/api/v1/auth/providers?platform=web",
+      "https://sommomemory.sommomi.cc/api/v1/auth/providers?platform=ios",
+      "https://sommomemory.sommomi.cc/api/v1/auth/providers?platform=android"
+    ],
+    "privacy": "https://sommomemory.sommomi.cc/privacy",
+    "deleteAccount": "https://sommomemory.sommomi.cc/delete-account"
+  },
+  "backup": {
+    "backup": "/data/backups/20261105T193354Z-accounts-live",
+    "sqliteOnlineBackup": true,
+    "databaseBytes": 229376,
+    "quickCheck": "ok",
+    "capabilityKeyCopyVerified": true,
+    "counts": {
+      "profiles": 31,
+      "tokens": 31,
+      "owned_decks": 0,
+      "ledger": 50,
+      "tickets": 115,
+      "online_rounds": 1,
+      "auth_identities": 0
+    }
+  },
+  "roomsBeforeDeployment": {
+    "roomCount": 2,
+    "phases": {
+      "finished": 2
+    },
+    "connectedPlayers": 0,
+    "recentPlaying": 0
+  },
+  "verification": {
+    "health": {
+      "ok": true,
+      "service": "mymemory",
+      "protocol": 1,
+      "rooms": 2
+    },
+    "providers": {
+      "web": {
+        "status": 200,
+        "providers": [
+          "apple",
+          "google"
+        ],
+        "exactClientConfigurationVerified": true,
+        "cacheControl": "no-store"
+      },
+      "ios": {
+        "status": 200,
+        "providers": [
+          "apple",
+          "google"
+        ],
+        "exactClientConfigurationVerified": true,
+        "cacheControl": "no-store"
+      },
+      "android": {
+        "status": 200,
+        "providers": [
+          "apple",
+          "google"
+        ],
+        "exactClientConfigurationVerified": true,
+        "cacheControl": "no-store"
+      }
+    },
+    "deletion": {
+      "status": 200,
+      "cacheControl": "no-store"
+    },
+    "privacy": {
+      "status": 200,
+      "sha256": "26dc5d8039213d030e63f0dd111eefaff6c764c5fdad30433444956e2024be2b",
+      "matchesLatestSource": true
+    },
+    "web": {
+      "version": "3.0.0",
+      "build": "30012",
+      "mainJsPath": "main.8e7b05f3a382bc22.dart.js",
+      "sha256": "8e7b05f3a382bc2223e586649d7929791895700ee6e87e11d3a37674f82b3853",
+      "bootstrapCacheControl": "no-cache"
+    }
+  },
+  "dataPreservation": {
+    "priorProfilesPreserved": true,
+    "priorSessionTokensPreserved": true,
+    "counts": {
+      "profiles": 32,
+      "tokens": 32,
+      "ledger": 51,
+      "tickets": 117,
+      "auth_identities": 0
+    },
+    "appleKeyReadableAndValid": true,
+    "googleClientSecretPresent": false,
+    "rooms": {
+      "count": 2,
+      "phases": {
+        "finished": 2
+      },
+      "connectedPlayers": 0
+    },
+    "databaseQuickCheck": "ok",
+    "deployedSourceSha256": {
+      "src/auth.mjs": "d919270a719753561ee7e5a1738964af7994eab1b7a52a23c0b615d10108cead",
+      "src/auth-http.mjs": "5a52a5eaa2e5df2840515e005b15db13011d29ef0d9029f5cfea7d1712d127c7",
+      "src/economy.mjs": "f5f757ababe653db519f6c9ebcce199781750a9fcbda87519050d763bf7c2304",
+      "src/economy-http.mjs": "26f890559bbe7e03d6c3ecdf28c66a73eeeee32615d540522218df3ad18dd5a9",
+      "src/game.mjs": "b6601b6b67baf47958c71aca11f1da8fb7e5e6c737aff44d6d8ef21d503229f8",
+      "src/server.mjs": "1aa56f6e758b287d61334b2b7d5be87f7a9521959a21a3d6662307acb9863c77",
+      "public/privacy.html": "26dc5d8039213d030e63f0dd111eefaff6c764c5fdad30433444956e2024be2b",
+      "public/support.html": "ad514cfce25740c93cc1451ecdb2f17704c9ee03dc8a4d2764292d2747ca4201"
+    }
+  },
+  "sourceSnapshotVerifiedAgainstDeployedContainer": true,
+  "sourceSha256": {
+    "server/src/auth.mjs": "d919270a719753561ee7e5a1738964af7994eab1b7a52a23c0b615d10108cead",
+    "server/src/auth-http.mjs": "5a52a5eaa2e5df2840515e005b15db13011d29ef0d9029f5cfea7d1712d127c7",
+    "server/src/economy.mjs": "f5f757ababe653db519f6c9ebcce199781750a9fcbda87519050d763bf7c2304",
+    "server/src/economy-http.mjs": "26f890559bbe7e03d6c3ecdf28c66a73eeeee32615d540522218df3ad18dd5a9",
+    "server/src/game.mjs": "b6601b6b67baf47958c71aca11f1da8fb7e5e6c737aff44d6d8ef21d503229f8",
+    "server/src/server.mjs": "1aa56f6e758b287d61334b2b7d5be87f7a9521959a21a3d6662307acb9863c77",
+    "server/public/privacy.html": "26dc5d8039213d030e63f0dd111eefaff6c764c5fdad30433444956e2024be2b",
+    "server/public/support.html": "ad514cfce25740c93cc1451ecdb2f17704c9ee03dc8a4d2764292d2747ca4201",
+    "server/public/delete-account.html": "42b3ddf290c37a2844a914dda54210127832949fea2a9ee083cb561f3447cb95",
+    "server/public/account-deletion.js": "bf45905cf6fb089af7cbca471b83357308f598da7f28aa3c1ce3e03b98c9c3fc",
+    "server/package.json": "da3828a54240a5d391edc1c4b4bf9b45bc29fed99fcee19dda404dbf8790a93f",
+    "server/package-lock.json": "39b8ef082a69091f0328199a1243a8faf7f50207290759eb1de789b1e9dbbd13"
+  },
+  "deploymentSecurity": {
+    "privateRuntimeFilesMode": "0600",
+    "privateDirectoryMode": "0700",
+    "runtimeOwnerUid": 1000,
+    "appleKeyMountedReadOnly": true,
+    "unusedGoogleWebClientSecretCopied": false,
+    "credentialValuesIncludedInReceipt": false,
+    "newPublicPorts": false,
+    "tlsPolicyChanged": false
+  },
+  "validationContext": {
+    "flutterTestsPreviouslyPassed": 114,
+    "nodeTestsReportedByRoot": 56,
+    "iosProfileUuid": "dc790f0a-5752-4d01-9b8a-9b84d4ff01a7",
+    "nativeArtifactReceipt": "artifacts/native-builds-30012.json",
+    "nativeUploadsPerformedByThisAgent": false,
+    "providerLoginEndToEndVerifiedByThisAgent": false
+  },
+  "rollbackNeeded": false,
+  "latestPrivacyClarification": {
+    "receipt": "artifacts/accounts-activation/privacy-clarification-deploy.json",
+    "activeRelease": "20261105T194451Z-privacy",
+    "privacySha256": "8afbd80c4b1fb914ce7d825dcf3e578eff97a3053cd8bc611ec8c39e9e8f1060",
+    "parentProviderDeploymentPreserved": true
+  }
+}

@@ -10,10 +10,13 @@ import 'online.dart';
 import 'palette.dart';
 import 'decks.dart';
 import 'economy.dart';
+import 'arenas.dart';
 import 'invite_links.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'ui/collection_shop.dart';
+import 'ui/arena_picker.dart';
 import 'ui/profile_panel.dart';
+import 'ui/profile_appearance.dart';
 import 'ui/deck_art.dart';
 import 'ui/game_world.dart';
 import 'bluetooth/bluetooth_controller.dart';
@@ -91,7 +94,10 @@ class _HomeState extends State<Home> {
   PlayMode mode = PlayMode.solo;
   int pairs = 8;
   String theme = 'garden';
+  bool ranked = false;
+  String arenaId = 'wild_valley';
   bool configuring = false;
+  bool creatingBluetoothGame = false;
   bool starting = false;
   String? observedProfileId, observedProfileName;
   int navigationGeneration = 0;
@@ -122,11 +128,38 @@ class _HomeState extends State<Home> {
     );
     observedProfileId = widget.economy?.profile?.id;
     observedProfileName = widget.economy?.profile?.displayName;
+    arenaId = widget.economy?.profile?.currentArenaId ?? 'wild_valley';
     widget.economy?.addListener(economyChanged);
     final savedPairs = widget.prefs.getInt('game.pairs');
     if ([6, 8, 12, 18].contains(savedPairs)) pairs = savedPairs!;
     final savedTheme = widget.prefs.getString('game.collection');
     if (deckNames.containsKey(savedTheme)) theme = savedTheme!;
+    final savedArena = widget.prefs.getString('game.friendlyArena');
+    if (savedArena != null &&
+        (widget.economy?.profile?.unlockedArenaIds ?? {'wild_valley'}).contains(
+          savedArena,
+        )) {
+      arenaId = savedArena;
+    }
+    final selectedDeck = _arenaDeck(theme);
+    if (selectedDeck?.arenaId != null && savedTheme != null) {
+      final savedArenaIsUsable =
+          savedArena != null &&
+          (widget.economy?.profile?.unlockedArenaIds ?? {'wild_valley'})
+              .contains(savedArena);
+      if (savedArenaIsUsable && savedArena != selectedDeck!.arenaId) {
+        theme = _firstUsableFreeTheme(arenaId) ?? theme;
+      } else if (canUseFriendlyTheme(theme)) {
+        arenaId = selectedDeck!.arenaId!;
+      } else {
+        theme = _firstUsableFreeTheme(arenaId) ?? theme;
+      }
+    } else if (selectedDeck?.arenaId == null) {
+      // Paola is a standalone training deck; keep the last friendly arena.
+    } else if (selectedDeck?.arenaId != arenaId) {
+      theme = _firstUsableFreeTheme(arenaId) ?? theme;
+    }
+    _persistFriendlySelection();
     final invite =
         widget.invites?.takePendingRoomCode() ??
         roomCodeFromInviteUri(Uri.base);
@@ -140,6 +173,11 @@ class _HomeState extends State<Home> {
       widget.invites?.takePendingRoomCode();
       unawaited(handleInvite(code));
     });
+    if (kIsWeb && Uri.base.queryParameters['account'] == 'delete') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && widget.economy != null) profile(initialSection: 2);
+      });
+    }
     prefetch();
   }
 
@@ -225,19 +263,48 @@ class _HomeState extends State<Home> {
         observedProfileId = profile.id;
         observedProfileName = profile.displayName;
       }
+      if (!profile.unlockedArenaIds.contains(arenaId)) {
+        final themeDeck = _arenaDeck(theme);
+        if (themeDeck?.arenaId != null &&
+            widget.economy!.ownsDeck(theme) &&
+            themeDeck!.arenaId == arenaId) {
+          // Preserve a legacy purchase from a historically locked arena.
+        } else {
+          arenaId = profile.currentArenaId;
+        }
+      }
+      if (ranked && widget.economy!.profileToken == null) ranked = false;
       if (!widget.economy!.ownsDeck(theme)) theme = 'garden';
+      final selectedDeck = _arenaDeck(theme);
+      if (selectedDeck?.arenaId != null && selectedDeck!.arenaId != arenaId) {
+        if (profile.unlockedArenaIds.contains(arenaId)) {
+          theme = _firstUsableFreeTheme(arenaId) ?? 'garden';
+        } else {
+          arenaId = profile.currentArenaId;
+          theme = _firstUsableFreeTheme(arenaId) ?? 'garden';
+        }
+      }
+    } else if (observedProfileId != null) {
+      name.clear();
+      observedProfileId = null;
+      observedProfileName = null;
+      if (!ProfileData.freeDecks.contains(theme)) theme = 'garden';
     }
+    _persistFriendlySelection();
     setState(() {});
     prefetch();
   }
 
-  void profile() {
+  void profile({int initialSection = 0}) {
     navigationGeneration++;
     setState(() => starting = false);
     Navigator.push(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => ProfilePanel(economy: widget.economy!),
+        builder: (_) => ProfilePanel(
+          economy: widget.economy!,
+          initialSection: initialSection,
+        ),
       ),
     );
   }
@@ -253,8 +320,46 @@ class _HomeState extends State<Home> {
 
   void start({bool join = false, bool resume = false}) async {
     if (starting) return;
+    if (mode == PlayMode.online &&
+        !resume &&
+        widget.prefs.getBool('room.activeRanked') == true &&
+        widget.prefs.getString('room.code')?.isNotEmpty == true &&
+        widget.prefs.getString('room.token')?.isNotEmpty == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Riprendi o abbandona la classificata in corso prima di entrare in un’altra stanza.',
+          ),
+          action: SnackBarAction(
+            label: 'Riprendi',
+            onPressed: () => start(resume: true),
+          ),
+        ),
+      );
+      return;
+    }
+    final rankedGame = mode == PlayMode.online && ranked && !join && !resume;
+    if (rankedGame && !ArenaCatalog.instance.rankedEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'La classificata sarà disponibile con un aggiornamento.',
+          ),
+        ),
+      );
+      return;
+    }
+    if (mode == PlayMode.online &&
+        !rankedGame &&
+        !join &&
+        !resume &&
+        !canUseFriendlyTheme(theme)) {
+      chooseTheme();
+      return;
+    }
     if (!join &&
         !resume &&
+        !rankedGame &&
         widget.economy != null &&
         !widget.economy!.ownsDeck(theme)) {
       chooseTheme();
@@ -262,7 +367,7 @@ class _HomeState extends State<Home> {
     }
     final requestGeneration = ++navigationGeneration;
     final playMode = mode;
-    final pairCount = pairs;
+    final pairCount = rankedGame ? 12 : pairs;
     final collection = theme;
     setState(() => starting = true);
     try {
@@ -331,8 +436,12 @@ class _HomeState extends State<Home> {
                     'name': name.text.trim().isEmpty
                         ? 'Giocatore'
                         : name.text.trim(),
+                    'matchType': rankedGame ? 'ranked' : 'friendly',
+                    'arenaId': rankedGame
+                        ? widget.economy?.profile?.currentArenaId ?? arenaId
+                        : arenaId,
                     'pairs': pairCount,
-                    'theme': collection,
+                    if (!rankedGame) 'theme': collection,
                   },
           ),
         );
@@ -352,19 +461,35 @@ class _HomeState extends State<Home> {
             ),
           ),
         );
+        try {
+          await widget.economy?.refresh();
+        } catch (_) {
+          // Keep the last cached profile when the account service is unavailable.
+        }
         online.dispose();
       } else {
         await Navigator.push(
           context,
           MaterialPageRoute<void>(
-            builder: (_) => BluetoothLobby(
-              gameKey: activeGameKey,
-              prefs: widget.prefs,
-              economy: widget.economy,
-              name: name.text.trim().isEmpty ? 'Giocatore' : name.text.trim(),
-              pairs: pairCount,
-              theme: collection,
-            ),
+            builder: (_) => join
+                ? BluetoothLobby.search(
+                    gameKey: activeGameKey,
+                    prefs: widget.prefs,
+                    economy: widget.economy,
+                    name: name.text.trim().isEmpty
+                        ? 'Giocatore'
+                        : name.text.trim(),
+                  )
+                : BluetoothLobby.create(
+                    gameKey: activeGameKey,
+                    prefs: widget.prefs,
+                    economy: widget.economy,
+                    name: name.text.trim().isEmpty
+                        ? 'Giocatore'
+                        : name.text.trim(),
+                    pairs: pairCount,
+                    theme: collection,
+                  ),
           ),
         );
       }
@@ -507,15 +632,83 @@ class _HomeState extends State<Home> {
       ),
     );
     if (!mounted || selected == null) return;
-    setState(() => theme = selected);
-    widget.prefs.setString('game.collection', selected);
+    final deck = _arenaDeck(selected);
+    setState(() {
+      theme = selected;
+      if (deck?.arenaId != null) arenaId = deck!.arenaId!;
+    });
+    _persistFriendlySelection();
     prefetch();
+  }
+
+  Set<String> get unlockedArenaIds =>
+      widget.economy?.profile?.unlockedArenaIds ?? const {'wild_valley'};
+
+  Future<void> chooseArena() async {
+    if (ranked) return;
+    final selected = await ArenaPicker.show(
+      context,
+      selectedArenaId: arenaId,
+      unlockedArenaIds: unlockedArenaIds,
+    );
+    if (!mounted || selected == null) return;
+    setState(() => _selectFriendlyArena(selected));
+    prefetch();
+  }
+
+  void _selectFriendlyArena(String selected) {
+    arenaId = selected;
+    if (_arenaDeck(theme)?.arenaId != selected) {
+      theme = _firstUsableFreeTheme(selected) ?? theme;
+    }
+    _persistFriendlySelection();
+  }
+
+  ArenaDeck? _arenaDeck(String id) =>
+      ArenaCatalog.instance.decks.where((deck) => deck.id == id).firstOrNull;
+
+  String? _firstUsableFreeTheme(String id) => ArenaCatalog.instance.decks
+      .where(
+        (deck) =>
+            deck.arenaId == id &&
+            deck.price == 0 &&
+            deck.isPlayable &&
+            deckNames.containsKey(deck.id) &&
+            canUseFriendlyTheme(deck.id),
+      )
+      .firstOrNull
+      ?.id;
+
+  void _persistFriendlySelection() {
+    widget.prefs.setString('game.friendlyArena', arenaId);
+    widget.prefs.setString('game.collection', theme);
+  }
+
+  bool canUseFriendlyTheme(String id) {
+    final deck = ArenaCatalog.instance.decks
+        .where((deck) => deck.id == id)
+        .firstOrNull;
+    if (deck == null || !deck.contentReady || !deckNames.containsKey(id)) {
+      return false;
+    }
+    final owns =
+        widget.economy?.ownsDeck(id) ?? ProfileData.freeDecks.contains(id);
+    // The backend also preserves owned legacy purchases across arena changes.
+    return owns;
   }
 
   void settings() => showDialog<void>(
     context: context,
     builder: (_) => _SettingsDialog(prefs: widget.prefs),
   );
+
+  void backFromSetup() => setState(() {
+    if (mode == PlayMode.bluetooth && creatingBluetoothGame) {
+      creatingBluetoothGame = false;
+    } else {
+      configuring = false;
+    }
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -542,10 +735,13 @@ class _HomeState extends State<Home> {
       PlayMode.online => 'Online',
       PlayMode.bluetooth => 'Bluetooth',
     };
+    final canStartRanked =
+        ArenaCatalog.instance.rankedEnabled &&
+        widget.economy?.profileToken != null;
     return PopScope(
       canPop: !configuring,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) setState(() => configuring = false);
+        if (!didPop) backFromSetup();
       },
       child: GameWorld(
         collection: theme,
@@ -564,9 +760,12 @@ class _HomeState extends State<Home> {
                         children: [
                           if (configuring)
                             IconButton(
-                              tooltip: 'Scegli modalità',
-                              onPressed: () =>
-                                  setState(() => configuring = false),
+                              tooltip:
+                                  mode == PlayMode.bluetooth &&
+                                      creatingBluetoothGame
+                                  ? 'Scelta partita Bluetooth'
+                                  : 'Scegli modalità',
+                              onPressed: backFromSetup,
                               icon: const Icon(Icons.arrow_back_rounded),
                             )
                           else ...[
@@ -588,8 +787,15 @@ class _HomeState extends State<Home> {
                           if (widget.economy != null)
                             IconButton(
                               tooltip: 'Profilo',
-                              onPressed: profile,
-                              icon: const Icon(Icons.person_outline_rounded),
+                              onPressed: () => profile(),
+                              icon: ProfileAvatar(
+                                avatarId:
+                                    widget.economy?.profile?.avatarId ?? 'fox',
+                                accentId:
+                                    widget.economy?.profile?.accentId ??
+                                    'forest',
+                                size: 28,
+                              ),
                             ),
                           IconButton(
                             tooltip: 'Come si gioca e impostazioni',
@@ -647,6 +853,31 @@ class _HomeState extends State<Home> {
                                           selected: false,
                                           onTap: () => setState(() {
                                             mode = m.$1;
+                                            ranked = false;
+                                            creatingBluetoothGame = false;
+                                            if (m.$1 == PlayMode.online) {
+                                              final legacyThemeArena =
+                                                  _arenaDeck(theme)?.arenaId ==
+                                                      arenaId &&
+                                                  widget.economy?.ownsDeck(
+                                                        theme,
+                                                      ) ==
+                                                      true;
+                                              final preferredArena =
+                                                  unlockedArenaIds.contains(
+                                                        arenaId,
+                                                      ) ||
+                                                      legacyThemeArena
+                                                  ? arenaId
+                                                  : widget
+                                                            .economy
+                                                            ?.profile
+                                                            ?.currentArenaId ??
+                                                        'wild_valley';
+                                              _selectFriendlyArena(
+                                                preferredArena,
+                                              );
+                                            }
                                             configuring = true;
                                             prefetch();
                                           }),
@@ -658,24 +889,254 @@ class _HomeState extends State<Home> {
                             },
                           ),
                         ),
-                      ] else
+                      ] else if (mode == PlayMode.bluetooth &&
+                          !creatingBluetoothGame)
+                        Expanded(
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 440),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    FilledButton.icon(
+                                      onPressed: starting
+                                          ? null
+                                          : () => start(join: true),
+                                      icon: const Icon(Icons.radar_rounded),
+                                      label: const Text('Cerca partita'),
+                                    ),
+                                    const Padding(
+                                      padding: EdgeInsets.fromLTRB(8, 8, 8, 20),
+                                      child: Text(
+                                        'Entra in una partita vicina. Il mazzo e le coppie li sceglie chi crea.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: ink),
+                                      ),
+                                    ),
+                                    OutlinedButton.icon(
+                                      onPressed: starting
+                                          ? null
+                                          : () => setState(
+                                              () =>
+                                                  creatingBluetoothGame = true,
+                                            ),
+                                      icon: const Icon(Icons.add_rounded),
+                                      label: const Text('Crea partita'),
+                                    ),
+                                    const Padding(
+                                      padding: EdgeInsets.fromLTRB(8, 8, 8, 16),
+                                      child: Text(
+                                        'Scegli il mazzo e le coppie, poi aspetta l’altro giocatore.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: ink),
+                                      ),
+                                    ),
+                                    _OptionRow(
+                                      icon: Icons.person_outline_rounded,
+                                      label: 'Nome',
+                                      value: name.text.trim().isEmpty
+                                          ? 'Giocatore'
+                                          : name.text.trim(),
+                                      onTap: editName,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      else
                         Expanded(
                           child: LayoutBuilder(
                             builder: (context, c) {
                               final options = Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  _OptionRow(
-                                    icon: Icons.grid_view_rounded,
-                                    label: 'Coppie',
-                                    value: '$pairs',
-                                    onTap: choosePairs,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  _CollectionTile(
-                                    theme: theme,
-                                    onTap: chooseTheme,
-                                  ),
+                                  if (mode == PlayMode.online) ...[
+                                    SegmentedButton<bool>(
+                                      segments: [
+                                        ButtonSegment(
+                                          value: false,
+                                          label: Text('Amichevole'),
+                                        ),
+                                        ButtonSegment(
+                                          value: true,
+                                          label: Text('Classificata'),
+                                          enabled: canStartRanked,
+                                        ),
+                                      ],
+                                      selected: {ranked},
+                                      onSelectionChanged: (value) {
+                                        if (value.first && !canStartRanked) {
+                                          return;
+                                        }
+                                        setState(() {
+                                          ranked = value.first;
+                                          if (ranked) {
+                                            arenaId =
+                                                widget
+                                                    .economy
+                                                    ?.profile
+                                                    ?.currentArenaId ??
+                                                arenaId;
+                                            pairs = 12;
+                                          } else {
+                                            final selectedDeck = _arenaDeck(
+                                              theme,
+                                            );
+                                            if (selectedDeck?.arenaId != null) {
+                                              arenaId = selectedDeck!.arenaId!;
+                                            }
+                                            _persistFriendlySelection();
+                                          }
+                                        });
+                                      },
+                                    ),
+                                    if (!ranked &&
+                                        !ArenaCatalog.instance.rankedEnabled)
+                                      const Text(
+                                        'La modalità classificata via invito non è ancora attiva.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: muted,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    if (!ranked &&
+                                        ArenaCatalog.instance.rankedEnabled &&
+                                        widget.economy?.profileToken == null)
+                                      const Text(
+                                        'Accedi a un profilo per creare una sfida classificata.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: muted,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    if (ranked &&
+                                        widget.economy?.profile != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 16),
+                                        child: Container(
+                                          padding: const EdgeInsets.fromLTRB(
+                                            12,
+                                            4,
+                                            12,
+                                            8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: paper.withValues(alpha: .94),
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                            border: Border.all(color: line),
+                                          ),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              _OptionRow(
+                                                icon:
+                                                    Icons.emoji_events_rounded,
+                                                label: 'Arena attuale',
+                                                value: ArenaCatalog
+                                                    .instance
+                                                    .arenas
+                                                    .firstWhere(
+                                                      (a) =>
+                                                          a.id ==
+                                                          widget
+                                                              .economy!
+                                                              .profile!
+                                                              .currentArenaId,
+                                                    )
+                                                    .name,
+                                                onTap: null,
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  bottom: 6,
+                                                ),
+                                                child: Text(
+                                                  '${widget.economy!.profile!.crowns} corone · Record ${widget.economy!.profile!.peakCrowns}',
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                    color: ink,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                    else if (ranked)
+                                      const Text(
+                                        'Accedi a un profilo per la classificata.',
+                                        style: TextStyle(color: muted),
+                                      ),
+                                    if (!ranked) ...[
+                                      _OptionRow(
+                                        icon: Icons.flag_rounded,
+                                        label: 'Arena amichevole',
+                                        value: ArenaCatalog.instance.arenas
+                                            .firstWhere((a) => a.id == arenaId)
+                                            .name,
+                                        onTap: chooseArena,
+                                      ),
+                                      _CollectionTile(
+                                        theme: theme,
+                                        onTap: chooseTheme,
+                                      ),
+                                      _OptionRow(
+                                        icon: Icons.grid_view_rounded,
+                                        label: 'Coppie',
+                                        value: '$pairs',
+                                        onTap: choosePairs,
+                                      ),
+                                    ] else
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 14),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 10,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: paper.withValues(alpha: .94),
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
+                                            border: Border.all(color: line),
+                                          ),
+                                          child: const Text(
+                                            '3 round · 12 coppie. Tabelloni identici per i due giocatori: vince chi usa meno tentativi totali.',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: ink,
+                                              fontSize: 13,
+                                              height: 1.2,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ] else ...[
+                                    _OptionRow(
+                                      icon: Icons.grid_view_rounded,
+                                      label: 'Coppie',
+                                      value: '$pairs',
+                                      onTap: choosePairs,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _CollectionTile(
+                                      theme: theme,
+                                      onTap: chooseTheme,
+                                    ),
+                                  ],
                                   if (mode == PlayMode.online ||
                                       mode == PlayMode.bluetooth) ...[
                                     const SizedBox(height: 8),
@@ -694,7 +1155,7 @@ class _HomeState extends State<Home> {
                                     Padding(
                                       padding: const EdgeInsets.only(top: 12),
                                       child: Text(
-                                        'Record: ${widget.prefs.getInt('best.$pairs')} tentativi',
+                                        'Record sul dispositivo: ${widget.prefs.getInt('best.$pairs')} tentativi',
                                         style: const TextStyle(color: muted),
                                       ),
                                     ),
@@ -718,7 +1179,7 @@ class _HomeState extends State<Home> {
                                         inviteCode == null
                                             ? 'Crea stanza'
                                             : 'Entra in $inviteCode',
-                                      PlayMode.bluetooth => 'Continua',
+                                      PlayMode.bluetooth => 'Crea partita',
                                       _ => 'Inizia partita',
                                     }),
                                   ),
@@ -768,20 +1229,38 @@ class _HomeState extends State<Home> {
                               if (c.maxWidth > 540 && c.maxHeight < 430) {
                                 return Row(
                                   children: [
-                                    Expanded(child: Center(child: options)),
+                                    Expanded(
+                                      child: SingleChildScrollView(
+                                        child: Center(child: options),
+                                      ),
+                                    ),
                                     const SizedBox(width: 32),
-                                    Expanded(child: Center(child: actions)),
+                                    Expanded(
+                                      child: SingleChildScrollView(
+                                        child: Center(child: actions),
+                                      ),
+                                    ),
                                   ],
+                                );
+                              }
+                              if (c.maxHeight <= 640) {
+                                return SingleChildScrollView(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      options,
+                                      const SizedBox(height: 16),
+                                      actions,
+                                    ],
+                                  ),
                                 );
                               }
                               return Column(
                                 children: [
-                                  if (c.maxHeight > 430)
-                                    Expanded(
-                                      child: CollectionScene(collection: theme),
-                                    )
-                                  else
-                                    const Spacer(),
+                                  Expanded(
+                                    child: CollectionScene(collection: theme),
+                                  ),
                                   options,
                                   const SizedBox(height: 16),
                                   actions,
@@ -881,7 +1360,7 @@ class _OptionRow extends StatelessWidget {
   });
   final IconData icon;
   final String label, value;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   @override
   Widget build(BuildContext context) => Material(
     color: Colors.white,
@@ -903,7 +1382,9 @@ class _OptionRow extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-      trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+      trailing: onTap == null
+          ? null
+          : const Icon(Icons.chevron_right_rounded, size: 20),
       onTap: onTap,
     ),
   );
@@ -1048,15 +1529,7 @@ class BrandMark extends StatelessWidget {
   );
 }
 
-Color collectionColor(String theme) => switch (theme) {
-  'cosmos' => const Color(0xFF7661B5),
-  'ocean' => const Color(0xFF2589B2),
-  'food' => const Color(0xFFC9773B),
-  'sports' => const Color(0xFF418B56),
-  'travel' => const Color(0xFF6879B9),
-  'paola' => const Color(0xFF9B6FAD),
-  _ => teal,
-};
+Color collectionColor(String theme) => deckAccent(theme);
 
 class ModeTile extends StatelessWidget {
   const ModeTile({
@@ -1443,12 +1916,7 @@ class _MemoryCardState extends State<MemoryCard>
                               ),
                               child: ExcludeSemantics(
                                 child: Icon(
-                                  switch (widget.theme) {
-                                    'paola' => Icons.menu_book_rounded,
-                                    'cosmos' => Icons.auto_awesome_rounded,
-                                    'ocean' => Icons.water_rounded,
-                                    _ => Icons.pets_rounded,
-                                  },
+                                  deckBackIcon(widget.theme),
                                   color: paper,
                                   size: side * .32,
                                 ),
@@ -1610,16 +2078,17 @@ class BackPattern extends CustomPainter {
   final String theme;
   @override
   void paint(Canvas canvas, Size size) {
+    final world = deckWorldTheme(theme);
     final paint = Paint()
       ..color = paper.withValues(alpha: .18)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
     for (double x = 8; x < size.width; x += 19) {
       for (double y = 8; y < size.height; y += 20) {
-        if (theme == 'cosmos') {
+        if (world == 'cosmos') {
           canvas.drawLine(Offset(x - 2, y), Offset(x + 2, y), paint);
           canvas.drawLine(Offset(x, y - 2), Offset(x, y + 2), paint);
-        } else if (theme == 'ocean') {
+        } else if (world == 'ocean') {
           canvas.drawArc(
             Rect.fromCircle(center: Offset(x, y), radius: 5),
             0,
@@ -1681,6 +2150,17 @@ class _BoardFrame {
     this.winnerId,
     this.finishReason,
     this.roundId,
+    this.matchId,
+    this.matchType = 'friendly',
+    this.arenaId,
+    this.roundIndex = 1,
+    this.roundCount = 1,
+    this.phase = 'playing',
+    List<String> roundDecks = const [],
+    List<Map<String, dynamic>> roundResults = const [],
+    Map<String, dynamic> totalScores = const {},
+    List<String> roundReady = const [],
+    Map<String, dynamic> totalAttempts = const {},
     Map<String, dynamic>? rewardReceipt,
     Map<String, dynamic>? rewardProof,
   }) : rewardReceipt = rewardReceipt == null
@@ -1694,6 +2174,21 @@ class _BoardFrame {
                  'moves': List.unmodifiable(rewardProof['moves'] as List),
              }),
        cards = List.unmodifiable(cards),
+       roundDecks = List.unmodifiable(roundDecks),
+       roundResults = List.unmodifiable(
+         roundResults.map((result) {
+           final copy = Map<String, dynamic>.from(result);
+           if (copy['scores'] is Map) {
+             copy['scores'] = Map<String, dynamic>.unmodifiable(
+               Map<String, dynamic>.from(copy['scores'] as Map),
+             );
+           }
+           return Map<String, dynamic>.unmodifiable(copy);
+         }),
+       ),
+       totalScores = Map.unmodifiable(totalScores),
+       totalAttempts = Map.unmodifiable(totalAttempts),
+       roundReady = List.unmodifiable(roundReady),
        matched = Set.unmodifiable(matched),
        scores = List.unmodifiable(scores),
        players = List.unmodifiable(
@@ -1708,9 +2203,19 @@ class _BoardFrame {
   final bool finished;
   final String theme;
   final String? winnerId, finishReason, roundId;
+  final String? matchId, arenaId;
+  final String matchType, phase;
+  final int roundIndex, roundCount;
+  final List<String> roundDecks, roundReady;
+  final List<Map<String, dynamic>> roundResults;
+  final Map<String, dynamic> totalScores;
+  final Map<String, dynamic> totalAttempts;
   final Map<String, dynamic>? rewardReceipt, rewardProof;
   bool sameCards(_BoardFrame other) =>
-      theme == other.theme && listEquals(cards, other.cards);
+      theme == other.theme &&
+      roundId == other.roundId &&
+      matchId == other.matchId &&
+      listEquals(cards, other.cards);
   bool sameEvents(_BoardFrame other) =>
       turn == other.turn &&
       moves == other.moves &&
@@ -1718,6 +2223,22 @@ class _BoardFrame {
       winnerId == other.winnerId &&
       finishReason == other.finishReason &&
       roundId == other.roundId &&
+      matchId == other.matchId &&
+      matchType == other.matchType &&
+      arenaId == other.arenaId &&
+      roundIndex == other.roundIndex &&
+      roundCount == other.roundCount &&
+      phase == other.phase &&
+      listEquals(roundDecks, other.roundDecks) &&
+      listEquals(roundReady, other.roundReady) &&
+      mapEquals(totalScores, other.totalScores) &&
+      mapEquals(totalAttempts, other.totalAttempts) &&
+      roundResults.length == other.roundResults.length &&
+      List.generate(
+        roundResults.length,
+        (index) =>
+            _sameRoundResult(roundResults[index], other.roundResults[index]),
+      ).every((same) => same) &&
       mapEquals(rewardReceipt, other.rewardReceipt) &&
       (rewardProof?['ticketId'] == other.rewardProof?['ticketId']) &&
       listEquals(
@@ -1731,6 +2252,13 @@ class _BoardFrame {
         players.length,
         (i) => mapEquals(players[i], other.players[i]),
       ).every((same) => same);
+
+  bool _sameRoundResult(Map<String, dynamic> a, Map<String, dynamic> b) =>
+      a['round'] == b['round'] &&
+      a['theme'] == b['theme'] &&
+      a['winnerId'] == b['winnerId'] &&
+      mapEquals(a['scores'] as Map?, b['scores'] as Map?) &&
+      mapEquals(a['attempts'] as Map?, b['attempts'] as Map?);
 }
 
 class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
@@ -1749,6 +2277,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   final List<_BoardFrame> pendingFrames = [];
   _BoardFrame? targetFrame, displayedEvents, lastAuthorityFrame;
   bool presentationScheduled = false;
+  bool yieldedRoundFinishedForNextSequence = false;
   bool reduceMotion = false;
   int presentationGeneration = 0;
   bool get boardLocked =>
@@ -1758,7 +2287,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       local?.locked == true ||
       local?.finished == true ||
       net?['lockedUntil'] != null ||
-      net?['phase'] == 'finished';
+      network && net?['phase'] != 'playing';
 
   _BoardFrame captureFrame() {
     final game = local;
@@ -1790,6 +2319,24 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       winnerId: state?['winnerId'] as String?,
       finishReason: state?['finishReason'] as String?,
       roundId: state?['roundId']?.toString(),
+      matchId: state?['matchId']?.toString(),
+      matchType: state?['matchType'] as String? ?? 'friendly',
+      arenaId: state?['arenaId'] as String?,
+      roundIndex: state?['roundIndex'] as int? ?? 1,
+      roundCount: state?['roundCount'] as int? ?? 1,
+      phase: state?['phase'] as String? ?? 'playing',
+      roundDecks: (state?['roundDecks'] as List? ?? const []).cast<String>(),
+      roundResults: (state?['roundResults'] as List? ?? const [])
+          .whereType<Map>()
+          .map((value) => Map<String, dynamic>.from(value))
+          .toList(),
+      totalScores: Map<String, dynamic>.from(
+        state?['totalScores'] as Map? ?? const {},
+      ),
+      totalAttempts: Map<String, dynamic>.from(
+        state?['totalAttempts'] as Map? ?? const {},
+      ),
+      roundReady: (state?['roundReady'] as List? ?? const []).cast<String>(),
       rewardReceipt: (state?['rewards'] as Map?)?[playerId] is Map
           ? Map<String, dynamic>.from(
               (state!['rewards'] as Map)[playerId] as Map,
@@ -1801,15 +2348,36 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     );
   }
 
-  void resetPresentation(_BoardFrame frame) {
+  void resetPresentation(_BoardFrame frame, {bool preserveAuthority = false}) {
+    final authority = lastAuthorityFrame;
     rewardRequested = false;
     rewardMessage = null;
     presentationGeneration++;
     presentationScheduled = false;
+    yieldedRoundFinishedForNextSequence = false;
     turningCards.clear();
     concealingCards.clear();
     pendingFrames.clear();
-    targetFrame = displayedEvents = lastAuthorityFrame = frame;
+    targetFrame = displayedEvents = frame;
+    lastAuthorityFrame = preserveAuthority ? authority : frame;
+  }
+
+  bool isNewSequence(_BoardFrame before, _BoardFrame after) =>
+      (before.finished && after.phase == 'playing') ||
+      (before.roundId != null &&
+          after.roundId != null &&
+          before.roundId != after.roundId) ||
+      (before.matchId != null &&
+          after.matchId != null &&
+          before.matchId != after.matchId);
+
+  void applyFrame(_BoardFrame frame) {
+    if (targetFrame != null && isNewSequence(targetFrame!, frame)) {
+      resetPresentation(frame, preserveAuthority: true);
+      muteFeedbackUntilSettled = false;
+    } else {
+      activateFrame(frame);
+    }
   }
 
   void activateFrame(_BoardFrame frame) {
@@ -1877,13 +2445,20 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   void receiveFrame(_BoardFrame frame) {
-    final previousAuthority = lastAuthorityFrame;
-    if (targetFrame == null ||
-        (previousAuthority?.finished == true && !frame.finished)) {
+    if (targetFrame == null) {
       resetPresentation(frame);
       return;
     }
     lastAuthorityFrame = frame;
+    if (isNewSequence(targetFrame!, frame) &&
+        targetFrame!.phase == 'roundFinished') {
+      pendingFrames.add(frame);
+      yieldedRoundFinishedForNextSequence = false;
+      if (turningCards.isEmpty && concealingCards.isEmpty) {
+        schedulePresentation();
+      }
+      return;
+    }
     final latest = pendingFrames.isEmpty ? targetFrame! : pendingFrames.last;
     if (latest.sameCards(frame)) {
       if (latest.sameEvents(frame)) {
@@ -1902,16 +2477,41 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         pendingFrames.isNotEmpty) {
       pendingFrames.add(frame);
     } else {
-      activateFrame(frame);
+      applyFrame(frame);
     }
   }
 
   void advancePresentation() {
-    if (turningCards.isNotEmpty || concealingCards.isNotEmpty) return;
+    if (turningCards.isNotEmpty || concealingCards.isNotEmpty) {
+      schedulePresentation();
+      return;
+    }
     displayFrame(targetFrame!);
+    if (targetFrame!.phase == 'roundFinished' &&
+        pendingFrames.any((frame) => isNewSequence(targetFrame!, frame)) &&
+        !yieldedRoundFinishedForNextSequence) {
+      yieldedRoundFinishedForNextSequence = true;
+      schedulePresentation();
+      return;
+    }
     while (pendingFrames.isNotEmpty) {
-      activateFrame(pendingFrames.removeAt(0));
+      final next = pendingFrames.removeAt(0);
+      if (isNewSequence(targetFrame!, next)) {
+        final queued = List<_BoardFrame>.of(pendingFrames);
+        resetPresentation(next, preserveAuthority: true);
+        muteFeedbackUntilSettled = false;
+        pendingFrames.addAll(queued);
+        continue;
+      }
+      activateFrame(next);
       if (turningCards.isNotEmpty) return;
+      if (next.phase == 'roundFinished' &&
+          pendingFrames.any((frame) => isNewSequence(next, frame)) &&
+          !yieldedRoundFinishedForNextSequence) {
+        yieldedRoundFinishedForNextSequence = true;
+        schedulePresentation();
+        return;
+      }
     }
   }
 
@@ -2032,6 +2632,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   Future<void> exit() async {
+    if (widget.online != null && net?['phase'] == 'waiting') {
+      await exitLobby();
+      return;
+    }
+    if (network && displayedEvents?.finished == true) {
+      if (mounted) Navigator.pop(context);
+      return;
+    }
     if (network && net == null) {
       await widget.online?.leave();
       await widget.bluetooth?.leave();
@@ -2076,12 +2684,25 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     if (mounted) Navigator.pop(context);
   }
 
+  Future<void> exitLobby() async {
+    await widget.online?.leave();
+    if (mounted) Navigator.pop(context);
+  }
+
   void flip(int i, {required int generation}) {
     if (generation != presentationGeneration || boardLocked) return;
+    final ranked = net?['matchType'] == 'ranked';
+    final ownRankedPlayer = ranked
+        ? ((net?['players'] as List?) ?? [])
+              .whereType<Map>()
+              .where((player) => player['id'] == playerId)
+              .firstOrNull
+        : null;
     if (network &&
         (!connected ||
             net?['phase'] != 'playing' ||
-            net?['turn'] != playerId ||
+            (!ranked && net?['turn'] != playerId) ||
+            (ranked && ownRankedPlayer?['roundComplete'] == true) ||
             ((net?['players'] as List?) ?? []).any(
               (p) => p['connected'] != true,
             ))) {
@@ -2168,11 +2789,16 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             : 'Premio già registrato';
       } else if (widget.online != null) {
         await economy.refresh();
-        message = receipt?['granted'] == true
+        final crownsDelta = receipt?['crownsDelta'];
+        final crownText = crownsDelta is int
+            ? '${crownsDelta > 0 ? '+' : ''}$crownsDelta corone'
+            : null;
+        final gemText = receipt?['granted'] == true
             ? '+${receipt!['gems']} gemme'
             : economy.offline
             ? 'Saldo in attesa di sincronizzazione'
             : 'Saldo aggiornato · ${economy.gems} gemme';
+        message = crownText == null ? gemText : '$crownText · $gemText';
       } else if (local != null) {
         message = 'Partita senza premio';
       }
@@ -2193,7 +2819,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final waiting = network && (s == null || s['phase'] == 'waiting');
     final events = displayedEvents!;
     final finished = events.finished;
-    if (finished && !rewardRequested && widget.economy != null) {
+    if (finished &&
+        !rewardRequested &&
+        widget.economy != null &&
+        (widget.online == null || events.rewardReceipt != null)) {
       rewardRequested = true;
       final ticket = activeTicket;
       final moves = List<int>.of(acceptedMoves);
@@ -2218,17 +2847,29 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final players = events.players;
     final authorityPlayers =
         (s?['players'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-    final active = network ? (s?['turn'] == playerId) : true;
+    final active = network
+        ? (s?['matchType'] == 'ranked' || s?['turn'] == playerId)
+        : true;
     final paused =
         network && authorityPlayers.any((p) => p['connected'] != true);
+    final rankedMatch = events.matchType == 'ranked';
+    final ownPlayer = players.where((p) => p['id'] == playerId).firstOrNull;
+    final ownRoundComplete = rankedMatch && ownPlayer?['roundComplete'] == true;
+    final betweenRounds = rankedMatch && events.phase == 'roundFinished';
     final cards = targetFrame!.cards;
     final matched = events.matched;
     final error = widget.online?.error ?? widget.bluetooth?.error;
     final code = s?['code']?.toString() ?? widget.online?.code;
     final vote = (s?['rematch'] as List? ?? []).contains(playerId);
+    final authorityMatchesDisplayedRound =
+        s?['roundId'] == events.roundId &&
+        s?['roundIndex'] == events.roundIndex &&
+        s?['phase'] == 'roundFinished';
     String result = 'Partita completata';
     if (finished && network) {
-      result = events.winnerId == null
+      result = events.finishReason == 'cancelled'
+          ? 'Partita annullata'
+          : events.winnerId == null
           ? 'Pareggio'
           : events.winnerId == playerId
           ? 'Hai vinto!'
@@ -2239,15 +2880,28 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           ? 'Pareggio'
           : 'Vince Giocatore ${events.scores[0] > events.scores[1] ? 1 : 2}!';
     }
-    final status = network
+    final turnStatus = network
         ? paused
               ? 'In attesa della riconnessione…'
+              : rankedMatch && ownRoundComplete
+              ? 'Attesa avversario'
+              : rankedMatch
+              ? 'Completa le 12 coppie'
               : events.turn == playerId
               ? 'Il tuo turno'
               : 'Turno di ${players.where((p) => p['id'] == events.turn).firstOrNull?['name'] ?? 'un amico'}'
         : widget.mode == PlayMode.local
         ? 'Turno del Giocatore ${(events.turn as int) + 1}'
         : '${matched.length ~/ 2} / ${widget.pairs} coppie';
+    final status = rankedMatch
+        ? betweenRounds
+              ? 'Round ${events.roundIndex} completato'
+              : finished
+              ? events.finishReason == 'completed'
+                    ? 'Risultato dei tre round'
+                    : 'Partita interrotta'
+              : 'Round ${events.roundIndex} di ${events.roundCount} · $turnStatus'
+        : turnStatus;
     Future<void> copyInvite() async {
       await Clipboard.setData(
         ClipboardData(text: inviteUriForRoom(code!).toString()),
@@ -2290,7 +2944,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               child: StatBox(
                 label:
                     '${players[p]['name']}${players[p]['id'] == playerId ? ' · TU' : ''}',
-                value: '${players[p]['score']}',
+                value: rankedMatch
+                    ? '${(events.totalAttempts[players[p]['id']] as num?)?.toInt() ?? ((players[p]['attempts'] as num?)?.toInt() ?? 0)}'
+                    : '${players[p]['score']}',
+                detail: rankedMatch
+                    ? '${players[p]['score']} ${players[p]['score'] == 1 ? 'coppia' : 'coppie'} · ${players[p]['attempts'] ?? 0} ${(players[p]['attempts'] ?? 0) == 1 ? 'tentativo' : 'tentativi'}'
+                    : null,
                 active: !finished && players[p]['id'] == events.turn,
               ),
             ),
@@ -2409,6 +3068,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                             bluetooth: widget.mode == PlayMode.bluetooth,
                             code: code,
                             onBack: exit,
+                            onLeaveLobby: exitLobby,
                             onCopy: code != null ? copyInvite : null,
                           ),
                         ),
@@ -2444,139 +3104,258 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              _FittedBoard(
-                                count: cards.length,
-                                itemBuilder: (i) => MemoryCard(
-                                  key: ValueKey('card-$i'),
-                                  index: i,
-                                  value: cards[i],
-                                  theme: gameTheme,
-                                  matched: matched.contains(i),
-                                  onTurningChanged: (turning) =>
-                                      cardTurningChanged(
-                                        i,
-                                        turning,
-                                        generation,
-                                      ),
-                                  onConcealingChanged: (closing) =>
-                                      cardConcealingChanged(
-                                        i,
-                                        closing,
-                                        generation,
-                                      ),
-                                  onTap:
-                                      finished ||
-                                          boardLocked ||
-                                          matched.contains(i) ||
-                                          cards[i] != null ||
-                                          network &&
-                                              (!active ||
-                                                  !connected ||
-                                                  paused ||
-                                                  s?['lockedUntil'] != null)
-                                      ? null
-                                      : () => flip(i, generation: generation),
+                              KeyedSubtree(
+                                key: ValueKey('board-$presentationGeneration'),
+                                child: _FittedBoard(
+                                  count: cards.length,
+                                  itemBuilder: (i) => MemoryCard(
+                                    key: ValueKey('card-$i'),
+                                    index: i,
+                                    value: cards[i],
+                                    theme: gameTheme,
+                                    matched: matched.contains(i),
+                                    onTurningChanged: (turning) =>
+                                        cardTurningChanged(
+                                          i,
+                                          turning,
+                                          generation,
+                                        ),
+                                    onConcealingChanged: (closing) =>
+                                        cardConcealingChanged(
+                                          i,
+                                          closing,
+                                          generation,
+                                        ),
+                                    onTap:
+                                        finished ||
+                                            ownRoundComplete ||
+                                            boardLocked ||
+                                            matched.contains(i) ||
+                                            cards[i] != null ||
+                                            network &&
+                                                (!active ||
+                                                    !connected ||
+                                                    paused ||
+                                                    s?['lockedUntil'] != null)
+                                        ? null
+                                        : () => flip(i, generation: generation),
+                                  ),
                                 ),
                               ),
                               if (finished)
-                                Center(
-                                  child: Container(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 380,
-                                    ),
-                                    padding: const EdgeInsets.all(18),
-                                    decoration: BoxDecoration(
-                                      color: paper,
-                                      borderRadius: BorderRadius.circular(24),
-                                      border: Border.all(color: line),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: ink.withValues(alpha: .18),
-                                          blurRadius: 24,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.stars_rounded,
-                                              color: Color(0xFFDAA12D),
-                                              size: 32,
+                                SingleChildScrollView(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Center(
+                                    child: Container(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 380,
+                                      ),
+                                      padding: const EdgeInsets.all(18),
+                                      decoration: BoxDecoration(
+                                        color: paper,
+                                        borderRadius: BorderRadius.circular(24),
+                                        border: Border.all(color: line),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: ink.withValues(alpha: .18),
+                                            blurRadius: 24,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.stars_rounded,
+                                                color: Color(0xFFDAA12D),
+                                                size: 32,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  result,
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                    fontSize: 23,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            events.finishReason == 'cancelled'
+                                                ? 'Nessuna variazione di corone.'
+                                                : events.finishReason ==
+                                                      'forfeit'
+                                                ? events.winnerId == playerId
+                                                      ? 'Vittoria per abbandono dell’avversario.'
+                                                      : 'Sconfitta per abbandono.'
+                                                : rankedMatch
+                                                ? 'Tentativi totali: ${players.map((player) => (events.totalAttempts[player['id']] as num?)?.toInt() ?? 0).join(' – ')} · ${events.roundResults.length} round'
+                                                : local != null
+                                                ? '${clockText(local!.seconds)} · ${events.moves} tentativi'
+                                                : 'Partita completata.',
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              color: muted,
                                             ),
-                                            const SizedBox(width: 8),
-                                            Expanded(
+                                          ),
+                                          if (rankedMatch)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 8,
+                                              ),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  for (final round
+                                                      in events.roundResults)
+                                                    Text(
+                                                      'Round ${round['round']} · ${deckNames[round['theme']] ?? round['theme']} · ${players.map((player) => (round['attempts'] as Map?)?[player['id']] ?? 0).join(' – ')} tentativi',
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                        color: muted,
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                          if (rewardMessage != null)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 8,
+                                              ),
                                               child: Text(
-                                                result,
+                                                rewardMessage!,
                                                 textAlign: TextAlign.center,
                                                 style: const TextStyle(
-                                                  fontSize: 23,
-                                                  fontWeight: FontWeight.w700,
+                                                  color: ink,
+                                                  fontSize: 12,
                                                 ),
                                               ),
                                             ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          local != null
-                                              ? '${clockText(local!.seconds)} · ${events.moves} tentativi'
-                                              : events.finishReason == 'forfeit'
-                                              ? 'L’altro giocatore ha lasciato.'
-                                              : 'Partita completata.',
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(color: muted),
-                                        ),
-                                        if (rewardMessage != null)
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              top: 8,
+                                          const SizedBox(height: 12),
+                                          FilledButton.icon(
+                                            onPressed:
+                                                replayStarting ||
+                                                    vote ||
+                                                    network &&
+                                                        players.any(
+                                                          (p) =>
+                                                              p['connected'] !=
+                                                              true,
+                                                        )
+                                                ? null
+                                                : replay,
+                                            icon: const Icon(
+                                              Icons.replay_rounded,
                                             ),
-                                            child: Text(
-                                              rewardMessage!,
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                color: ink,
-                                                fontSize: 12,
+                                            label: Text(
+                                              vote
+                                                  ? 'In attesa…'
+                                                  : 'Un’altra partita',
+                                            ),
+                                          ),
+                                          if (network &&
+                                              (s?['rematch'] as List? ?? [])
+                                                  .isNotEmpty &&
+                                              !vote)
+                                            const Padding(
+                                              padding: EdgeInsets.only(top: 8),
+                                              child: Text(
+                                                'Rivincita richiesta',
+                                                style: TextStyle(color: teal),
                                               ),
                                             ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              if (betweenRounds)
+                                SingleChildScrollView(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Center(
+                                    child: Container(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 420,
+                                      ),
+                                      margin: const EdgeInsets.all(12),
+                                      padding: const EdgeInsets.all(18),
+                                      decoration: BoxDecoration(
+                                        color: paper,
+                                        borderRadius: BorderRadius.circular(22),
+                                        border: Border.all(color: line),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: ink.withValues(alpha: .18),
+                                            blurRadius: 24,
                                           ),
-                                        const SizedBox(height: 12),
-                                        FilledButton.icon(
-                                          onPressed:
-                                              replayStarting ||
-                                                  vote ||
-                                                  network &&
-                                                      players.any(
-                                                        (p) =>
-                                                            p['connected'] !=
-                                                            true,
-                                                      )
-                                              ? null
-                                              : replay,
-                                          icon: const Icon(
-                                            Icons.replay_rounded,
-                                          ),
-                                          label: Text(
-                                            vote
-                                                ? 'In attesa…'
-                                                : 'Un’altra partita',
-                                          ),
-                                        ),
-                                        if (network &&
-                                            (s?['rematch'] as List? ?? [])
-                                                .isNotEmpty &&
-                                            !vote)
-                                          const Padding(
-                                            padding: EdgeInsets.only(top: 8),
-                                            child: Text(
-                                              'Rivincita richiesta',
-                                              style: TextStyle(color: teal),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'Round ${events.roundIndex} completato',
+                                            style: const TextStyle(
+                                              fontSize: 21,
+                                              fontWeight: FontWeight.w700,
                                             ),
                                           ),
-                                      ],
+                                          const SizedBox(height: 6),
+                                          for (final round
+                                              in events.roundResults)
+                                            Text(
+                                              'Round ${round['round']} · ${deckNames[round['theme']] ?? round['theme']} · ${players.map((player) => (round['attempts'] as Map?)?[player['id']] ?? 0).join(' – ')} tentativi',
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                color: muted,
+                                              ),
+                                            ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Tentativi totali: ${players.map((player) => (events.totalAttempts[player['id']] as num?)?.toInt() ?? 0).join(' – ')}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          FilledButton.icon(
+                                            onPressed:
+                                                authorityMatchesDisplayedRound &&
+                                                    connected &&
+                                                    authorityPlayers.every(
+                                                      (p) =>
+                                                          p['connected'] ==
+                                                          true,
+                                                    ) &&
+                                                    !events.roundReady.contains(
+                                                      playerId,
+                                                    )
+                                                ? () =>
+                                                      widget.online?.nextRound()
+                                                : null,
+                                            icon: const Icon(
+                                              Icons.skip_next_rounded,
+                                            ),
+                                            label: Text(
+                                              events.roundReady.contains(
+                                                    playerId,
+                                                  )
+                                                  ? 'In attesa…'
+                                                  : 'Prossimo round',
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -2661,9 +3440,11 @@ class StatBox extends StatelessWidget {
     required this.label,
     required this.value,
     this.active = false,
+    this.detail,
   });
   final String label, value;
   final bool active;
+  final String? detail;
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -2687,9 +3468,28 @@ class StatBox extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 6),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (detail != null)
+                Text(
+                  detail!,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 10, color: muted),
+                ),
+            ],
+          ),
         ),
       ],
     ),
@@ -2697,20 +3497,33 @@ class StatBox extends StatelessWidget {
 }
 
 class BluetoothLobby extends StatefulWidget {
-  const BluetoothLobby({
+  const BluetoothLobby.create({
     super.key,
     required this.prefs,
     required this.name,
-    required this.pairs,
-    required this.theme,
+    required int this.pairs,
+    required String this.theme,
     this.economy,
     this.gameKey,
-  });
+  }) : hosting = true;
+
+  const BluetoothLobby.search({
+    super.key,
+    required this.prefs,
+    required this.name,
+    this.economy,
+    this.gameKey,
+  }) : hosting = false,
+       pairs = null,
+       theme = null;
+
   final SharedPreferences prefs;
   final EconomyController? economy;
   final GlobalKey? gameKey;
-  final String name, theme;
-  final int pairs;
+  final bool hosting;
+  final String name;
+  final String? theme;
+  final int? pairs;
   @override
   State<BluetoothLobby> createState() => _BluetoothLobbyState();
 }
@@ -2731,6 +3544,14 @@ class _BluetoothLobbyState extends State<BluetoothLobby> {
           Future.value(null),
     );
     ble.addListener(update);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (widget.hosting) {
+        unawaited(connect());
+      } else {
+        unawaited(scan());
+      }
+    });
   }
 
   void update() {
@@ -2744,11 +3565,22 @@ class _BluetoothLobbyState extends State<BluetoothLobby> {
     super.dispose();
   }
 
+  Future<void> scan() async {
+    if (busy) return;
+    setState(() => busy = true);
+    try {
+      await ble.scan();
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
   Future<void> connect({BluetoothPeer? peer}) async {
+    if (busy || (peer == null && !widget.hosting)) return;
     setState(() => busy = true);
     try {
       if (peer == null) {
-        await ble.host(widget.name, widget.pairs, widget.theme);
+        await ble.host(widget.name, widget.pairs!, widget.theme!);
       } else {
         await ble.join(peer, widget.name);
       }
@@ -2759,8 +3591,8 @@ class _BluetoothLobbyState extends State<BluetoothLobby> {
           builder: (_) => GameScreen(
             key: widget.gameKey,
             prefs: widget.prefs,
-            pairs: widget.pairs,
-            theme: widget.theme,
+            pairs: ble.state?['pairs'] as int? ?? widget.pairs ?? 8,
+            theme: ble.state?['theme'] as String? ?? widget.theme ?? 'garden',
             mode: PlayMode.bluetooth,
             bluetooth: ble,
             economy: widget.economy,
@@ -2768,6 +3600,7 @@ class _BluetoothLobbyState extends State<BluetoothLobby> {
         ),
       );
       await ble.leave();
+      if (mounted && widget.hosting) Navigator.pop(context);
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -2785,14 +3618,14 @@ class _BluetoothLobbyState extends State<BluetoothLobby> {
 
   @override
   Widget build(BuildContext context) => GameWorld(
-    collection: widget.theme,
+    collection: widget.theme ?? 'garden',
     child: Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        title: const Text('Partita Bluetooth'),
+        title: Text(widget.hosting ? 'Crea partita' : 'Cerca partita'),
         actions: [
           IconButton(
             tooltip: 'Aiuto Bluetooth',
@@ -2823,46 +3656,35 @@ class _BluetoothLobbyState extends State<BluetoothLobby> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
               child: Column(
                 children: [
-                  const Text(
-                    'Un telefono ospita, l’altro cerca la partita.',
+                  Text(
+                    widget.hosting
+                        ? '${deckNames[widget.theme]} · ${widget.pairs} coppie'
+                        : 'Scegli una partita vicina. Il mazzo e le coppie sono quelli di chi crea.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: muted),
+                    style: const TextStyle(color: ink),
                   ),
                   const SizedBox(height: 12),
-                  LayoutBuilder(
-                    builder: (context, c) {
-                      final host = FilledButton.icon(
-                        onPressed: busy ? null : () => connect(),
-                        icon: const Icon(Icons.add_rounded),
-                        label: const Text('Ospita partita'),
-                      );
-                      final scan = OutlinedButton.icon(
-                        onPressed: busy ? null : () => ble.scan(),
-                        icon: const Icon(Icons.radar_rounded),
-                        label: Text(
-                          ble.scanning ? 'Aggiorna ricerca' : 'Cerca partita',
-                        ),
-                      );
-                      if (c.maxWidth > 500) {
-                        return Row(
-                          children: [
-                            Expanded(child: host),
-                            const SizedBox(width: 12),
-                            Expanded(child: scan),
-                          ],
-                        );
-                      }
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [host, const SizedBox(height: 8), scan],
-                      );
-                    },
+                  SizedBox(
+                    width: double.infinity,
+                    child: widget.hosting
+                        ? FilledButton.icon(
+                            onPressed: busy ? null : () => connect(),
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: Text(
+                              busy ? 'Creazione in corso…' : 'Riprova',
+                            ),
+                          )
+                        : OutlinedButton.icon(
+                            onPressed: busy ? null : scan,
+                            icon: const Icon(Icons.radar_rounded),
+                            label: const Text('Aggiorna ricerca'),
+                          ),
                   ),
                   const SizedBox(height: 8),
                   _WorldNotice(
                     message: ble.error ?? ble.status,
                     error: ble.error != null,
-                    action: ble.scanning
+                    action: busy || ble.scanning
                         ? const Padding(
                             padding: EdgeInsets.all(10),
                             child: SizedBox(
@@ -2874,12 +3696,13 @@ class _BluetoothLobbyState extends State<BluetoothLobby> {
                         : null,
                   ),
                   const SizedBox(height: 8),
-                  Expanded(
-                    child: _NearbyPeers(
-                      peers: ble.peers,
-                      onJoin: busy ? null : (peer) => connect(peer: peer),
+                  if (!widget.hosting)
+                    Expanded(
+                      child: _NearbyPeers(
+                        peers: ble.peers,
+                        onJoin: busy ? null : (peer) => connect(peer: peer),
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -3010,12 +3833,14 @@ class _RoomStatusPanel extends StatelessWidget {
     required this.bluetooth,
     required this.code,
     required this.onBack,
+    required this.onLeaveLobby,
     this.onCopy,
   });
   final OnlineGame? online;
   final String? error, code;
   final bool waitingForPlayer, bluetooth;
   final VoidCallback onBack;
+  final VoidCallback onLeaveLobby;
   final VoidCallback? onCopy;
   @override
   Widget build(BuildContext context) {
@@ -3025,6 +3850,21 @@ class _RoomStatusPanel extends StatelessWidget {
     final reconnecting =
         waitingForPlayer && online != null && !online!.connected && !terminal;
     final update = online?.errorCode == 'UPDATE_REQUIRED';
+    final state = online?.state;
+    final lobby = waitingForPlayer && state?['lobbyMode'] == true;
+    final lobbyPlayers = (state?['players'] as List? ?? const [])
+        .whereType<Map>()
+        .map((player) => Map<String, dynamic>.from(player))
+        .toList();
+    final lobbyReady = (state?['lobbyReady'] as List? ?? const [])
+        .whereType<String>()
+        .toSet();
+    final lobbyHost =
+        lobbyPlayers.isNotEmpty && lobbyPlayers.first['id'] == online?.playerId;
+    final lobbySelfReady = lobbyReady.contains(online?.playerId);
+    final lobbyBothConnected =
+        lobbyPlayers.length == 2 &&
+        lobbyPlayers.every((player) => player['connected'] == true);
     final title = preview != null
         ? 'Stanza completa'
         : update
@@ -3033,6 +3873,8 @@ class _RoomStatusPanel extends StatelessWidget {
         ? 'Partita non disponibile'
         : reconnecting
         ? 'Riconnessione…'
+        : lobby
+        ? 'Lobby della stanza'
         : waitingForPlayer
         ? 'In attesa del secondo giocatore'
         : 'Connessione alla partita…';
@@ -3042,6 +3884,10 @@ class _RoomStatusPanel extends StatelessWidget {
         ? error ?? 'Questa stanza non è più disponibile.'
         : reconnecting
         ? online!.status
+        : lobby
+        ? lobbyPlayers.length < 2
+              ? 'Condividi il codice: un amico può ancora entrare nella lobby.'
+              : 'Entrambi i giocatori devono scegliere Pronto per iniziare.'
         : waitingForPlayer
         ? bluetooth
               ? 'Sul secondo telefono scegli Bluetooth e cerca la partita.'
@@ -3062,157 +3908,240 @@ class _RoomStatusPanel extends StatelessWidget {
               borderRadius: BorderRadius.circular(22),
               child: Padding(
                 padding: EdgeInsets.all(compact ? 12 : 20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: ink,
-                        fontSize: compact ? 20 : 23,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: compact ? 6 : 10),
-                    Text(
-                      description,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: ink, fontSize: 14),
-                    ),
-                    if (preview != null) ...[
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          for (var i = 0; i < players.length; i++) ...[
-                            if (i > 0) const SizedBox(width: 8),
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE8E2F3),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      '${players[i]['name']}',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: ink,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${players[i]['score']} ${players[i]['score'] == 1 ? 'coppia' : 'coppie'}',
-                                      style: const TextStyle(
-                                        color: ink,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 8),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                       Text(
-                        preview.phase == 'finished'
-                            ? preview.winnerId == null
-                                  ? 'Risultato finale · Pareggio'
-                                  : 'Risultato finale · Vince ${winner ?? 'un giocatore'}'
-                            : 'Partita in corso · Stanza ${preview.code}',
+                        title,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: ink,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                    if (preview != null)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 4),
-                        child: Text(
-                          'Anteprima statica · aggiorna per il risultato',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: ink, fontSize: 11),
-                        ),
-                      ),
-                    if (update) ...[
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Aggiorna SommoMemory da TestFlight o Google Play, poi riapri l’invito.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: ink, fontSize: 13),
-                      ),
-                    ],
-                    if (!failed &&
-                        !terminal &&
-                        preview == null &&
-                        code != null) ...[
-                      const SizedBox(height: 8),
-                      SelectableText(
-                        code!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: ink,
-                          fontSize: 30,
-                          letterSpacing: 4,
+                          fontSize: compact ? 20 : 23,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      if (!bluetooth && onCopy != null)
-                        TextButton.icon(
-                          onPressed: onCopy,
-                          icon: const Icon(Icons.copy_rounded, size: 18),
-                          label: const Text('Copia invito'),
-                        ),
-                    ],
-                    if (failed || terminal || preview != null) ...[
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: FilledButton(
-                              style: FilledButton.styleFrom(
-                                minimumSize: const Size(48, 44),
-                              ),
-                              onPressed: onBack,
-                              child: Text(
-                                preview != null
-                                    ? 'Cambia stanza'
-                                    : 'Torna alla home',
-                              ),
-                            ),
-                          ),
-                          if (preview != null) ...[
-                            const SizedBox(width: 8),
-                            IconButton(
-                              tooltip: 'Aggiorna anteprima',
-                              onPressed: online?.canRefreshPreview == true
-                                  ? () => online!.refreshPreview()
-                                  : null,
-                              icon: const Icon(Icons.refresh_rounded),
-                            ),
-                          ],
-                          if (online?.canRetry == true) ...[
-                            const SizedBox(width: 8),
-                            IconButton(
-                              onPressed: () => online!.open(null),
-                              tooltip: 'Riprova connessione',
-                              icon: const Icon(Icons.refresh_rounded),
-                            ),
-                          ],
-                        ],
+                      SizedBox(height: compact ? 6 : 10),
+                      Text(
+                        description,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: ink, fontSize: 14),
                       ),
+                      if (lobby) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            for (var index = 0; index < 2; index++) ...[
+                              if (index > 0) const SizedBox(width: 8),
+                              Expanded(
+                                child: Builder(
+                                  builder: (context) {
+                                    final player = lobbyPlayers.length > index
+                                        ? lobbyPlayers[index]
+                                        : null;
+                                    final playerConnected =
+                                        player?['connected'] == true;
+                                    final playerId = player?['id'];
+                                    final playerReady =
+                                        playerId is String &&
+                                        lobbyReady.contains(playerId);
+                                    final role = index == 0 ? 'Host' : 'Ospite';
+                                    final playerStatus = player == null
+                                        ? 'Posto libero'
+                                        : !playerConnected
+                                        ? 'Disconnesso'
+                                        : playerReady
+                                        ? 'Pronto'
+                                        : 'In attesa';
+                                    return Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFE8E2F3),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            player == null
+                                                ? role
+                                                : '${player['name']} · $role',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              color: ink,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            playerStatus,
+                                            style: const TextStyle(
+                                              color: ink,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        FilledButton(
+                          onPressed:
+                              lobbyBothConnected &&
+                                  online?.connected == true &&
+                                  !lobbySelfReady
+                              ? () => online!.ready(true)
+                              : null,
+                          child: Text(lobbySelfReady ? 'In attesa…' : 'Pronto'),
+                        ),
+                        TextButton(
+                          onPressed: onLeaveLobby,
+                          child: Text(
+                            lobbyHost ? 'Chiudi lobby' : 'Esci dalla lobby',
+                          ),
+                        ),
+                      ],
+                      if (preview != null) ...[
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            for (var i = 0; i < players.length; i++) ...[
+                              if (i > 0) const SizedBox(width: 8),
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE8E2F3),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        '${players[i]['name']}',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: ink,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${players[i]['score']} ${players[i]['score'] == 1 ? 'coppia' : 'coppie'}',
+                                        style: const TextStyle(
+                                          color: ink,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          preview.phase == 'finished'
+                              ? preview.winnerId == null
+                                    ? 'Risultato finale · Pareggio'
+                                    : 'Risultato finale · Vince ${winner ?? 'un giocatore'}'
+                              : 'Partita in corso · Stanza ${preview.code}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: ink,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                      if (preview != null)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 4),
+                          child: Text(
+                            'Anteprima statica · aggiorna per il risultato',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: ink, fontSize: 11),
+                          ),
+                        ),
+                      if (update) ...[
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Aggiorna SommoMemory da TestFlight o Google Play, poi riapri l’invito.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: ink, fontSize: 13),
+                        ),
+                      ],
+                      if (!failed &&
+                          !terminal &&
+                          preview == null &&
+                          code != null) ...[
+                        const SizedBox(height: 8),
+                        SelectableText(
+                          code!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: ink,
+                            fontSize: 30,
+                            letterSpacing: 4,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (!bluetooth && onCopy != null)
+                          TextButton.icon(
+                            onPressed: onCopy,
+                            icon: const Icon(Icons.copy_rounded, size: 18),
+                            label: const Text('Copia invito'),
+                          ),
+                      ],
+                      if (failed || terminal || preview != null) ...[
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: FilledButton(
+                                style: FilledButton.styleFrom(
+                                  minimumSize: const Size(48, 44),
+                                ),
+                                onPressed: onBack,
+                                child: Text(
+                                  preview != null
+                                      ? 'Cambia stanza'
+                                      : 'Torna alla home',
+                                ),
+                              ),
+                            ),
+                            if (preview != null) ...[
+                              const SizedBox(width: 8),
+                              IconButton(
+                                tooltip: 'Aggiorna anteprima',
+                                onPressed: online?.canRefreshPreview == true
+                                    ? () => online!.refreshPreview()
+                                    : null,
+                                icon: const Icon(Icons.refresh_rounded),
+                              ),
+                            ],
+                            if (online?.canRetry == true) ...[
+                              const SizedBox(width: 8),
+                              IconButton(
+                                onPressed: () => online!.open(null),
+                                tooltip: 'Riprova connessione',
+                                icon: const Icon(Icons.refresh_rounded),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),

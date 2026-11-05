@@ -1,29 +1,51 @@
 # SommoMemory profiles and gems — API v1
 
 Base URL: `https://sommomemory.sommomi.cc/api/v1`. JSON requests and responses;
-`Authorization: Bearer <token>` on authenticated routes. No cookies, email,
-passwords, third-party login, money, purchases or transfers. All responses use
+`Authorization: Bearer <token>` on authenticated routes. No cookies, app
+passwords, money, purchases or transfers. Optional Apple/Google login extends the
+same profiles; it is disabled until configured. All responses use
 `Cache-Control: no-store`. Error shape: `{ "error": { "code": "…", "message": "…" } }`.
 
 ## Catalog and profile
 
-`GET /catalog` is public and returns `decks` and `rules`. Stable deck IDs/prices:
+`GET /catalog` is public and returns `decks`, `rules`, `arenas` and `rankedEnabled`.
+It includes only ready deck content. Stable legacy deck IDs/prices:
 `garden:0`, `cosmos:0`, `ocean:0`, `paola:0`, `food:200`, `sports:300`, `travel:400`.
-The first four are always owned, including by existing profiles with no wallet
-charge or new welcome grant. Unlocks are permanent within a profile.
+New profiles start with `garden`, `farm`, `flora` and `paola`. Arena thresholds
+unlock the other free collections. Existing profiles retain `cosmos` and `ocean`
+through `legacyDecks`, plus all purchased decks, for non-ranked use even before
+their arena is reached. This grants no crowns or other decks of that arena.
+Unlocks are permanent within a profile; new paid purchases require a reached
+arena. The canonical 21-deck arena catalog plus Paola is in
+`server/catalog/arenas.v1.json` and [ARENAS_SPEC.md](ARENAS_SPEC.md).
 `paola` is the text-based Paola collection: string IDs 0–17 map in order to
 PA, PE, PI, PO, PU, LA, LE, LI, LO, LU, MA, ME, MI, MO, MU, SA, SE, SI.
 
-Profile JSON is `{id,displayName,activated,recoveryVersion,gems,ownedDecks,revision}`. Display name
+Authenticated profile JSON is `{id,displayName,avatarId,accentId,activated,recoveryEnabled,linkedProviders,recoveryVersion,gems,ownedDecks,legacyDecks,revision,crowns,peakCrowns,currentArenaId,unlockedArenaIds}`. `activated`
+retains its original meaning (recovery code enabled); it does not indicate a
+social login. Appearance defaults to `fox` and `forest`, providers to an empty
+list, and `recoveryEnabled` falls back to `activated` for older services. Display name
 may be empty; limit 24 Unicode characters. Treat the server snapshot as
 authoritative and ignore lower revisions for the **same profile ID**. Replacing
 the profile changes the ID/revision scope and must clear profile-specific caches.
+
+Arena progression metadata is additive: `crowns` and `peakCrowns` start at zero
+for existing and new profiles, with `peakCrowns >= crowns`. `currentArenaId` is
+derived from current crowns; `unlockedArenaIds` from the historical peak.
+Thresholds are `wild_valley:0`, `coral_bay:100`, `grand_city:300`,
+`space_frontier:600`. Older cached responses without these counters default to
+zero; a missing peak defaults to the current crown value. Clients derive arena
+IDs from the versioned catalog rather than accepting cached IDs as authority.
+These fields cannot be set through `PATCH /profile`. Ranked matches are admitted
+by invitation with two distinct profiles in the same current arena; automatic
+matchmaking remains a future feature. See [arena specification](ARENAS_SPEC.md) and
+[implementation tasks](ARENAS_TASKS.md).
 
 | Method/path | Body | Response |
 | --- | --- | --- |
 | POST `/profiles` (public) | `{}` | 201 `{token,profile}`: anonymous guest, 100 welcome gems once |
 | GET `/profile` | — | `{profile}` |
-| PATCH `/profile` | `{displayName}` | `{profile}` |
+| PATCH `/profile` | `{displayName?,avatarId?,accentId?}` | `{profile}`; omitted fields preserved |
 | GET `/profile/ledger` | — | `{entries:[{source,delta,createdAt}]}` (latest 50) |
 | POST `/profile/recovery` | `{displayName?}` | `{recoveryCode,profile}`: activate optional sync |
 | POST `/profile/recovery/rotate` | `{}` | `{recoveryCode,profile}`: invalidate old recovery code |
@@ -64,7 +86,8 @@ profile cannot be recovered; there is no support/email override.
 `POST /wallet/unlock {deckId,requestId}` returns
 `{profile,deckId,unlocked,alreadyOwned}`. An owned deck is never charged again,
 even with a different request ID. Insufficient funds: 409 `INSUFFICIENT_GEMS`.
-Unknown deck: 400 `INVALID_DECK`.
+Unknown or unavailable deck: 400 `INVALID_DECK`. An unreached arena returns
+403 `ARENA_LOCKED`; an already owned historical purchase is never charged again.
 
 `requestId` is a client-generated UUID or 8–80 `[A-Za-z0-9_-]` characters.
 Reuse it for a network retry of the **same action**, not another action. Reusing
@@ -138,7 +161,7 @@ host/join free decks; previous app versions support their original three themes.
 A host selecting a paid deck must own it;
 guests can join without ownership. Rematch checks host ownership again.
 Every new client sends `supportedDecks` on WebSocket create/join/resume, with at
-most 10 unique known canonical deck IDs. Omission means the original three themes.
+most 64 unique known canonical deck IDs. Omission means the original three themes.
 The server rejects unsupported room themes with `UPDATE_REQUIRED` before any
 seat/session mutation or snapshot; malformed capabilities produce
 `INVALID_CAPABILITIES`. A guest owning no paid decks can still advertise the deck
@@ -163,6 +186,28 @@ the same reward is retried after 5 seconds. The room stays available past its TT
 while payment is pending; rematch returns `REWARD_PENDING` until resolution.
 Restore isolates reward-hook failures per room, so unrelated rooms still load.
 
+Ranked rooms additionally require `matchType:"ranked"`, the current `arenaId`
+and features `ranked-v1` and `ranked-attempts-v1`. Three distinct decks from the arena's free
+and either profile's owned collections are drawn once at match start. The three
+12-pair rounds use identical layouts on independent, private player boards.
+Each second card revealed counts one attempt, including mismatches. Both players
+complete each board; the lower sum of attempts across all three rounds wins,
+and equal totals draw. A completed match settles +20 crowns for a win, −20 for a loss
+(minimum zero), zero for a draw. `peakCrowns` never decreases. Exactly 20 gems
+are awarded to each profile only after all three rounds complete. Forfeit
+settles crowns without gems; simultaneous expired disconnects and deleted
+profiles cancel without rewards. Atomic `ranked_matches` receipts keyed by
+`matchId` make both profiles' crown/gem settlement idempotent across retries and
+restarts. Receipts expose only player IDs, gems, `granted` and `crownsDelta`.
+Only one ranked match may be active per profile; no client endpoint sets crowns.
+The complete wire contract is in [server protocol](../server/PROTOCOL.md).
+
+New clients advertise `lobby-v1`: both connected players confirm readiness before
+the match starts. A guest leaving this waiting lobby frees the second seat while
+preserving the host's code; the host leaving closes it. These actions have no
+crown or gem settlement. A disconnected guest can resume within 90 seconds before
+the seat is freed automatically. Once play starts, the forfeit rules apply.
+
 ## Persistence and request limits
 
 Requires Node >=22.13 (`node:sqlite`; experimental notice on Node22) or Node24.
@@ -180,5 +225,51 @@ when the backend is reachable exclusively through the trusted proxy.
 
 Do not retry a failed mutation with a new ID. On 401 `INVALID_TOKEN`, retain
 recoverable local data and offer restore; do not silently replace a funded guest.
+On 401 `PROFILE_DELETED`, erase the matching profile's local cache, recovery and
+pending proofs. Hash-only deleted-session markers allow this distinction for 31
+days; after expiry the response is the conservative generic `INVALID_TOKEN`.
 On transient 5xx/network failure, keep pending claims/tickets/unlocks and retry
 with the original ID. Reconcile a fresh profile before updating visible balances.
+
+## Optional Apple and Google accounts
+
+See [account configuration](ACCOUNTS_SETUP.md) for provider credentials, platform
+setup and release checks. Appearance choices are validated by the server:
+avatars `fox,cat,dog,panda,owl,rocket,star,flower`; accents
+`forest,ocean,cosmos,sunset,rose`. Legacy name-only updates preserve appearance.
+
+| Method/path | Body or query | Result |
+| --- | --- | --- |
+| GET `/auth/providers` | `?platform=ios\|android\|web` | Public configured providers with public client IDs and catalog IDs; no secrets |
+| POST `/auth/attempts` | `{provider,platform,operation,requestId}` | Session-bound `attemptId,nonce,state,expiresAt` and platform configuration; operation `login`, `link` or `reauth` |
+| POST `/auth/exchange` | `{attemptId,idToken?,authorizationCode?,state?}` | Verified `confirmationId,action,profile,expiresAt`; no account mutation yet |
+| POST `/auth/confirm` | `{confirmationId,confirmReplace:true,requestId}` | `{profile}` or `{token,profile}` when changing profiles |
+| POST `/auth/reauth/recovery` | `{recoveryCode}` | Marks this session recently verified, only for its own recovery code |
+| POST `/auth/callback/apple` | Provider `form_post` callback | Web postMessage or Android opaque handoff bound to the initiating attempt |
+| POST `/auth/notifications/apple` | `{payload}` signed notification | Signature-verified provider revocation/deletion event |
+| GET `/profile/identities` | — | `{identities:[{provider,createdAt}]}`; no issuer, subject or provider credentials |
+| DELETE `/profile/identities/:provider` | `{}` | `{profile}` after guarded unlink |
+| GET `/profile/sessions` | — | `{sessions:[{id,deviceName,current,createdAt,lastUsedAt}]}` |
+| DELETE `/profile/sessions/:id` | `{}` | `{revoked:true,current}`; session must belong to the authenticated profile |
+
+Attempts expire after ten minutes; confirmations after five minutes. Nonces and
+state bind provider credentials to a specific action and source device session.
+New identities attach to the current guest without new welcome grants or wallet
+merges. Already-owned identities require explicit confirmation before switching.
+Adding another provider to an existing account requires fresh verification;
+email equality is never evidence for linking accounts. Account sessions expire
+after 90 days, while guest sessions retain their existing lifetime.
+
+Sensitive operations on linked accounts require verification within five minutes
+(`REAUTH_REQUIRED`, HTTP403). Recovery rotation and profile deletion use this same
+guard. An account must retain a provider or recovery code when unlinking its last
+provider. Public recovery preview excludes linked-provider metadata; private
+identity/session routes require a valid account session.
+
+Apple refresh credentials, verification proofs and idempotent confirmation
+results are encrypted using AES-256-GCM and a domain-separated key derived from
+`economy-capability.key`, which remains outside SQLite. Deletion queues necessary
+provider revocations atomically before removing the profile; encrypted outbox
+credentials expire after at most 30 days. Notifications and daily Apple refresh
+verification revoke affected sessions. Request bodies, identity subjects,
+authorization codes and provider token responses must never be logged.

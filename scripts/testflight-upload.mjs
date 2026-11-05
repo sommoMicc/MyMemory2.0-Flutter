@@ -8,8 +8,13 @@ import { request, BUNDLE } from './asc.mjs';
 
 const args = process.argv.slice(2);
 const commitOnly = args.includes('--commit-only');
+const reuseArguments = args.filter(argument => argument.startsWith('--reuse-empty-upload='));
+const reuseUploadId = reuseArguments[0]?.slice('--reuse-empty-upload='.length);
 const files = args.filter(argument => !argument.startsWith('--'));
-if (files.length !== 1 || args.some(argument => argument.startsWith('--') && argument !== '--commit-only') || !files[0].endsWith('.ipa')) throw new Error('Usage: node scripts/testflight-upload.mjs [--commit-only] /absolute/path/MyMemory.ipa');
+if (files.length !== 1 || reuseArguments.length > 1 || (commitOnly && reuseUploadId) ||
+    (reuseUploadId !== undefined && !/^[a-zA-Z0-9-]+$/.test(reuseUploadId)) ||
+    args.some(argument => argument.startsWith('--') && argument !== '--commit-only' && !argument.startsWith('--reuse-empty-upload=')) ||
+    !files[0].endsWith('.ipa')) throw new Error('Usage: node scripts/testflight-upload.mjs [--commit-only | --reuse-empty-upload=VERIFIED_UPLOAD_ID] /absolute/path/MyMemory.ipa');
 const file = files[0];
 const target = resolve(file);
 const entries = execFileSync('/usr/bin/unzip', ['-Z1', target], { encoding:'utf8' }).split('\n');
@@ -75,12 +80,28 @@ const apps = await request(`/v1/apps?filter[bundleId]=${BUNDLE}`);
 const app = apps.data.find(item => item.attributes.bundleId === BUNDLE);
 if (!app) throw new Error('Create the App Store Connect app record first.');
 console.log(`Uploading ${app.attributes.name} ${version} (${build}), ${bytes.length} bytes, SHA-256 ${hash}`);
-const upload = await request('/v1/buildUploads', {method:'POST',body:{data:{type:'buildUploads',attributes:{cfBundleShortVersionString:version,cfBundleVersion:build,platform:'IOS'},relationships:{app:{data:{type:'apps',id:app.id}}}}}});
+let upload;
+if (reuseUploadId) {
+  const matching = await request(`/v1/apps/${app.id}/buildUploads?filter[cfBundleVersion]=${encodeURIComponent(build)}&filter[cfBundleShortVersionString]=${encodeURIComponent(version)}&filter[platform]=IOS&limit=200`);
+  if (!matching.data.some(item => item.id === reuseUploadId)) throw new Error('Empty upload does not belong to the exact app/version/build/platform.');
+  upload = await request(`/v1/buildUploads/${reuseUploadId}`);
+  const a = upload.data.attributes;
+  if (a.cfBundleShortVersionString !== version || a.cfBundleVersion !== build || a.platform !== 'IOS' ||
+      a.state?.state !== 'AWAITING_UPLOAD' || upload.data.relationships?.build?.data) throw new Error('Upload is not an unused reservation for this native IPA.');
+  const existingFiles = await request(`/v1/buildUploads/${reuseUploadId}/relationships/buildUploadFiles?limit=200`);
+  if (existingFiles.data.length || existingFiles.links?.next) throw new Error('Upload contains files; refusing to replace or mix native binaries.');
+  console.log(`Reusing verified empty build upload: ${reuseUploadId}`);
+} else {
+  const existing = await request(`/v1/apps/${app.id}/buildUploads?filter[cfBundleVersion]=${encodeURIComponent(build)}&filter[cfBundleShortVersionString]=${encodeURIComponent(version)}&filter[platform]=IOS&limit=200`);
+  if (existing.data.length) throw new Error('This version/build already has an upload. Inspect it before using --reuse-empty-upload or --commit-only; no duplicate created.');
+  upload = await request('/v1/buildUploads', {method:'POST',body:{data:{type:'buildUploads',attributes:{cfBundleShortVersionString:version,cfBundleVersion:build,platform:'IOS'},relationships:{app:{data:{type:'apps',id:app.id}}}}}});
+}
 const uploadId=upload.data.id;
 await mkdir('artifacts',{recursive:true});
 const receipt = {appId:app.id,bundleId:BUNDLE,version,build,sha256:hash,buildUploadId:uploadId,createdAt:new Date().toISOString()};
+if (reuseUploadId) receipt.reusedEmptyUpload = true;
 await saveReceipt(receipt);
-console.log(`Build upload created: ${uploadId}`);
+console.log(`${reuseUploadId ? 'Build upload reused' : 'Build upload created'}: ${uploadId}`);
 const reservation = await request('/v1/buildUploadFiles',{method:'POST',body:{data:{type:'buildUploadFiles',attributes:{fileName:basename(target),fileSize:bytes.length,uti:'com.apple.ipa',assetType:'ASSET'},relationships:{buildUpload:{data:{type:'buildUploads',id:uploadId}}}}}});
 const uploadFile=reservation.data;
 receipt.buildUploadFileId=uploadFile.id;

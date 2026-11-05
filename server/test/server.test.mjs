@@ -153,10 +153,10 @@ test('public previews retain socket rate and frame limits', async () => {
     const room = server.engine.create({ name: 'A', pairs: 6 });
     server.engine.join({ code: room.code, name: 'B' });
     const flood = await connect(url), closed = once(flood.ws, 'close');
-    for (let i = 0; i < 31; i++) flood.send({ type: 'preview', code: room.code });
+    for (let i = 0; i < 121; i++) flood.send({ type: 'preview', code: room.code });
     assert.equal((await closed)[0], 1008);
     const large = await connect(url), oversized = once(large.ws, 'close');
-    large.send({ type: 'preview', code: room.code, padding: 'x'.repeat(5000) });
+    large.send({ type: 'preview', code: room.code, padding: 'x'.repeat(17000) });
     assert.equal((await oversized)[0], 1009);
     assert.equal(server.engine.room(room.code).players.length, 2);
   } finally { await server.close(); }

@@ -1,4 +1,5 @@
 import 'dart:math';
+import '../decks.dart';
 
 /// The advertising phone alone owns the hidden deck and validates both players.
 class BleGame {
@@ -42,16 +43,7 @@ class BleGame {
            'connected': true,
          },
        ] {
-    if (![6, 8, 12, 18].contains(pairs) ||
-        ![
-          'garden',
-          'cosmos',
-          'ocean',
-          'food',
-          'sports',
-          'travel',
-          'paola',
-        ].contains(theme)) {
+    if (![6, 8, 12, 18].contains(pairs) || !deckNames.containsKey(theme)) {
       throw ArgumentError('Configurazione della partita non valida.');
     }
     _setTicket(board, ticketId, guestClaimToken);

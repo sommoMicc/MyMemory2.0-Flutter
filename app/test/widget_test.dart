@@ -6,9 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mymemory/main.dart';
 import 'package:mymemory/game.dart';
 import 'package:mymemory/economy.dart';
+import 'package:mymemory/account.dart';
 import 'package:mymemory/decks.dart';
 import 'package:mymemory/invite_links.dart';
 import 'package:mymemory/ui/collection_shop.dart';
+import 'package:mymemory/palette.dart';
 import 'package:mymemory/bluetooth/bluetooth_controller.dart';
 import 'package:mymemory/online.dart';
 import 'package:mymemory/ui/game_world.dart';
@@ -126,7 +128,11 @@ void main() {
           );
           expect(find.text('Cambia stanza').hitTestable(), findsOneWidget);
           expect(find.byType(MemoryCard), findsNothing);
-          expect(find.byType(Scrollable), findsNothing);
+          for (final scrollable in tester.stateList<ScrollableState>(
+            find.byType(Scrollable),
+          )) {
+            expect(scrollable.position.maxScrollExtent, 0);
+          }
           expect(tester.takeException(), isNull);
         }
         await tester.tap(find.byTooltip('Aggiorna anteprima'));
@@ -166,7 +172,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Collezione'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Oceano'));
+      await tester.tap(find.text('Fattoria'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Inizia partita'));
       await tester.pumpAndSettle();
@@ -211,7 +217,8 @@ void main() {
       await tester.tap(find.text('Online'));
       await tester.pumpAndSettle();
       expect(find.text('Crea stanza').hitTestable(), findsOneWidget);
-      expect(find.text('Entra con un codice').hitTestable(), findsOneWidget);
+      expect(find.text('Entra con un codice'), findsOneWidget);
+      await tester.ensureVisible(find.text('Nome'));
       await tester.tap(find.text('Nome'));
       await tester.pumpAndSettle();
       tester.view.viewInsets = FakeViewPadding(
@@ -225,6 +232,8 @@ void main() {
       tester.view.resetViewInsets();
       await tester.pumpAndSettle();
       expect(find.text('Michele'), findsOneWidget);
+      expect(find.text('Entra con un codice'), findsOneWidget);
+      await tester.ensureVisible(find.text('Entra con un codice'));
       await tester.tap(find.text('Entra con un codice'));
       await tester.pumpAndSettle();
       tester.view.viewInsets = FakeViewPadding(
@@ -261,10 +270,44 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Bluetooth'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Continua'));
-      await tester.pumpAndSettle();
-      expect(find.text('Ospita partita').hitTestable(), findsOneWidget);
       expect(find.text('Cerca partita').hitTestable(), findsOneWidget);
+      expect(find.text('Crea partita').hitTestable(), findsOneWidget);
+      expect(find.text('Collezione'), findsNothing);
+      expect(find.text('Coppie'), findsNothing);
+      await tester.tap(find.text('Crea partita'));
+      await tester.pumpAndSettle();
+      expect(find.text('Collezione').hitTestable(), findsOneWidget);
+      expect(find.text('Coppie').hitTestable(), findsOneWidget);
+      expect(find.text('Crea partita').hitTestable(), findsOneWidget);
+      expect(find.text('Cerca partita'), findsNothing);
+      await tester.tap(find.text('Crea partita'));
+      await tester.pumpAndSettle();
+      final createdLobby = tester.widget<BluetoothLobby>(
+        find.byType(BluetoothLobby),
+      );
+      expect(createdLobby.hosting, isTrue);
+      expect(createdLobby.theme, 'farm');
+      expect(createdLobby.pairs, 18);
+      expect(find.text('Aggiorna ricerca'), findsNothing);
+      expect(find.text('Fattoria · 18 coppie'), findsOneWidget);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.text('Collezione').hitTestable(), findsOneWidget);
+      await tester.tap(find.byTooltip('Scelta partita Bluetooth'));
+      await tester.pumpAndSettle();
+      expect(find.text('Collezione'), findsNothing);
+      await tester.tap(find.text('Cerca partita'));
+      await tester.pumpAndSettle();
+      final bluetoothLobby = tester.widget<BluetoothLobby>(
+        find.byType(BluetoothLobby),
+      );
+      expect(bluetoothLobby.hosting, isFalse);
+      expect(bluetoothLobby.theme, isNull);
+      expect(bluetoothLobby.pairs, isNull);
+      expect(find.text('Aggiorna ricerca').hitTestable(), findsOneWidget);
+      expect(find.text('Collezione'), findsNothing);
+      expect(find.text('Coppie'), findsNothing);
+      expect(find.text('Crea partita'), findsNothing);
       expect(find.byType(Scrollable), findsNothing);
       expect(tester.takeException(), isNull);
       final online = OnlineGame(prefs)
@@ -298,6 +341,28 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
   }
+
+  testWidgets('Ranked setup shows current crowns and historical record', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({'sound': false, 'haptics': false});
+    final prefs = await SharedPreferences.getInstance();
+    final economy = _UiEconomy(prefs)..replace(crowns: 145, peakCrowns: 420);
+    await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Online'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Classificata'));
+    await tester.pumpAndSettle();
+    expect(find.text('145 corone · Record 420'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    economy.dispose();
+  });
 
   for (final viewport in viewports) {
     testWidgets('Every difficulty uses complete rows at ${viewport.$1}', (
@@ -447,11 +512,10 @@ void main() {
   testWidgets(
     'World fills the viewport and stops motion when paused or reduced',
     (tester) async {
-      configureView(
-        tester,
-        const Size(390, 844),
-        const FakeViewPadding(top: 59, bottom: 34),
-      );
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(disableAnimations: false);
       await tester.pumpWidget(
@@ -1073,38 +1137,76 @@ void main() {
         await tester.tap(find.byType(GemBalance));
         await tester.pumpAndSettle();
         expect(find.text('Animali'), findsOneWidget);
-        expect(find.byType(Scrollable), findsNothing);
-        await tester.tap(find.byTooltip('Altre collezioni'));
-        await tester.pumpAndSettle();
-        expect(find.text('Cibo'), findsOneWidget);
-        expect(find.text('Sport'), findsOneWidget);
-        expect(find.text('Viaggi'), findsOneWidget);
+        expect(find.byType(Scrollable), findsOneWidget);
+        await tester.scrollUntilVisible(
+          find.text('Cibo'),
+          240,
+          scrollable: find.byType(Scrollable).first,
+        );
+        expect(
+          find.widgetWithText(FilledButton, 'Arena bloccata'),
+          findsWidgets,
+        );
         expect(tester.takeException(), isNull);
-        await tester.tap(find.widgetWithText(FilledButton, 'Sblocca').first);
+        expect(economy.gems, 500);
+        tester
+            .state<ScrollableState>(find.byType(Scrollable).first)
+            .position
+            .jumpTo(0);
         await tester.pumpAndSettle();
-        expect(economy.gems, 300);
-        expect(economy.ownsDeck('food'), isTrue);
+        economy.replace(
+          decks: {...economy.ownedDecks, 'ocean', 'cosmos'},
+          legacyDecks: const {'ocean', 'cosmos'},
+        );
+        await tester.scrollUntilVisible(
+          find.text('Oceano'),
+          240,
+          scrollable: find.byType(Scrollable).first,
+        );
+        final oceanText = find.text('Oceano');
+        final oceanCards = find.ancestor(
+          of: oceanText,
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is Container && widget.decoration is BoxDecoration,
+          ),
+        );
+        expect(oceanCards, findsWidgets);
+        final hasLegacyOceanPalette = tester
+            .widgetList<Container>(oceanCards)
+            .any(
+              (container) =>
+                  (container.decoration! as BoxDecoration).border?.top.color ==
+                  deckAccent('ocean').withValues(alpha: .28),
+            );
+        expect(hasLegacyOceanPalette, isTrue);
+        await tester.ensureVisible(oceanText);
+        await tester.pumpAndSettle();
+        await tester.tap(oceanText);
+        await tester.pumpAndSettle();
+        expect(prefs.getString('game.collection'), 'ocean');
         await tester.tap(find.byTooltip('Profilo'));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Collega'));
+        await tapProfileAction(tester, 'Salva e collega');
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Salva il profilo'));
+        await tapProfileAction(tester, 'Crea codice di recupero');
         await tester.pumpAndSettle();
         expect(find.text('Codice di recupero'), findsOneWidget);
         expect(find.text('Copia codice').hitTestable(), findsOneWidget);
         expect(tester.takeException(), isNull);
         await tester.tap(find.text('Fatto'));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Mostra codice'));
+        await tapProfileAction(tester, 'Mostra codice');
         await tester.pumpAndSettle();
         expect(economy.rotateCalls, 0);
         expect(economy.activateCalls, 2);
         await tester.tap(find.text('Fatto'));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Gestisci'));
+        await tapProfileAction(tester, 'Gestisci');
         await tester.pumpAndSettle();
+        await revealProfileAction(tester, 'Elimina profilo');
         expect(find.text('Elimina profilo').hitTestable(), findsOneWidget);
-        expect(find.byType(Scrollable), findsNothing);
+        expect(find.byType(Scrollable), findsOneWidget);
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox());
         economy.dispose();
@@ -1130,9 +1232,9 @@ void main() {
       await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
       await tester.tap(find.byTooltip('Profilo'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Collega'));
+      await tapProfileAction(tester, 'Salva e collega');
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Ho già un codice'));
+      await tapProfileAction(tester, 'Ho già un codice');
       await tester.pumpAndSettle();
       tester.view.viewInsets = const FakeViewPadding(bottom: 270);
       await tester.pumpAndSettle();
@@ -1146,14 +1248,17 @@ void main() {
       await tester.pumpAndSettle();
       expect(economy.restoreCalls, 0);
       expect(economy.profile!.id, 'guest');
+      expect(find.text('Conserva il profilo attuale'), findsOneWidget);
+      await tester.tap(find.text('Continua senza codice'));
+      await tester.pumpAndSettle();
       expect(find.text('Collega questo profilo?'), findsOneWidget);
       await tester.tap(find.widgetWithText(FilledButton, 'Collega'));
       await tester.pumpAndSettle();
       expect(economy.restoreCalls, 1);
       expect(economy.profile!.id, 'restored');
-      await tester.tap(find.text('Gestisci'));
+      await tapProfileAction(tester, 'Gestisci');
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Elimina profilo'));
+      await tapProfileAction(tester, 'Elimina profilo');
       await tester.pumpAndSettle();
       expect(economy.deleteCalls, 0);
       await tester.tap(find.text('Annulla'));
@@ -1342,11 +1447,20 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Collezione'));
       await tester.pumpAndSettle();
-      while (find.text('Paola').evaluate().isEmpty) {
-        await tester.tap(find.byTooltip('Altre collezioni'));
-        await tester.pumpAndSettle();
-      }
-      await tester.tap(find.widgetWithText(FilledButton, 'Usa').last);
+      final usePaola = find.descendant(
+        of: find.byKey(const ValueKey('deck-offer-paola')),
+        matching: find.widgetWithText(FilledButton, 'Usa'),
+      );
+      await tester.scrollUntilVisible(
+        usePaola,
+        180,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await Scrollable.ensureVisible(tester.element(usePaola), alignment: .5);
+      await tester.pumpAndSettle();
+      expect(usePaola.hitTestable(), findsOneWidget);
+      await tester.tap(usePaola);
       await tester.pumpAndSettle();
       expect(find.text('Paola'), findsOneWidget);
       await tester.tap(find.text('Coppie'));
@@ -1458,14 +1572,14 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Collezione'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Spazio'));
+    await tester.tap(find.text('Fattoria'));
     await tester.pumpAndSettle();
     await tester.pumpWidget(const SizedBox());
     await tester.pumpWidget(MyMemory(prefs: prefs));
     await tester.tap(find.text('Singolo'));
     await tester.pumpAndSettle();
     expect(find.text('12'), findsOneWidget);
-    expect(find.text('Spazio'), findsOneWidget);
+    expect(find.text('Fattoria'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
 
@@ -1596,6 +1710,29 @@ Map<String, dynamic> presentationFrame(
   ],
 };
 
+Future<void> revealProfileAction(WidgetTester tester, String label) async {
+  final text = find.text(label);
+  if (text.evaluate().isEmpty) {
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, 1200));
+    await tester.pumpAndSettle();
+  }
+  if (text.evaluate().isEmpty) {
+    await tester.scrollUntilVisible(
+      text,
+      140,
+      scrollable: find.byType(Scrollable).first,
+    );
+  }
+  await tester.ensureVisible(text.last);
+  await tester.pumpAndSettle();
+}
+
+Future<void> tapProfileAction(WidgetTester tester, String label) async {
+  await revealProfileAction(tester, label);
+  await tester.tap(find.text(label).last);
+  await tester.pumpAndSettle();
+}
+
 class _UiEconomy extends EconomyController {
   _UiEconomy(SharedPreferences prefs) : super(prefs: prefs);
   ProfileData data = ProfileData(
@@ -1626,6 +1763,12 @@ class _UiEconomy extends EconomyController {
   @override
   String? get profileToken => 'test-profile-token';
   @override
+  Future<List<AccountProvider>> discoverAccountProviders() async => [];
+  @override
+  Future<List<AccountSession>> listAccountSessions() async => [];
+  @override
+  Future<List<AccountProfilePreview>> archivedAccountProfiles() async => [];
+  @override
   Future<void> initialize() async {}
   @override
   Future<void> refresh() async {}
@@ -1654,13 +1797,24 @@ class _UiEconomy extends EconomyController {
           ],
           expiresAt: DateTime.now().add(const Duration(hours: 1)),
         );
-  void replace({String? name, int? balance, Set<String>? decks, bool? saved}) {
+  void replace({
+    String? name,
+    int? balance,
+    Set<String>? decks,
+    Set<String>? legacyDecks,
+    bool? saved,
+    int? crowns,
+    int? peakCrowns,
+  }) {
     data = ProfileData(
       id: data.id,
       displayName: name ?? data.displayName,
       activated: saved ?? data.activated,
       gems: balance ?? data.gems,
       ownedDecks: decks ?? data.ownedDecks,
+      legacyDecks: legacyDecks ?? data.legacyDecks,
+      crowns: crowns ?? data.crowns,
+      peakCrowns: peakCrowns ?? data.peakCrowns,
       revision: data.revision + 1,
     );
     notifyListeners();

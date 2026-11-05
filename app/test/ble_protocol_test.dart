@@ -4,8 +4,24 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mymemory/bluetooth/framing.dart';
 import 'package:mymemory/bluetooth/ble_game.dart';
+import 'package:mymemory/decks.dart';
 
 void main() {
+  test(
+    'Every bundled deck can be hosted offline without revealing the board',
+    () {
+      for (final theme in deckNames.keys) {
+        final game = BleGame('Host', 18, theme, 'ABCD', random: Random(5))
+          ..join('Guest');
+        final state = game.snapshot();
+        expect(state['theme'], theme);
+        expect(state['phase'], 'playing');
+        expect(state['cards'], everyElement(isNull));
+        expect((state['cards'] as List).length, 36);
+      }
+      expect(() => BleGame('Host', 8, 'unknown', 'ABCD'), throwsArgumentError);
+    },
+  );
   test('Minimum ATT MTU reassembles Unicode and full 36-card snapshots', () {
     final game = BleGame('Michéle 🌻', 18, 'garden', 'ABCD', random: Random(7))
       ..join('Amica');

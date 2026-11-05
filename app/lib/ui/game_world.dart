@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../palette.dart';
 import 'deck_art.dart';
 
 /// A decorative, non-interactive world underneath the complete app viewport.
@@ -310,15 +311,21 @@ class _WorldPainter extends CustomPainter {
   const _WorldPainter(this.collection, this.progress);
   final String collection;
   final double progress;
+  String get world => deckWorldTheme(collection);
   @override
   void paint(Canvas canvas, Size size) {
-    final space = collection == 'cosmos';
-    final ocean = collection == 'ocean';
-    final paola = collection == 'paola';
+    final space = world == 'cosmos';
+    final ocean = world == 'ocean';
+    final paola = world == 'paola';
     final food = collection == 'food';
     final sports = collection == 'sports';
-    final travel = collection == 'travel';
-    final colors = switch (collection) {
+    final travel = world == 'travel';
+    final city = const {
+      'vehicles',
+      'professions',
+      'instruments',
+    }.contains(collection);
+    final colors = switch (world) {
       'cosmos' => const [
         Color(0xFFA994DE),
         Color(0xFFB2A4DF),
@@ -506,6 +513,46 @@ class _WorldPainter extends CustomPainter {
         );
       }
     } else if (travel) {
+      if (city) {
+        final buildingPaint = Paint()
+          ..color = const Color(0xFF6688A3).withValues(alpha: .28);
+        for (var i = 0; i < 5; i++) {
+          final x = w * (i * .22 - .02);
+          final bh = h * (.22 + ((i * 37) % 5) * .045);
+          final building = Rect.fromLTWH(x, h * .70 - bh, w * .24, bh);
+          canvas.drawRect(building, buildingPaint);
+          final windowPaint = Paint()
+            ..color = const Color(0xFFFFE7A8).withValues(alpha: .24);
+          for (var row = 0; row < 3; row++) {
+            for (var col = 0; col < 2; col++) {
+              canvas.drawRect(
+                Rect.fromLTWH(
+                  x + w * (.035 + col * .10),
+                  h * .70 - bh + h * (.045 + row * .055),
+                  w * .035,
+                  h * .025,
+                ),
+                windowPaint,
+              );
+            }
+          }
+        }
+        canvas.drawRect(
+          Rect.fromLTWH(0, h * .70, w, h * .38),
+          Paint()..color = const Color(0xFF354C65).withValues(alpha: .25),
+        );
+        final road = Paint()
+          ..color = Colors.white.withValues(alpha: .33)
+          ..strokeWidth = 3;
+        for (var x = w * .08; x < w; x += w * .22) {
+          canvas.drawLine(
+            Offset(x, h * .87),
+            Offset(x + w * .11, h * .87),
+            road,
+          );
+        }
+        return;
+      }
       final land = Paint()
         ..color = const Color(0xFF8CB79C).withValues(alpha: .38);
       canvas.drawRRect(

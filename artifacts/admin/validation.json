@@ -1,0 +1,27 @@
+{
+  "verifiedAt": "2026-11-05T21:30:38.256Z",
+  "scope": "Local implementation; production has not been deployed",
+  "serverTests": {
+    "passed": 90,
+    "failed": 0
+  },
+  "browser": {
+    "engine": "Chromium",
+    "desktop": "1440×1100",
+    "mobile": "390×844",
+    "checks": [
+      "WebAuthn enrollment and signed login",
+      "Empty and populated overview",
+      "Live games and lobbies",
+      "Match filters and CSV download",
+      "User controlled HTML rendered as text",
+      "Passkey management page",
+      "Responsive layout without horizontal page overflow",
+      "Logout and reauthentication"
+    ],
+    "pageErrors": 0
+  },
+  "screenshots": "Temporary local test fixtures only; no production statistics",
+  "localPreview": "http://localhost:8791/admin",
+  "activation": "Private activation code generated outside the repository; no user passkey has been created"
+}

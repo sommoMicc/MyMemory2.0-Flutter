@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "rankedEnabled": true,
+  "rules": {
+    "friendlyRounds": 1,
+    "rankedRounds": 3,
+    "crownsWin": 20,
+    "crownsLoss": -20,
+    "crownsDraw": 0,
+    "crownsFloor": 0
+  },
+  "arenas": [
+    {
+      "id": "wild_valley",
+      "name": "Valle Selvaggia",
+      "minCrowns": 0
+    },
+    {
+      "id": "coral_bay",
+      "name": "Baia Corallina",
+      "minCrowns": 100
+    },
+    {
+      "id": "grand_city",
+      "name": "Grande Città",
+      "minCrowns": 300
+    },
+    {
+      "id": "space_frontier",
+      "name": "Frontiera Spaziale",
+      "minCrowns": 600
+    }
+  ],
+  "decks": [
+    {
+      "id": "garden",
+      "name": "Animali",
+      "arenaId": "wild_valley",
+      "price": 0,
+      "contentReady": true
+    },
+    {
+      "id": "farm",
+      "name": "Fattoria",
+      "arenaId": "wild_valley",
+      "price": 0,
+      "contentReady": true
+    },
+    {
+      "id": "flora",
+      "name": "Fiori e piante",
+      "arenaId": "wild_valley",
+      "price": 0,
+      "contentReady": true
+    },
+    {
+      "id": "insects",
+      "name": "Insetti",
+      "arenaId": "wild_valley",
+      "price": 200,
+      "contentReady": true
+    },
+    {
+      "id": "dinosaurs",
+      "name": "Dinosauri",
+      "arenaId": "wild_valley",
+      "price": 300,
+      "contentReady": true
+    },
+    {
+      "id": "ocean",
+      "name": "Oceano",
+      "arenaId": "coral_bay",
+      "price": 0,
+      "contentReady": true
+    },
+    {
+      "id": "beach",
+      "name": "Spiaggia",
+      "arenaId": "coral_bay",
+      "price": 0,
+      "contentReady": true
+    },
+    {
+      "id": "navigation",
+      "name": "Navigazione",
+      "arenaId": "coral_bay",
+      "price": 0,
+      "contentReady": true
+    },
+    {
+      "id": "pirates",
+      "name": "Pirati",
+      "arenaId": "coral_bay",
+      "price": 300,
+      "contentReady": true
+    },
+    {
+      "id": "abyss",
+      "name": "Abissi",
+      "arenaId": "coral_bay",
+      "price": 400,
+      "contentReady": true
+    },
+    {
+      "id": "vehicles",
+      "name": "Veicoli",
+      "arenaId": "grand_city",
+      "price": 0,
+      "contentReady": true
+    },
+    {
+      "id": "professions",
+      "name": "Mestieri",
+      "arenaId": "grand_city",
+      "price": 0,
+      "contentReady": true
+    },
+    {
+      "id": "instruments",
+      "name": "Strumenti musicali",
+      "arenaId": "grand_city",
+      "price": 0,
+      "contentReady": true
+    },
+    {
+      "id": "food",
+      "name": "Cibo",
+      "arenaId": "grand_city",
+      "price": 200,
+      "contentReady": true
+    },
+    {
+      "id": "sports",
+      "name": "Sport",
+      "arenaId": "grand_city",
+      "price": 300,
+      "contentReady": true
+    },
+    {
+      "id": "travel",
+      "name": "Viaggi",
+      "arenaId": "grand_city",
+      "price": 400,
+      "contentReady": true
+    },
+    {
+      "id": "cosmos",
+      "name": "Spazio",
+      "arenaId": "space_frontier",
+      "price": 0,
+      "contentReady": true
+    },
+    {
+      "id": "laboratory",
+      "name": "Laboratorio",
+      "arenaId": "space_frontier",
+      "price": 0,
+      "contentReady": true
+    },
+    {
+      "id": "space_base",
+      "name": "Base spaziale",
+      "arenaId": "space_frontier",
+      "price": 0,
+      "contentReady": true
+    },
+    {
+      "id": "aliens",
+      "name": "Alieni",
+      "arenaId": "space_frontier",
+      "price": 300,
+      "contentReady": true
+    },
+    {
+      "id": "robots",
+      "name": "Robot",
+      "arenaId": "space_frontier",
+      "price": 400,
+      "contentReady": true
+    },
+    {
+      "id": "paola",
+      "name": "Paola",
+      "arenaId": null,
+      "price": 0,
+      "contentReady": true
+    }
+  ]
+}

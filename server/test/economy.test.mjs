@@ -49,7 +49,8 @@ test('welcome, recovery/rotation, device logout and deletion never create or mer
     const guest = store.createProfile(), another = store.createProfile();
     assert.equal(guest.profile.gems, 100);
     assert.equal(guest.profile.recoveryVersion, 0);
-    assert.deepEqual(guest.profile.ownedDecks, ['garden', 'cosmos', 'ocean', 'paola']);
+    assert.ok(guest.profile.ownedDecks.includes('garden'));
+    assert.ok(!guest.profile.ownedDecks.includes('cosmos'));
     const activated = store.recovery(guest.profile.id, { displayName: ' Alice\n' });
     assert.equal(activated.profile.displayName, 'Alice');
     assert.equal(activated.profile.recoveryVersion, 1);
@@ -78,7 +79,7 @@ test('welcome, recovery/rotation, device logout and deletion never create or mer
     assert.equal(store.authenticate(restored.token), guest.profile.id);
     assert.throws(() => store.deleteProfile(guest.profile.id, {}), { code: 'CONFIRM_DELETE' });
     store.deleteProfile(guest.profile.id, { confirmDelete: true });
-    assert.throws(() => store.authenticate(restored.token), { code: 'INVALID_TOKEN' });
+    assert.throws(() => store.authenticate(restored.token), { code: 'PROFILE_DELETED' });
     assert.throws(() => store.recoveryProfile(rotated.recoveryCode), { code: 'INVALID_RECOVERY' });
     assert.equal(store.db.prepare('SELECT COUNT(*) AS count FROM ledger WHERE profile_id=?').get(guest.profile.id).count, 0);
     assert.equal(store.profile(another.profile.id).gems, 100);
@@ -110,6 +111,8 @@ test('permanent unlocks are atomic/idempotent and never overdraw or double charg
   const store = new EconomyStore();
   try {
     const { profile } = store.createProfile();
+    assert.throws(() => store.unlock(profile.id, { deckId: 'food', requestId: key() }), { code: 'ARENA_LOCKED' });
+    store.db.prepare('UPDATE profiles SET crowns=300,peak_crowns=300 WHERE id=?').run(profile.id);
     assert.throws(() => store.unlock(profile.id, { deckId: 'food', requestId: key() }), { code: 'INSUFFICIENT_GEMS' });
     for (let i = 0; i < 5; i++) complete(store, profile.id);
     const requestId = key();
@@ -130,6 +133,7 @@ test('Bluetooth guest capability permits one different profile without deck owne
   const store = new EconomyStore();
   try {
     const host = store.createProfile().profile, guest = store.createProfile().profile, intruder = store.createProfile().profile;
+    store.db.prepare('UPDATE profiles SET crowns=300,peak_crowns=300 WHERE id=?').run(host.id);
     for (let i = 0; i < 5; i++) complete(store, host.id);
     store.unlock(host.id, { deckId: 'food', requestId: key() });
     const requestId = key();

@@ -1,0 +1,131 @@
+{
+  "checkedAt": "2026-11-05T19:12:18.987Z",
+  "appId": "6831015201",
+  "build30012Exists": false,
+  "latestBuilds": [
+    {
+      "id": "ed02d40e-9a06-4456-ac48-5e7ca969e6f9",
+      "build": "30011",
+      "processingState": "VALID",
+      "uploadedDate": "2026-11-05T09:08:19-08:00",
+      "expired": false,
+      "betaState": "IN_BETA_TESTING",
+      "marketingVersion": "3.0.0"
+    },
+    {
+      "id": "4f5f9066-a6d9-4973-87ab-d205849d5772",
+      "build": "30009",
+      "processingState": "VALID",
+      "uploadedDate": "2026-11-05T07:45:54-08:00",
+      "expired": false,
+      "betaState": "IN_BETA_TESTING",
+      "marketingVersion": "3.0.0"
+    },
+    {
+      "id": "25bc7373-20a5-4106-a8e1-5ff3e0560280",
+      "build": "30008",
+      "processingState": "VALID",
+      "uploadedDate": "2026-11-05T05:53:02-08:00",
+      "expired": false,
+      "betaState": "IN_BETA_TESTING",
+      "marketingVersion": "3.0.0"
+    },
+    {
+      "id": "e456678f-f659-402c-a6ba-251cd03aa967",
+      "build": "30007",
+      "processingState": "VALID",
+      "uploadedDate": "2026-11-05T02:03:50-08:00",
+      "expired": false,
+      "betaState": "IN_BETA_TESTING",
+      "marketingVersion": "3.0.0"
+    },
+    {
+      "id": "fa57fa4f-fae5-4353-a2b5-a2425871ea73",
+      "build": "30006",
+      "processingState": "VALID",
+      "uploadedDate": "2026-11-05T01:23:40-08:00",
+      "expired": false,
+      "betaState": "IN_BETA_TESTING",
+      "marketingVersion": "3.0.0"
+    },
+    {
+      "id": "e464ecd5-f4d0-44b7-af9f-8b0203cfebfa",
+      "build": "30005",
+      "processingState": "VALID",
+      "uploadedDate": "2026-11-05T00:46:30-08:00",
+      "expired": false,
+      "betaState": "IN_BETA_TESTING",
+      "marketingVersion": "3.0.0"
+    },
+    {
+      "id": "95af8eae-402a-4b59-93f5-5eab63b43ab6",
+      "build": "30004",
+      "processingState": "VALID",
+      "uploadedDate": "2026-11-04T23:52:49-08:00",
+      "expired": false,
+      "betaState": "IN_BETA_TESTING",
+      "marketingVersion": "3.0.0"
+    },
+    {
+      "id": "4bf310e0-8722-472f-ae1c-180d7079f352",
+      "build": "30003",
+      "processingState": "VALID",
+      "uploadedDate": "2026-11-04T23:29:18-08:00",
+      "expired": false,
+      "betaState": "IN_BETA_TESTING",
+      "marketingVersion": "3.0.0"
+    },
+    {
+      "id": "b8837758-5b6f-48a1-acb0-c508db210729",
+      "build": "30001",
+      "processingState": "VALID",
+      "uploadedDate": "2026-11-04T22:26:16-08:00",
+      "expired": false,
+      "betaState": "IN_BETA_TESTING",
+      "marketingVersion": "3.0.0"
+    }
+  ],
+  "group": {
+    "id": "d811d09d-3800-4275-b5c3-8a9773439b1d",
+    "name": "SommoMemory Internal",
+    "internal": true,
+    "publicLinkEnabled": null,
+    "appId": "6831015201",
+    "testers": [
+      {
+        "id": "8f73fef5-1c02-4500-92e6-b8e31f908f11",
+        "isAccountHolder": false,
+        "state": "INSTALLED"
+      },
+      {
+        "id": "0503efbd-2924-4827-9232-920bd5cc7d76",
+        "isAccountHolder": true,
+        "state": "INSTALLED"
+      }
+    ],
+    "buildIds": [
+      "95af8eae-402a-4b59-93f5-5eab63b43ab6",
+      "25bc7373-20a5-4106-a8e1-5ff3e0560280",
+      "4bf310e0-8722-472f-ae1c-180d7079f352",
+      "ed02d40e-9a06-4456-ac48-5e7ca969e6f9",
+      "b8837758-5b6f-48a1-acb0-c508db210729",
+      "e464ecd5-f4d0-44b7-af9f-8b0203cfebfa",
+      "fa57fa4f-fae5-4353-a2b5-a2425871ea73",
+      "4f5f9066-a6d9-4973-87ab-d205849d5772",
+      "e456678f-f659-402c-a6ba-251cd03aa967"
+    ]
+  },
+  "build30012Uploads": [],
+  "build30012Available": true,
+  "appPrivacyApi": {
+    "specVersion": "4.6",
+    "supported": false,
+    "availableMetadataFields": [
+      "privacyPolicyUrl",
+      "privacyChoicesUrl",
+      "privacyPolicyText"
+    ],
+    "source": "https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip"
+  },
+  "finalizeCommand": "node scripts/testflight-finalize.mjs --finalize --build=30012 --additional-tester=8f73fef5-1c02-4500-92e6-b8e31f908f11 --wait=1200"
+}

@@ -36,8 +36,11 @@ export MYMEMORY_RELEASE
 release="/srv/mymemory/releases/$MYMEMORY_RELEASE"
 previous="$(readlink -f /srv/mymemory/current 2>/dev/null || true)"
 cd "$release"
-docker compose -p mymemory -f deploy/compose.yaml build --pull=false
-docker compose -p mymemory -f deploy/compose.yaml up -d --no-build
+account_override=/srv/mymemory/private/accounts.compose.yaml
+compose_args=(-p mymemory -f deploy/compose.yaml)
+if [ -f "$account_override" ]; then compose_args+=(-f "$account_override"); fi
+docker compose "${compose_args[@]}" build --pull=false
+docker compose "${compose_args[@]}" up -d --no-build
 healthy=false
 for attempt in $(seq 1 30); do
   if curl -fsS --max-time 3 http://127.0.0.1:8798/healthz >/dev/null; then
@@ -49,7 +52,9 @@ done
 if [ "$healthy" != true ]; then
   echo 'MyMemory health check failed.' >&2
   if [ -n "$previous" ] && [ -f "$previous/deploy/compose.yaml" ]; then
-    MYMEMORY_RELEASE="$(basename "$previous")" docker compose -p mymemory -f "$previous/deploy/compose.yaml" up -d --no-build
+    rollback_args=(-p mymemory -f "$previous/deploy/compose.yaml")
+    if [ -f "$account_override" ]; then rollback_args+=(-f "$account_override"); fi
+    MYMEMORY_RELEASE="$(basename "$previous")" docker compose "${rollback_args[@]}" up -d --no-build
     echo 'Previous release restored.' >&2
   fi
   exit 1

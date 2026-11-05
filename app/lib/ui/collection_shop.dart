@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../decks.dart';
 import '../economy.dart';
+import '../arenas.dart';
 import '../palette.dart';
 import 'game_world.dart';
 import 'deck_art.dart';
@@ -66,7 +67,6 @@ class CollectionShop extends StatefulWidget {
 }
 
 class _CollectionShopState extends State<CollectionShop> {
-  int page = 0;
   String? unlocking;
   @override
   void initState() {
@@ -84,15 +84,75 @@ class _CollectionShopState extends State<CollectionShop> {
     if (mounted) setState(() {});
   }
 
-  bool owned(String id) =>
-      (deckPrices[id] ?? 0) == 0 || widget.economy?.ownsDeck(id) == true;
-  Future<void> select(String id) async {
-    if (owned(id)) {
+  bool owns(String id) =>
+      widget.economy?.ownsDeck(id) == true ||
+      (widget.economy == null && ProfileData.freeDecks.contains(id));
+
+  bool accessible(ArenaDeck deck) {
+    final profile = widget.economy?.profile;
+    if (profile == null) return owns(deck.id);
+    return ArenaProgress(
+      crowns: profile.crowns,
+      peakCrowns: profile.peakCrowns,
+    ).canUseDeck(deck.id, ownedDecks: widget.economy!.ownedDecks);
+  }
+
+  bool canUnlock(ArenaDeck deck) =>
+      deck.contentReady &&
+      deck.price > 0 &&
+      widget.economy?.profile != null &&
+      !widget.economy!.offline &&
+      !widget.economy!.busy &&
+      widget.economy!.gems >= deck.price &&
+      ArenaProgress(
+        crowns: widget.economy!.profile!.crowns,
+        peakCrowns: widget.economy!.profile!.peakCrowns,
+      ).canUnlockDeck(deck.id);
+
+  String? lockedReason(ArenaDeck deck) {
+    if (!deck.contentReady) return 'Contenuto in arrivo';
+    if (accessible(deck)) return null;
+    final profile = widget.economy?.profile;
+    final reached = profile?.unlockedArenaIds ?? const {'wild_valley'};
+    if (deck.arenaId != null && !reached.contains(deck.arenaId)) {
+      return 'Arena bloccata';
+    }
+    if (deck.price > 0) {
+      if (profile == null) return 'Profilo richiesto';
+      if (widget.economy!.offline) return 'Disponibile online';
+      if (widget.economy!.gems < deck.price) return 'Gemme insufficienti';
+    }
+    return null;
+  }
+
+  Future<void> select(ArenaDeck deck) async {
+    final id = deck.id;
+    if (!deck.contentReady) return;
+    if (accessible(deck)) {
       Navigator.pop(context, id);
       return;
     }
     final economy = widget.economy;
-    if (economy == null || unlocking != null) return;
+    if (deck.price == 0 || economy == null || unlocking != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            lockedReason(deck) ?? 'Sblocca prima l’arena con le corone.',
+          ),
+        ),
+      );
+      return;
+    }
+    if (!canUnlock(deck)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Raggiungi prima l’arena per sbloccare questa collezione.',
+          ),
+        ),
+      );
+      return;
+    }
     setState(() => unlocking = id);
     try {
       final result = await economy.unlockDeck(id);
@@ -126,10 +186,13 @@ class _CollectionShopState extends State<CollectionShop> {
 
   @override
   Widget build(BuildContext context) {
-    final ids = deckNames.keys.toList();
-    final pages = (ids.length / 3).ceil();
-    final visible = ids.skip(page * 3).take(3).toList();
     final economy = widget.economy;
+    final catalog = ArenaCatalog.instance;
+    List<ArenaDeck> visibleIn(Arena arena) => catalog.decks
+        .where(
+          (deck) => deck.arenaId == arena.id && deckNames.containsKey(deck.id),
+        )
+        .toList();
     return GameWorld(
       collection: widget.selected,
       child: Scaffold(
@@ -165,48 +228,111 @@ class _CollectionShopState extends State<CollectionShop> {
                     Expanded(
                       child: LayoutBuilder(
                         builder: (context, c) {
-                          final wide = c.maxWidth > 540;
-                          final tiles = [
-                            for (final id in visible)
-                              Expanded(
-                                child: _DeckOffer(
-                                  id: id,
-                                  owned: owned(id),
-                                  selected: id == widget.selected,
-                                  busy: unlocking == id,
-                                  wide: wide,
-                                  enabled:
-                                      unlocking == null &&
-                                      (owned(id) ||
-                                          economy != null &&
-                                              !economy.busy &&
-                                              !economy.offline &&
-                                              economy.profile != null &&
-                                              economy.gems >=
-                                                  (deckPrices[id] ?? 0)),
-                                  onTap: () => select(id),
+                          final wide = c.maxWidth > 600;
+                          return ListView(
+                            padding: EdgeInsets.zero,
+                            children: [
+                              for (final arena in catalog.arenas) ...[
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    2,
+                                    8,
+                                    2,
+                                    6,
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(
+                                        alpha: .94,
+                                      ),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            arena.name,
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          'Da ${arena.minCrowns} corone',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: ink,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              ),
-                          ];
-                          final separated = <Widget>[];
-                          for (final tile in tiles) {
-                            if (separated.isNotEmpty) {
-                              separated.add(
+                                if (visibleIn(arena).isEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: Text(
+                                      'Nessuna collezione pronta da mostrare.',
+                                      style: TextStyle(color: muted),
+                                    ),
+                                  )
+                                else if (wide)
+                                  Wrap(
+                                    spacing: 12,
+                                    runSpacing: 12,
+                                    children: [
+                                      for (final deck in visibleIn(arena))
+                                        SizedBox(
+                                          width: (c.maxWidth - 12) / 2,
+                                          height: 155,
+                                          child: _offer(deck, wide: true),
+                                        ),
+                                    ],
+                                  )
+                                else
+                                  Column(
+                                    children: [
+                                      for (final deck in visibleIn(arena))
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 10,
+                                          ),
+                                          child: SizedBox(
+                                            height: 154,
+                                            child: _offer(deck, wide: false),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                              ],
+                              if (deckNames.containsKey('paola')) ...[
+                                const Padding(
+                                  padding: EdgeInsets.fromLTRB(2, 12, 2, 6),
+                                  child: Text(
+                                    'Allenamento',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
                                 SizedBox(
-                                  width: wide ? 12 : 0,
-                                  height: wide ? 0 : 12,
+                                  height: 154,
+                                  child: _offer(
+                                    catalog.decks.singleWhere(
+                                      (deck) => deck.id == 'paola',
+                                    ),
+                                    wide: wide,
+                                  ),
                                 ),
-                              );
-                            }
-                            separated.add(tile);
-                          }
-                          return wide
-                              ? Row(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: separated,
-                                )
-                              : Column(children: separated);
+                              ],
+                            ],
+                          );
                         },
                       ),
                     ),
@@ -233,24 +359,6 @@ class _CollectionShopState extends State<CollectionShop> {
                           icon: const Icon(Icons.info_outline_rounded),
                         ),
                         const Spacer(),
-                        IconButton(
-                          tooltip: 'Collezioni precedenti',
-                          onPressed: page == 0
-                              ? null
-                              : () => setState(() => page--),
-                          icon: const Icon(Icons.chevron_left_rounded),
-                        ),
-                        Text(
-                          '${page + 1} / $pages',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        IconButton(
-                          tooltip: 'Altre collezioni',
-                          onPressed: page + 1 >= pages
-                              ? null
-                              : () => setState(() => page++),
-                          icon: const Icon(Icons.chevron_right_rounded),
-                        ),
                       ],
                     ),
                     if (economy?.offline == true)
@@ -268,41 +376,47 @@ class _CollectionShopState extends State<CollectionShop> {
       ),
     );
   }
+
+  Widget _offer(ArenaDeck deck, {required bool wide}) {
+    final isAccessible = accessible(deck);
+    final status = lockedReason(deck);
+    return _DeckOffer(
+      key: ValueKey('deck-offer-${deck.id}'),
+      id: deck.id,
+      price: deck.price,
+      owned: isAccessible,
+      selected: deck.id == widget.selected,
+      busy: unlocking == deck.id,
+      wide: wide,
+      status: status,
+      enabled: unlocking == null && (isAccessible || canUnlock(deck)),
+      onTap: () => select(deck),
+    );
+  }
 }
 
 class _DeckOffer extends StatelessWidget {
   const _DeckOffer({
+    super.key,
     required this.id,
+    required this.price,
     required this.owned,
     required this.selected,
     required this.busy,
     required this.enabled,
     required this.wide,
+    this.status,
     required this.onTap,
   });
   final String id;
+  final int price;
   final bool owned, selected, busy, enabled, wide;
+  final String? status;
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
-    final accent = switch (id) {
-      'cosmos' => const Color(0xFF7561B4),
-      'ocean' => const Color(0xFF2686A5),
-      'food' => const Color(0xFFC87837),
-      'sports' => const Color(0xFF468A54),
-      'travel' => const Color(0xFF6879B9),
-      'paola' => const Color(0xFF9B6FAD),
-      _ => teal,
-    };
-    final tint = switch (id) {
-      'cosmos' => const Color(0xFFD9CFF0),
-      'ocean' => const Color(0xFFBCE5ED),
-      'food' => const Color(0xFFF5D3AF),
-      'sports' => const Color(0xFFCFE5AB),
-      'travel' => const Color(0xFFD2DDF3),
-      'paola' => const Color(0xFFF1D2E4),
-      _ => const Color(0xFFCCE7C4),
-    };
+    final accent = deckAccent(id);
+    final tint = Color.lerp(accent, Colors.white, .7)!;
     Widget illustration(
       int value,
       double size, {
@@ -352,7 +466,13 @@ class _DeckOffer extends StatelessWidget {
               height: 18,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : Text(owned ? 'Usa' : 'Sblocca'),
+          : Text(
+              owned
+                  ? 'Usa'
+                  : price == 0
+                  ? status ?? 'Bloccata'
+                  : 'Sblocca',
+            ),
     );
     return GestureDetector(
       onTap: owned && enabled ? onTap : null,
@@ -468,11 +588,12 @@ class _DeckOffer extends StatelessWidget {
                         ),
                         child: Text(
                           owned
-                              ? ((deckPrices[id] ?? 0) == 0
-                                    ? 'Inclusa'
-                                    : 'Sbloccata')
-                              : '${deckPrices[id]} gemme',
-                          maxLines: 1,
+                              ? (price == 0 ? 'Inclusa' : 'Sbloccata')
+                              : price == 0
+                              ? status ?? 'Gratis'
+                              : '$price gemme${status == null ? '' : ' · $status'}',
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,

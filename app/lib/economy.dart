@@ -8,6 +8,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'decks.dart';
+import 'account.dart';
+import 'account_credentials.dart';
+import 'arenas.dart';
 
 class ProfileData {
   ProfileData({
@@ -18,27 +21,66 @@ class ProfileData {
     required Set<String> ownedDecks,
     required this.revision,
     this.recoveryVersion = 0,
-  }) : ownedDecks = Set.unmodifiable({...freeDecks, ...ownedDecks});
+    this.avatarId = 'fox',
+    this.accentId = 'forest',
+    Set<String> linkedProviders = const {},
+    Set<String> legacyDecks = const {},
+    bool? recoveryEnabled,
+    this.crowns = 0,
+    int? peakCrowns,
+  }) : ownedDecks = Set.unmodifiable({...freeDecks, ...ownedDecks}),
+       linkedProviders = Set.unmodifiable(linkedProviders),
+       legacyDecks = Set.unmodifiable(legacyDecks),
+       recoveryEnabled = recoveryEnabled ?? activated,
+       peakCrowns = peakCrowns ?? crowns {
+    ArenaProgress(crowns: crowns, peakCrowns: this.peakCrowns);
+  }
 
-  static const freeDecks = {'garden', 'cosmos', 'ocean', 'paola'};
+  static const freeDecks = {'garden', 'farm', 'flora', 'paola'};
   final String id, displayName;
+  final String avatarId, accentId;
   final bool activated;
+  final bool recoveryEnabled;
   final int gems, revision, recoveryVersion;
-  final Set<String> ownedDecks;
+  final int crowns, peakCrowns;
+  final Set<String> ownedDecks, linkedProviders, legacyDecks;
+  String get currentArenaId =>
+      ArenaProgress(crowns: crowns, peakCrowns: peakCrowns).currentArenaId;
+  Set<String> get unlockedArenaIds =>
+      ArenaProgress(crowns: crowns, peakCrowns: peakCrowns).unlockedArenaIds;
 
   factory ProfileData.fromJson(Map<String, dynamic> json) {
     final id = json['id'], gems = json['gems'], revision = json['revision'];
     if (id is! String || gems is! int || gems < 0 || revision is! int) {
       throw const FormatException('Invalid profile');
     }
+    final crowns = _profileCounter(json, 'crowns');
+    final peakCrowns = _profileCounter(json, 'peakCrowns', fallback: crowns);
+    ArenaProgress(crowns: crowns, peakCrowns: peakCrowns);
+    final legacyDecks =
+        (json['legacyDecks'] as List?)?.cast<String>().toSet() ??
+        (json.containsKey('legacyDecks')
+            ? <String>{}
+            : <String>{'cosmos', 'ocean'});
     return ProfileData(
       id: id,
       displayName: json['displayName'] as String? ?? '',
       activated: json['activated'] == true,
       gems: gems,
-      ownedDecks: (json['ownedDecks'] as List).cast<String>().toSet(),
+      ownedDecks: {
+        ...(json['ownedDecks'] as List).cast<String>(),
+        ...legacyDecks,
+      },
       revision: revision,
       recoveryVersion: json['recoveryVersion'] as int? ?? 0,
+      recoveryEnabled: json['recoveryEnabled'] as bool?,
+      linkedProviders:
+          (json['linkedProviders'] as List?)?.cast<String>().toSet() ?? {},
+      legacyDecks: legacyDecks,
+      avatarId: json['avatarId'] as String? ?? 'fox',
+      accentId: json['accentId'] as String? ?? 'forest',
+      crowns: crowns,
+      peakCrowns: peakCrowns,
     );
   }
 
@@ -48,9 +90,31 @@ class ProfileData {
     'activated': activated,
     'gems': gems,
     'ownedDecks': ownedDecks.toList(),
+    'legacyDecks': legacyDecks.toList(),
     'revision': revision,
     'recoveryVersion': recoveryVersion,
+    'recoveryEnabled': recoveryEnabled,
+    'linkedProviders': linkedProviders.toList(),
+    'avatarId': avatarId,
+    'accentId': accentId,
+    'crowns': crowns,
+    'peakCrowns': peakCrowns,
+    'currentArenaId': currentArenaId,
+    'unlockedArenaIds': unlockedArenaIds.toList(),
   };
+
+  static int _profileCounter(
+    Map<String, dynamic> json,
+    String key, {
+    int fallback = 0,
+  }) {
+    if (!json.containsKey(key)) return fallback;
+    final value = json[key];
+    if (value is! int || value < 0) {
+      throw FormatException('Invalid profile $key');
+    }
+    return value;
+  }
 }
 
 class GameTicket {
@@ -147,9 +211,12 @@ class EconomyController extends ChangeNotifier {
     required this.prefs,
     http.Client? client,
     EconomySecrets? secrets,
+    AccountCredentialProvider? accountCredentials,
     String? baseUrl,
   }) : _client = client ?? http.Client(),
        _secrets = secrets ?? const SecureEconomySecrets(),
+       _accountCredentials =
+           accountCredentials ?? const PlatformAccountCredentials(),
        _base = Uri.parse(
          baseUrl ??
              const String.fromEnvironment(
@@ -162,14 +229,18 @@ class EconomyController extends ChangeNotifier {
   static const _cacheKey = 'profile.cache.v1';
   static const _claimsKey = 'profile.claims.v1';
   static const _ticketsKey = 'profile.tickets.v1';
+  static const _archivedIdsKey = 'profile.archivedIds.v1';
+  static const _sessionEndedKey = 'profile.sessionEnded.v1';
   final SharedPreferences prefs;
   final http.Client _client;
   final EconomySecrets _secrets;
+  final AccountCredentialProvider _accountCredentials;
   final Uri _base;
   ProfileData? _profile;
   String? _token, _recoveryCode;
   int? _recoveryCodeVersion;
   bool _busy = false, _offline = false, _disposed = false, _syncing = false;
+  bool _sessionEnded = false;
   int _generation = 0;
   String? _lastError;
   Future<void>? _initialization;
@@ -179,12 +250,23 @@ class EconomyController extends ChangeNotifier {
   final List<Map<String, dynamic>> _claims = [];
   final List<Map<String, dynamic>> _tickets = [];
   Timer? _retry;
+  List<AccountProvider> _accountProviders = const [];
 
   ProfileData? get profile => _profile;
   int get gems => _profile?.gems ?? 0;
   Set<String> get ownedDecks => _profile?.ownedDecks ?? ProfileData.freeDecks;
   bool ownsDeck(String id) => ownedDecks.contains(id);
   bool get isSaved => _profile?.activated == true;
+  bool get hasAccount => _profile?.linkedProviders.isNotEmpty == true;
+  bool get sessionEnded => _sessionEnded;
+  List<AccountProvider> get accountProviders => _accountProviders;
+  String get accountPlatform => kIsWeb
+      ? 'web'
+      : switch (defaultTargetPlatform) {
+          TargetPlatform.iOS => 'ios',
+          TargetPlatform.android => 'android',
+          _ => 'unsupported',
+        };
   bool get busy => _busy;
   bool get offline => _offline;
   String? get lastError => _lastError;
@@ -203,6 +285,7 @@ class EconomyController extends ChangeNotifier {
   Future<void> initialize() => _initialization ??= _initialize();
   Future<void> _initialize() async {
     try {
+      _sessionEnded = prefs.getBool(_sessionEndedKey) ?? false;
       final session = await _secrets.read(_sessionKey);
       if (_disposed) return;
       if (session != null) {
@@ -263,9 +346,10 @@ class EconomyController extends ChangeNotifier {
     String path, {
     Map<String, dynamic>? body,
     bool authenticated = true,
+    String? sessionToken,
   }) async {
     if (_disposed) throw const EconomyException('Operazione annullata.');
-    if (authenticated && _token == null) {
+    if (authenticated && (sessionToken ?? _token) == null) {
       throw const EconomyException(
         'Collegati per attivare il profilo e le gemme.',
       );
@@ -280,8 +364,12 @@ class EconomyController extends ChangeNotifier {
       throw const EconomyException('Indirizzo del servizio non valido.');
     }
     final request = http.Request(method, uri)..followRedirects = false;
+    final requestGeneration = _generation;
+    final requestToken = sessionToken ?? _token;
     request.headers['Accept'] = 'application/json';
-    if (authenticated) request.headers['Authorization'] = 'Bearer $_token';
+    if (authenticated) {
+      request.headers['Authorization'] = 'Bearer ${sessionToken ?? _token}';
+    }
     if (body != null) {
       request.headers['Content-Type'] = 'application/json';
       request.body = jsonEncode(body);
@@ -304,11 +392,18 @@ class EconomyController extends ChangeNotifier {
       final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
       if (response.statusCode < 200 || response.statusCode >= 300) {
         final error = json['error'];
+        final code = (error is Map ? error['code'] : json['code']) as String?;
+        if (code == 'PROFILE_DELETED' &&
+            authenticated &&
+            requestGeneration == _generation &&
+            requestToken == _token) {
+          await _purgeDeletedProfile();
+        }
         throw EconomyException(
           (error is Map ? error['message'] : json['message']) as String? ??
               'Operazione non riuscita. Riprova.',
           retryable: response.statusCode >= 500 || response.statusCode == 429,
-          code: (error is Map ? error['code'] : json['code']) as String?,
+          code: code,
         );
       }
       return json;
@@ -338,6 +433,7 @@ class EconomyController extends ChangeNotifier {
 
   Future<void> _persist() {
     final profile = _profile?.toJson();
+    final sessionEnded = _sessionEnded;
     final claims = jsonEncode(_claims), tickets = jsonEncode(_tickets);
     _storage = _storage.catchError((Object _) {}).then((_) async {
       if (profile == null) {
@@ -347,6 +443,7 @@ class EconomyController extends ChangeNotifier {
       }
       await prefs.setString(_claimsKey, claims);
       await prefs.setString(_ticketsKey, tickets);
+      await prefs.setBool(_sessionEndedKey, sessionEnded);
     });
     return _storage;
   }
@@ -369,6 +466,7 @@ class EconomyController extends ChangeNotifier {
       );
     }
     _offline = false;
+    _sessionEnded = false;
     _lastError = null;
     await _persist();
     _changed();
@@ -392,19 +490,24 @@ class EconomyController extends ChangeNotifier {
         if (recoveryCode != null) 'recoveryVersion': next.recoveryVersion,
       }),
     );
+    if (_profile != null && _profile!.id != next.id) {
+      await _clearProfileName(_profile!.id);
+    }
     ++_generation;
     _token = token;
     _profile = next;
     _recoveryCode = recoveryCode;
     _recoveryCodeVersion = recoveryCode == null ? null : next.recoveryVersion;
+    await _removeAccountArchive(next.id);
     _lastError = null;
     _offline = false;
+    _sessionEnded = false;
     await _persist();
     _changed();
   }
 
   Future<void> sync() async {
-    if (_disposed || _syncing || _busy) return;
+    if (_disposed || _syncing || _busy || _sessionEnded) return;
     _syncing = true;
     final generation = _generation;
     try {
@@ -472,6 +575,9 @@ class EconomyController extends ChangeNotifier {
       _lastError = e.message;
       _offline = e.retryable;
       rethrow;
+    } on AccountProviderException catch (e) {
+      _lastError = e.message;
+      throw EconomyException(e.message);
     } catch (_) {
       _lastError =
           'Operazione non riuscita. Il profilo precedente è conservato.';
@@ -489,6 +595,339 @@ class EconomyController extends ChangeNotifier {
       generation,
     );
   });
+
+  Future<void> setAppearance({String? avatarId, String? accentId}) =>
+      _action(() async {
+        final generation = _generation;
+        await _accept(
+          await _request(
+            'PATCH',
+            'profile',
+            body: {'avatarId': ?avatarId, 'accentId': ?accentId},
+          ),
+          generation,
+        );
+      });
+
+  Future<List<AccountProvider>> discoverAccountProviders() async {
+    if (accountPlatform == 'unsupported') return const [];
+    final json = await _request(
+      'GET',
+      'auth/providers?platform=$accountPlatform',
+      authenticated: false,
+    );
+    _accountProviders = List.unmodifiable(
+      (json['providers'] as List)
+          .map(
+            (value) => AccountProvider.fromJson(value as Map<String, dynamic>),
+          )
+          .where((provider) {
+            if (!['apple', 'google'].contains(provider.id)) return false;
+            if (accountPlatform == 'ios') {
+              return provider.id == 'apple'
+                  ? const bool.fromEnvironment('ACCOUNT_APPLE_IOS_ENABLED')
+                  : const bool.fromEnvironment('ACCOUNT_GOOGLE_IOS_ENABLED');
+            }
+            return true;
+          }),
+    );
+    _changed();
+    return _accountProviders;
+  }
+
+  Future<AccountAttempt> _createAccountAttempt(
+    AccountProvider provider,
+    String operation,
+  ) async {
+    final profileId = _profile?.id ?? '';
+    final generation = _generation;
+    if (profileId.isEmpty && operation != 'login') {
+      throw const EconomyException('Collegati per salvare il profilo.');
+    }
+    final input = {
+      'provider': provider.id,
+      'platform': accountPlatform,
+      'operation': operation,
+      'requestId': _nonce(),
+    };
+    String? contextToken;
+    Future<void> createContext() async {
+      final provisional = await _request(
+        'POST',
+        'profiles',
+        body: {},
+        authenticated: false,
+      );
+      contextToken = provisional['token'] as String;
+    }
+
+    if (_token == null) await createContext();
+    Map<String, dynamic> json;
+    try {
+      json = await _request(
+        'POST',
+        'auth/attempts',
+        body: input,
+        sessionToken: contextToken,
+      );
+    } on EconomyException catch (error) {
+      if (operation != 'login' ||
+          error.code != 'INVALID_TOKEN' ||
+          contextToken != null) {
+        rethrow;
+      }
+      // Expired/revoked sessions may still hold valuable cached progress. A
+      // provisional login context never replaces it before user confirmation.
+      await createContext();
+      json = await _request(
+        'POST',
+        'auth/attempts',
+        body: input,
+        sessionToken: contextToken,
+      );
+    }
+    if (_disposed ||
+        generation != _generation ||
+        (_profile?.id ?? '') != profileId) {
+      throw const EconomyException('Il profilo è cambiato. Riprova.');
+    }
+    return AccountAttempt(
+      id: json['attemptId'] as String,
+      nonce: json['nonce'] as String,
+      state: json['state'] as String,
+      profileId: profileId,
+      expiresAt: accountDate(json['expiresAt']),
+      clientId: json['clientId'] as String?,
+      redirectUri: json['redirectUri'] as String?,
+      contextToken: contextToken,
+    );
+  }
+
+  /// The web Google SDK must render its own button after this attempt exists.
+  Future<AccountAttempt> prepareAccountSignIn(
+    AccountProvider provider, {
+    String operation = 'login',
+  }) async {
+    await initialize();
+    return _createAccountAttempt(provider, operation);
+  }
+
+  Future<AccountSignInPreview> _exchangeAccountCredential(
+    AccountAttempt attempt,
+    AccountCredential credential,
+  ) async {
+    if ((_profile?.id ?? '') != attempt.profileId ||
+        !attempt.expiresAt.isAfter(DateTime.now())) {
+      throw const EconomyException(
+        'La verifica di accesso è scaduta. Riprova.',
+      );
+    }
+    final json = await _request(
+      'POST',
+      'auth/exchange',
+      body: {
+        'attemptId': attempt.id,
+        'idToken': ?credential.idToken,
+        'authorizationCode': ?credential.authorizationCode,
+        'state': ?credential.state,
+      },
+      sessionToken: attempt.contextToken,
+    );
+    return AccountSignInPreview(
+      confirmationId: json['confirmationId'] as String,
+      profile: AccountProfilePreview.fromJson(
+        json['profile'] as Map<String, dynamic>,
+      ),
+      action:
+          attempt.contextToken != null &&
+              (json['profile'] as Map)['id'] != _profile?.id
+          ? 'switch'
+          : json['action'] as String,
+      expiresAt: accountDate(json['expiresAt']),
+      initialProfileId: attempt.profileId,
+      requestId: _nonce(),
+      contextToken: attempt.contextToken,
+    );
+  }
+
+  Future<AccountSignInPreview> exchangeAccountCredential(
+    AccountAttempt attempt,
+    AccountCredential credential,
+  ) => _action(() => _exchangeAccountCredential(attempt, credential));
+
+  Future<AccountSignInPreview?> beginAccountSignIn(
+    AccountProvider provider, {
+    String operation = 'login',
+  }) => _action(() async {
+    final attempt = await _createAccountAttempt(provider, operation);
+    final credential = await _accountCredentials.signIn(provider, attempt);
+    if (credential == null) return null;
+    return _exchangeAccountCredential(attempt, credential);
+  });
+
+  Future<void> confirmAccountSignIn(AccountSignInPreview preview) async {
+    // Give pending rewards a chance to finish before changing their owner scope.
+    if (preview.switchesProfile) await sync();
+    return _action(() async {
+      if ((_profile?.id ?? '') != preview.initialProfileId ||
+          !preview.expiresAt.isAfter(DateTime.now())) {
+        throw const EconomyException(
+          'La verifica di accesso è scaduta. Riprova.',
+        );
+      }
+      if (preview.switchesProfile) await _archiveCurrentAccount();
+      final generation = _generation;
+      final json = await _request(
+        'POST',
+        'auth/confirm',
+        body: {
+          'confirmationId': preview.confirmationId,
+          'confirmReplace': true,
+          'requestId': preview.requestId,
+        },
+        sessionToken: preview.contextToken,
+      );
+      if (generation != _generation || _disposed) return;
+      if (json['token'] != null || preview.contextToken != null) {
+        final nextId = (json['profile'] as Map)['id'];
+        await _install({
+          ...json,
+          'token': json['token'] ?? preview.contextToken,
+        }, recoveryCode: nextId == _profile?.id ? _recoveryCode : null);
+      } else {
+        await _accept(json, generation);
+      }
+    });
+  }
+
+  Future<void> reauthenticateWithRecovery(String code) => _action(() async {
+    await _request(
+      'POST',
+      'auth/reauth/recovery',
+      body: {'recoveryCode': code.trim()},
+    );
+  });
+
+  Future<List<AccountIdentity>> listAccountIdentities() => _action(() async {
+    final json = await _request('GET', 'profile/identities');
+    return (json['identities'] as List)
+        .map((value) => AccountIdentity.fromJson(value as Map<String, dynamic>))
+        .toList(growable: false);
+  });
+
+  Future<List<AccountSession>> listAccountSessions() => _action(() async {
+    final json = await _request('GET', 'profile/sessions');
+    return (json['sessions'] as List)
+        .map((value) => AccountSession.fromJson(value as Map<String, dynamic>))
+        .toList(growable: false);
+  });
+
+  Future<void> revokeAccountSession(String id) => _action(() async {
+    final result = await _request(
+      'DELETE',
+      'profile/sessions/${Uri.encodeComponent(id)}',
+      body: {},
+    );
+    if (result['loggedOut'] == true || result['current'] == true) {
+      await _clearSession();
+    }
+  });
+
+  Future<void> unlinkAccountProvider(String provider) => _action(() async {
+    final generation = _generation;
+    final result = await _request(
+      'DELETE',
+      'profile/identities/${Uri.encodeComponent(provider)}',
+      body: {},
+    );
+    if (result['profile'] != null) {
+      await _accept(result, generation);
+    } else {
+      await _accept(await _request('GET', 'profile'), generation);
+    }
+  });
+
+  Future<void> _archiveCurrentAccount() async {
+    final current = _profile;
+    if (current == null || _token == null) return;
+    await _writeSecret(
+      'profile.archive.${current.id}',
+      jsonEncode({
+        'token': _token,
+        'profile': current.toJson(),
+        'recoveryCode': ?_recoveryCode,
+        'recoveryVersion': ?_recoveryCodeVersion,
+      }),
+    );
+    final ids = {...?prefs.getStringList(_archivedIdsKey), current.id};
+    await prefs.setStringList(_archivedIdsKey, ids.toList());
+  }
+
+  Future<List<AccountProfilePreview>> archivedAccountProfiles() async {
+    final result = <AccountProfilePreview>[];
+    for (final id in prefs.getStringList(_archivedIdsKey) ?? <String>[]) {
+      if (id == _profile?.id) continue;
+      final raw = await _secrets.read('profile.archive.$id');
+      if (raw == null) continue;
+      try {
+        final json = jsonDecode(raw) as Map<String, dynamic>;
+        result.add(
+          AccountProfilePreview.fromJson(
+            json['profile'] as Map<String, dynamic>,
+          ),
+        );
+      } catch (_) {
+        // An unrelated damaged archive must not block the active profile.
+      }
+    }
+    return result;
+  }
+
+  Future<void> _removeAccountArchive(String id) async {
+    final ids = prefs.getStringList(_archivedIdsKey) ?? <String>[];
+    if (!ids.contains(id)) return;
+    await _deleteSecret('profile.archive.$id');
+    await prefs.setStringList(
+      _archivedIdsKey,
+      ids.where((value) => value != id).toList(),
+    );
+  }
+
+  Future<void> restoreArchivedAccount(String id) async {
+    await sync();
+    return _action(() async {
+      final raw = await _secrets.read('profile.archive.$id');
+      if (raw == null) throw const EconomyException('Profilo non disponibile.');
+      final saved = jsonDecode(raw) as Map<String, dynamic>;
+      final token = saved['token'] as String;
+      Map<String, dynamic> json;
+      try {
+        json = await _request('GET', 'profile', sessionToken: token);
+      } on EconomyException catch (error) {
+        if (error.code == 'PROFILE_DELETED') {
+          await _removeAccountArchive(id);
+          await _deleteSecret('profile.recovery.$id');
+          await _clearProfileName(id, allowUnscoped: false);
+          _claims.removeWhere((value) => value['profileId'] == id);
+          _tickets.removeWhere((value) => value['profileId'] == id);
+          await _persist();
+        }
+        rethrow;
+      }
+      if ((json['profile'] as Map)['id'] != id) {
+        throw const EconomyException('Profilo non disponibile.');
+      }
+      await _archiveCurrentAccount();
+      await _install(
+        {...json, 'token': token},
+        recoveryCode:
+            saved['recoveryVersion'] ==
+                (json['profile'] as Map)['recoveryVersion']
+            ? saved['recoveryCode'] as String?
+            : null,
+      );
+    });
+  }
 
   Future<UnlockResult> unlockDeck(String deckId) => _action(() async {
     if (!deckPrices.containsKey(deckId)) {
@@ -585,12 +1024,21 @@ class EconomyController extends ChangeNotifier {
       body: {'recoveryCode': normalized, 'confirmReplace': true},
       authenticated: false,
     );
+    if ((json['profile'] as Map)['id'] != _profile?.id) {
+      await _archiveCurrentAccount();
+    }
     await _install(json, recoveryCode: normalized);
   });
 
   Future<void> logout() => _action(() async {
     // Revoke the actual server session before discarding the local credential.
-    await _request('POST', 'profile/logout', body: {});
+    if (_token != null) {
+      try {
+        await _request('POST', 'profile/logout', body: {});
+      } on EconomyException catch (error) {
+        if (!['INVALID_TOKEN', 'PROFILE_DELETED'].contains(error.code)) rethrow;
+      }
+    }
     await _clearSession();
   });
 
@@ -602,20 +1050,56 @@ class EconomyController extends ChangeNotifier {
       _claims.removeWhere((c) => c['profileId'] == id);
       _tickets.removeWhere((c) => c['profileId'] == id);
     }
-    await _clearSession();
+    await _clearSession(ended: true);
   });
 
-  Future<void> _clearSession() async {
+  Future<void> _purgeDeletedProfile() async {
+    final id = _profile?.id;
+    if (id != null) {
+      await _deleteSecret('profile.recovery.$id');
+      _claims.removeWhere((value) => value['profileId'] == id);
+      _tickets.removeWhere((value) => value['profileId'] == id);
+    }
+    await _clearSession(ended: true);
+  }
+
+  Future<void> startGuestProfile() async {
+    await initialize();
+    if (_busy || _syncing) {
+      throw const EconomyException('Attendi la sincronizzazione in corso.');
+    }
+    _sessionEnded = false;
+    await _persist();
+    await sync();
+  }
+
+  Future<void> _clearSession({bool ended = false}) async {
+    final id = _profile?.id;
+    if (id != null) await _removeAccountArchive(id);
+    await _clearProfileName(id);
     await _deleteSecret(_sessionKey);
     ++_generation;
     _token = null;
     _profile = null;
     _recoveryCode = null;
     _recoveryCodeVersion = null;
+    _sessionEnded = ended;
     _lastError = null;
     await _persist();
     // Creating a new guest remains an explicit UI action/next reconnect.
     _changed();
+  }
+
+  Future<void> _clearProfileName(
+    String? id, {
+    bool allowUnscoped = true,
+  }) async {
+    final owner = prefs.getString('name.localProfile');
+    if ((owner == null && allowUnscoped) || (id != null && owner == id)) {
+      await prefs.remove('name');
+      await prefs.remove('name.localProfile');
+      await prefs.remove('name.localPending');
+    }
   }
 
   Future<GameTicket?> takeTicket({

@@ -42,6 +42,7 @@ key.properties
 local.properties
 *.xcuserstate
 **/xcuserdata/
+/app/ios/Flutter/Accounts.local.xcconfig
 caddy-backup-*
 Caddyfile.before-*
 
@@ -57,3 +58,10 @@ Caddyfile.before-*
 
 /artifacts/play-internal-draft-*.jpg
 /artifacts/play-sommomemory-name-draft.jpg
+
+# Private contact details and account/store console reviews stay local.
+/artifacts/play-store/review-owner.csv
+/artifacts/play-store/*-approval.jpg
+/artifacts/accounts-activation/*-review.jpg
+/artifacts/accounts-activation/apple-web-configured.jpg
+/artifacts/accounts-activation/google-oauth-production.jpg

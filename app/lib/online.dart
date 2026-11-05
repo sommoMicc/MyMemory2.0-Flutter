@@ -25,7 +25,7 @@ class RoomPreview {
     final code = json['code'], phase = json['phase'], raw = json['players'];
     if (code is! String ||
         !RegExp(r'^[A-Z2-9]{6}$').hasMatch(code) ||
-        !['playing', 'finished'].contains(phase) ||
+        !['playing', 'roundFinished', 'finished'].contains(phase) ||
         raw is! List ||
         raw.length != 2) {
       throw const FormatException('Invalid room preview');
@@ -57,9 +57,9 @@ class RoomPreview {
     }
     final winnerId = json['winnerId'], finishReason = json['finishReason'];
     if ((winnerId != null && !players.any((p) => p['id'] == winnerId)) ||
-        ![null, 'completed', 'forfeit'].contains(finishReason) ||
+        ![null, 'completed', 'forfeit', 'cancelled'].contains(finishReason) ||
         (phase == 'finished' && finishReason == null) ||
-        (phase == 'playing' && (winnerId != null || finishReason != null))) {
+        (phase != 'finished' && (winnerId != null || finishReason != null))) {
       throw const FormatException('Invalid preview result');
     }
     return RoomPreview(
@@ -76,7 +76,8 @@ class OnlineGame extends ChangeNotifier {
   OnlineGame(this.prefs, {String? serverUrl})
     : _serverUrl = serverUrl ?? endpoint,
       _roomCode = prefs.getString('room.code'),
-      _token = prefs.getString('room.token');
+      _token = prefs.getString('room.token'),
+      _activeRanked = prefs.getBool('room.activeRanked') ?? false;
 
   final SharedPreferences prefs;
   final String _serverUrl;
@@ -90,6 +91,8 @@ class OnlineGame extends ChangeNotifier {
   Future<void> _storage = Future.value();
   Map<String, dynamic>? _pendingAction;
   String? _roomCode, _token;
+  bool _activeRanked;
+  int _sessionEpoch = 0;
   DateTime? _lastSeen;
   Map<String, dynamic>? state;
   String? playerId, error, errorCode;
@@ -98,6 +101,11 @@ class OnlineGame extends ChangeNotifier {
   String status = 'Connessione…';
   bool connected = false, _closed = false, _connecting = false;
   int _attempt = 0, _generation = 0;
+  static const _supportedFeatures = [
+    'ranked-v1',
+    'ranked-attempts-v1',
+    'lobby-v1',
+  ];
   String? get code => _roomCode;
   bool get hasSession => _roomCode != null && _token != null;
   RoomPreview? get roomPreview => _roomPreview;
@@ -115,13 +123,28 @@ class OnlineGame extends ChangeNotifier {
 
   Future<void> open(Map<String, dynamic>? action) async {
     if (_connecting || _closed || (_terminalError && action == null)) return;
+    if (action != null &&
+        prefs.getBool('room.activeRanked') == true &&
+        prefs.getString('room.code') != null &&
+        prefs.getString('room.token') != null) {
+      error =
+          'Hai una classificata in corso. Riprendila o abbandonala prima di iniziare un’altra partita.';
+      errorCode = 'RANKED_SESSION_ACTIVE';
+      status = 'Riprendi la partita';
+      _changed();
+      return;
+    }
     _connecting = true;
     _terminalError = false;
     _roomPreview = null;
     errorCode = null;
     final generation = ++_generation;
     if (action != null) {
-      _pendingAction = {...action, 'supportedDecks': deckNames.keys.toList()};
+      _pendingAction = {
+        ...action,
+        'supportedDecks': deckNames.keys.toList(),
+        'supportedFeatures': _supportedFeatures,
+      };
       // A new game must never fall back to an older saved seat on reconnect.
       await _clearSession();
       if (!_current(generation)) return;
@@ -174,6 +197,9 @@ class OnlineGame extends ChangeNotifier {
                 playerId = id;
                 _roomCode = room;
                 _token = token;
+                if (_pendingAction?['matchType'] == 'ranked') {
+                  _activeRanked = true;
+                }
                 _pendingAction = null;
                 _handshake?.cancel();
                 unawaited(_saveSession());
@@ -183,6 +209,24 @@ class OnlineGame extends ChangeNotifier {
                 break;
               case 'state':
                 state = msg;
+                if (msg['matchType'] == 'ranked') {
+                  final phase = msg['phase'];
+                  final rewards = msg['rewards'];
+                  final settled =
+                      phase == 'finished' &&
+                      (msg['finishReason'] == 'cancelled' ||
+                          rewards is Map &&
+                              playerId != null &&
+                              rewards.containsKey(playerId));
+                  final active = !settled;
+                  if (_activeRanked != active) {
+                    _activeRanked = active;
+                    unawaited(_saveSession());
+                  }
+                } else if (_activeRanked) {
+                  _activeRanked = false;
+                  unawaited(_saveSession());
+                }
                 error = null;
                 errorCode = null;
                 status = 'Online';
@@ -225,6 +269,11 @@ class OnlineGame extends ChangeNotifier {
                   'INVALID_NAME',
                   'INVALID_OPTIONS',
                   'DECK_LOCKED',
+                  'PROFILE_REQUIRED',
+                  'SAME_PROFILE',
+                  'ARENA_MISMATCH',
+                  'RANKED_BUSY',
+                  'RANKED_DISABLED',
                 ].contains(errorCode);
                 if (terminal || !hasSession) {
                   _endSession(error!, retryable: !terminal);
@@ -282,6 +331,7 @@ class OnlineGame extends ChangeNotifier {
               'code': code,
               'token': _token,
               'supportedDecks': deckNames.keys.toList(),
+              'supportedFeatures': _supportedFeatures,
             },
       );
       _changed();
@@ -336,6 +386,8 @@ class OnlineGame extends ChangeNotifier {
 
   void flip(int index) => send({'type': 'flip', 'index': index});
   void rematch() => send({'type': 'rematch'});
+  void nextRound() => send({'type': 'nextRound'});
+  void ready(bool value) => send({'type': 'ready', 'ready': value});
 
   Future<void> refreshPreview() async {
     if (!canRefreshPreview) return;
@@ -344,16 +396,16 @@ class OnlineGame extends ChangeNotifier {
   }
 
   Future<void> _saveSession() {
-    final room = _roomCode, token = _token;
+    final room = _roomCode, token = _token, activeRanked = _activeRanked;
+    final epoch = _sessionEpoch;
     _storage = _storage
         .then((_) async {
-          if (room == null || token == null) {
-            await prefs.remove('room.code');
-            await prefs.remove('room.token');
-          } else {
-            await prefs.setString('room.code', room);
-            await prefs.setString('room.token', token);
-          }
+          if (epoch != _sessionEpoch || room == null || token == null) return;
+          await prefs.setString('room.code', room);
+          if (epoch != _sessionEpoch) return;
+          await prefs.setString('room.token', token);
+          if (epoch != _sessionEpoch) return;
+          await prefs.setBool('room.activeRanked', activeRanked);
         })
         .catchError((Object _) {
           // The in-memory seat can still reconnect if local storage is unavailable.
@@ -362,9 +414,23 @@ class OnlineGame extends ChangeNotifier {
   }
 
   Future<void> _clearSession() {
+    final room = _roomCode, token = _token;
+    ++_sessionEpoch;
     _roomCode = null;
     _token = null;
-    return _saveSession();
+    _activeRanked = false;
+    _storage = _storage
+        .then((_) async {
+          if (prefs.getString('room.code') != room ||
+              prefs.getString('room.token') != token) {
+            return;
+          }
+          await prefs.remove('room.code');
+          await prefs.remove('room.token');
+          await prefs.remove('room.activeRanked');
+        })
+        .catchError((Object _) {});
+    return _storage;
   }
 
   void _endSession(
@@ -390,6 +456,7 @@ class OnlineGame extends ChangeNotifier {
       unawaited(_clearSession());
     } else {
       // Another browser tab owns this same saved token now.
+      ++_sessionEpoch;
       _roomCode = null;
       _token = null;
     }

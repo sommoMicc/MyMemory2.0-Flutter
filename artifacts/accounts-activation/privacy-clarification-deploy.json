@@ -1,0 +1,81 @@
+{
+  "verifiedAt": "2026-11-05T19:44:56.404044+00:00",
+  "release": "20261105T194451Z-privacy",
+  "parentRelease": "20261105T193354Z-accounts-live",
+  "publicOrigin": "https://sommomemory.sommomi.cc",
+  "derivedFromActiveNasSnapshot": true,
+  "changedFiles": [
+    "server/public/privacy.html"
+  ],
+  "previousPrivacySha256": "26dc5d8039213d030e63f0dd111eefaff6c764c5fdad30433444956e2024be2b",
+  "privacySha256": "8afbd80c4b1fb914ce7d825dcf3e578eff97a3053cd8bc611ec8c39e9e8f1060",
+  "webBinariesByteIdentical": true,
+  "serverFeatureSourceByteIdentical": true,
+  "unreleasedArenaCodeIncluded": false,
+  "providerEnvironmentUnchanged": true,
+  "privateRuntimeFilesUnchanged": true,
+  "backup": {
+    "backup": "/data/backups/20261105T194451Z-privacy",
+    "quickCheck": "ok",
+    "capabilityKeyCopyVerified": true,
+    "counts": {
+      "profiles": 34,
+      "tokens": 34,
+      "ledger": 53,
+      "auth_identities": 0
+    },
+    "rooms": {
+      "count": 2,
+      "phases": {
+        "finished": 2
+      },
+      "connectedPlayers": 0,
+      "recentPlaying": 0
+    }
+  },
+  "flutterOrNativeRebuilt": false,
+  "apiContainerRestarted": true,
+  "rollbackNeeded": false,
+  "publicVerification": {
+    "privacyStatus": 200,
+    "privacySha256": "8afbd80c4b1fb914ce7d825dcf3e578eff97a3053cd8bc611ec8c39e9e8f1060",
+    "cacheControl": "no-cache",
+    "localRecordsClarified": true,
+    "health": {
+      "ok": true,
+      "service": "mymemory",
+      "protocol": 1,
+      "rooms": 2
+    },
+    "providers": {
+      "web": [
+        "apple",
+        "google"
+      ],
+      "ios": [
+        "apple",
+        "google"
+      ],
+      "android": [
+        "apple",
+        "google"
+      ]
+    },
+    "webMainJsPath": "main.8e7b05f3a382bc22.dart.js"
+  },
+  "dataPreservation": {
+    "previousProfileRowsPreserved": true,
+    "previousSessionRowsPreserved": true,
+    "counts": {
+      "profiles": 35,
+      "tokens": 35,
+      "ledger": 54,
+      "auth_identities": 0
+    },
+    "quickCheck": "ok"
+  },
+  "containerHealth": "healthy",
+  "readOnlyRootFilesystemPreserved": true,
+  "readmeTextClarified": true,
+  "noGitStagingOrCommit": true
+}

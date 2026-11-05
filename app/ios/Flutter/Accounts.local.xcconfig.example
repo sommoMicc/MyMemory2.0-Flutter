@@ -1,0 +1,5 @@
+// Copy to Accounts.local.xcconfig (ignored by Git) after provider setup.
+// This URL scheme is the reversed iOS OAuth client ID, never a client secret.
+GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.REPLACE_WITH_IOS_CLIENT_ID
+// Enable only with a provisioning profile that includes Sign in with Apple.
+SOMMOMEMORY_ENTITLEMENTS = Runner/Runner-Accounts.entitlements

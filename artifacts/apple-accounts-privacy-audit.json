@@ -1,0 +1,461 @@
+{
+  "checkedAt": "2026-11-05T19:15:19.435666+00:00",
+  "scope": "Built iOS app from local account implementation; inspect again in final signed30012 IPA",
+  "googleSignInVersion": "9.2.0",
+  "manifestPath": "app/build/ios/iphoneos/Runner.app/GoogleSignIn_GoogleSignIn.bundle/PrivacyInfo.xcprivacy",
+  "manifestSha256": "9300972853096f7d570d6c4a4bf7152a36c798e89c4f0d81d3b4c6b5dfaddfd0",
+  "googleManifest": {
+    "NSPrivacyTracking": false,
+    "NSPrivacyTrackingDomains": [],
+    "NSPrivacyCollectedDataTypes": [
+      {
+        "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeName",
+        "NSPrivacyCollectedDataTypeLinked": true,
+        "NSPrivacyCollectedDataTypeTracking": false,
+        "NSPrivacyCollectedDataTypePurposes": [
+          "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+        ]
+      },
+      {
+        "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeEmailAddress",
+        "NSPrivacyCollectedDataTypeLinked": true,
+        "NSPrivacyCollectedDataTypeTracking": false,
+        "NSPrivacyCollectedDataTypePurposes": [
+          "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+        ]
+      },
+      {
+        "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypePhoneNumber",
+        "NSPrivacyCollectedDataTypeLinked": true,
+        "NSPrivacyCollectedDataTypeTracking": false,
+        "NSPrivacyCollectedDataTypePurposes": [
+          "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+        ]
+      },
+      {
+        "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeOtherDataTypes",
+        "NSPrivacyCollectedDataTypeLinked": true,
+        "NSPrivacyCollectedDataTypeTracking": false,
+        "NSPrivacyCollectedDataTypePurposes": [
+          "NSPrivacyCollectedDataTypePurposeAppFunctionality",
+          "NSPrivacyCollectedDataTypePurposeAnalytics"
+        ]
+      },
+      {
+        "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeCoarseLocation",
+        "NSPrivacyCollectedDataTypeLinked": true,
+        "NSPrivacyCollectedDataTypeTracking": false,
+        "NSPrivacyCollectedDataTypePurposes": [
+          "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+        ]
+      },
+      {
+        "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeUserID",
+        "NSPrivacyCollectedDataTypeLinked": true,
+        "NSPrivacyCollectedDataTypeTracking": false,
+        "NSPrivacyCollectedDataTypePurposes": [
+          "NSPrivacyCollectedDataTypePurposeAppFunctionality",
+          "NSPrivacyCollectedDataTypePurposeAnalytics"
+        ]
+      },
+      {
+        "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeDeviceID",
+        "NSPrivacyCollectedDataTypeLinked": true,
+        "NSPrivacyCollectedDataTypeTracking": false,
+        "NSPrivacyCollectedDataTypePurposes": [
+          "NSPrivacyCollectedDataTypePurposeAnalytics"
+        ]
+      },
+      {
+        "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeOtherUsageData",
+        "NSPrivacyCollectedDataTypeLinked": true,
+        "NSPrivacyCollectedDataTypeTracking": false,
+        "NSPrivacyCollectedDataTypePurposes": [
+          "NSPrivacyCollectedDataTypePurposeAnalytics"
+        ]
+      }
+    ],
+    "NSPrivacyAccessedAPITypes": [
+      {
+        "NSPrivacyAccessedAPITypeReasons": [
+          "CA92.1"
+        ],
+        "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults"
+      }
+    ]
+  },
+  "appCheck": {
+    "spmDependencyVersion": "11.3.2",
+    "configuredByApp": false,
+    "appAttestEntitlementPresent": false,
+    "collectionNotInferredFromDependencyAlone": true,
+    "sourceCondition": "GIDSignIn.m calls getLimitedUseToken only when AppCheck is prepared or configure was invoked"
+  },
+  "sourceDocs": [
+    "https://developers.google.com/identity/sign-in/ios/app-privacy",
+    "https://developers.google.com/identity/sign-in/ios/appcheck/get-started",
+    "https://developer.apple.com/app-store/app-privacy-details/",
+    "https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy",
+    "https://github.com/google/GoogleSignIn-iOS/blob/9.2.0/GoogleSignIn/Sources/Resources/PrivacyInfo.xcprivacy"
+  ],
+  "developerOwnCollection": [
+    {
+      "type": "User ID",
+      "purpose": [
+        "App Functionality"
+      ],
+      "linkedToUser": true,
+      "tracking": false,
+      "basis": "Persisted profile ID, chosen screen name and external provider subject; email is not used to link accounts."
+    },
+    {
+      "type": "Gameplay Content",
+      "purpose": [
+        "App Functionality"
+      ],
+      "linkedToUser": true,
+      "tracking": false,
+      "basis": "Persisted wallet, unlocked collections, game tickets and proof transcripts to validate rewards."
+    },
+    {
+      "type": "Product Interaction",
+      "purpose": [
+        "App Functionality"
+      ],
+      "linkedToUser": true,
+      "tracking": false,
+      "basis": "Saved game progress: persisted multiplayer state, profile wallet and collection unlocks. Apple definition explicitly includes saved place in a game."
+    }
+  ],
+  "storeLabelReview": {
+    "currentLiveDisclosureObserved": false,
+    "repositorySaysPrivacyDeclarationsNotSubmitted": true,
+    "googleSdkEightDeclarationsNeedReview": true,
+    "allGoogleManifestDataLinked": true,
+    "allGoogleManifestTrackingFalse": true,
+    "noAnalyticsBlanketClaimAccurate": false,
+    "manifestIsSdkDeclarationNotPacketCapture": true,
+    "appPrivacyApiAvailable": false,
+    "privacyUrlMetadataApiAvailable": true
+  },
+  "allBundledManifests": [
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/GTMSessionFetcher_GTMSessionFetcherCore.bundle/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [],
+      "accessedAPITypes": [
+        {
+          "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+          "NSPrivacyAccessedAPITypeReasons": [
+            "CA92.1"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/GoogleSignIn_GoogleSignIn.bundle/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [
+        {
+          "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeName",
+          "NSPrivacyCollectedDataTypeLinked": true,
+          "NSPrivacyCollectedDataTypeTracking": false,
+          "NSPrivacyCollectedDataTypePurposes": [
+            "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+          ]
+        },
+        {
+          "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeEmailAddress",
+          "NSPrivacyCollectedDataTypeLinked": true,
+          "NSPrivacyCollectedDataTypeTracking": false,
+          "NSPrivacyCollectedDataTypePurposes": [
+            "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+          ]
+        },
+        {
+          "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypePhoneNumber",
+          "NSPrivacyCollectedDataTypeLinked": true,
+          "NSPrivacyCollectedDataTypeTracking": false,
+          "NSPrivacyCollectedDataTypePurposes": [
+            "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+          ]
+        },
+        {
+          "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeOtherDataTypes",
+          "NSPrivacyCollectedDataTypeLinked": true,
+          "NSPrivacyCollectedDataTypeTracking": false,
+          "NSPrivacyCollectedDataTypePurposes": [
+            "NSPrivacyCollectedDataTypePurposeAppFunctionality",
+            "NSPrivacyCollectedDataTypePurposeAnalytics"
+          ]
+        },
+        {
+          "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeCoarseLocation",
+          "NSPrivacyCollectedDataTypeLinked": true,
+          "NSPrivacyCollectedDataTypeTracking": false,
+          "NSPrivacyCollectedDataTypePurposes": [
+            "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+          ]
+        },
+        {
+          "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeUserID",
+          "NSPrivacyCollectedDataTypeLinked": true,
+          "NSPrivacyCollectedDataTypeTracking": false,
+          "NSPrivacyCollectedDataTypePurposes": [
+            "NSPrivacyCollectedDataTypePurposeAppFunctionality",
+            "NSPrivacyCollectedDataTypePurposeAnalytics"
+          ]
+        },
+        {
+          "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeDeviceID",
+          "NSPrivacyCollectedDataTypeLinked": true,
+          "NSPrivacyCollectedDataTypeTracking": false,
+          "NSPrivacyCollectedDataTypePurposes": [
+            "NSPrivacyCollectedDataTypePurposeAnalytics"
+          ]
+        },
+        {
+          "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeOtherUsageData",
+          "NSPrivacyCollectedDataTypeLinked": true,
+          "NSPrivacyCollectedDataTypeTracking": false,
+          "NSPrivacyCollectedDataTypePurposes": [
+            "NSPrivacyCollectedDataTypePurposeAnalytics"
+          ]
+        }
+      ],
+      "accessedAPITypes": [
+        {
+          "NSPrivacyAccessedAPITypeReasons": [
+            "CA92.1"
+          ],
+          "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults"
+        }
+      ]
+    },
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/flutter_secure_storage_darwin_flutter_secure_storage_darwin.bundle/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [],
+      "accessedAPITypes": []
+    },
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/AppAuth_AppAuth.bundle/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [],
+      "accessedAPITypes": []
+    },
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/GoogleUtilities_GoogleUtilities-Logger.bundle/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [],
+      "accessedAPITypes": []
+    },
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/AppAuth_AppAuthCore.bundle/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [],
+      "accessedAPITypes": []
+    },
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/google_sign_in_ios_google_sign_in_ios.bundle/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [],
+      "accessedAPITypes": []
+    },
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/app_links_app_links.bundle/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [],
+      "accessedAPITypes": []
+    },
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/Promises_FBLPromises.bundle/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [],
+      "accessedAPITypes": []
+    },
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/shared_preferences_foundation_shared_preferences_foundation.bundle/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [],
+      "accessedAPITypes": [
+        {
+          "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+          "NSPrivacyAccessedAPITypeReasons": [
+            "1C8F.1"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/GoogleUtilities_GoogleUtilities-UserDefaults.bundle/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [],
+      "accessedAPITypes": [
+        {
+          "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+          "NSPrivacyAccessedAPITypeReasons": [
+            "1C8F.1",
+            "C56D.1"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/url_launcher_ios_url_launcher_ios.bundle/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [],
+      "accessedAPITypes": []
+    },
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/GoogleUtilities_GoogleUtilities-Environment.bundle/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [],
+      "accessedAPITypes": [
+        {
+          "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+          "NSPrivacyAccessedAPITypeReasons": [
+            "C56D.1"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/GTMAppAuth_GTMAppAuth.bundle/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [],
+      "accessedAPITypes": []
+    },
+    {
+      "path": "app/build/ios/iphoneos/Runner.app/Frameworks/Flutter.framework/PrivacyInfo.xcprivacy",
+      "tracking": false,
+      "collectedDataTypes": [],
+      "accessedAPITypes": [
+        {
+          "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+          "NSPrivacyAccessedAPITypeReasons": [
+            "0A2A.1",
+            "C617.1"
+          ]
+        },
+        {
+          "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+          "NSPrivacyAccessedAPITypeReasons": [
+            "35F9.1"
+          ]
+        }
+      ]
+    }
+  ],
+  "metadataChanged": false,
+  "recommendedPortalSelections": [
+    {
+      "dataType": "Name",
+      "purposes": [
+        "App Functionality"
+      ],
+      "linkedToUser": true,
+      "usedForTracking": false,
+      "basis": "Pinned Google Sign-In9.2 manifest"
+    },
+    {
+      "dataType": "Email Address",
+      "purposes": [
+        "App Functionality"
+      ],
+      "linkedToUser": true,
+      "usedForTracking": false,
+      "basis": "Pinned Google Sign-In9.2 manifest"
+    },
+    {
+      "dataType": "Phone Number",
+      "purposes": [
+        "App Functionality"
+      ],
+      "linkedToUser": true,
+      "usedForTracking": false,
+      "basis": "Pinned Google Sign-In9.2 manifest"
+    },
+    {
+      "dataType": "Other Data Types",
+      "purposes": [
+        "App Functionality",
+        "Analytics"
+      ],
+      "linkedToUser": true,
+      "usedForTracking": false,
+      "basis": "Pinned Google Sign-In9.2 manifest"
+    },
+    {
+      "dataType": "Coarse Location",
+      "purposes": [
+        "App Functionality"
+      ],
+      "linkedToUser": true,
+      "usedForTracking": false,
+      "basis": "Pinned Google Sign-In9.2 manifest"
+    },
+    {
+      "dataType": "User ID",
+      "purposes": [
+        "App Functionality",
+        "Analytics"
+      ],
+      "linkedToUser": true,
+      "usedForTracking": false,
+      "basis": "Pinned Google Sign-In9.2 manifest; User ID also persists in SommoMemory profile/provider association"
+    },
+    {
+      "dataType": "Device ID",
+      "purposes": [
+        "Analytics"
+      ],
+      "linkedToUser": true,
+      "usedForTracking": false,
+      "basis": "Pinned Google Sign-In9.2 manifest"
+    },
+    {
+      "dataType": "Other Usage Data",
+      "purposes": [
+        "Analytics"
+      ],
+      "linkedToUser": true,
+      "usedForTracking": false,
+      "basis": "Pinned Google Sign-In9.2 manifest"
+    },
+    {
+      "dataType": "Gameplay Content",
+      "purposes": [
+        "App Functionality"
+      ],
+      "linkedToUser": true,
+      "usedForTracking": false,
+      "basis": "SommoMemory saved game/economy/proof records"
+    },
+    {
+      "dataType": "Product Interaction",
+      "purposes": [
+        "App Functionality"
+      ],
+      "linkedToUser": true,
+      "usedForTracking": false,
+      "basis": "Apple Product Interaction definition includes saved place in a game. SommoMemory persists room board/matched selections/turn/score and player wallet/unlocks beyond servicing a request; this is saved game progress, not gameplay analytics."
+    }
+  ],
+  "recommendedPortalSelectionQualification": "Conservative union of own definite persisted collection and Google SDK declarations; not a claim of network capture or every field observed for every user. Do not omit SDK-declared categories without authoritative configuration-specific evidence.",
+  "localCopyUpdated": [
+    "server/public/privacy.html",
+    "README.md",
+    "server/README.md",
+    "docs/FEEDBACK.md"
+  ],
+  "liveMetadataChanged": false,
+  "productInteractionReview": {
+    "reviewedAt": "2026-11-05T19:29:36.204762+00:00",
+    "includeAlongsideGameplayContent": true,
+    "source": "https://developer.apple.com/app-store/app-privacy-details/",
+    "ownGameAnalyticsPurpose": false,
+    "sdkDiagnosticsInferred": false,
+    "conservativeUnionCategoryCount": 10
+  }
+}

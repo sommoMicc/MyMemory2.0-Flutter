@@ -1,0 +1,78 @@
+{
+  "verifiedAt": "2026-11-05T17:52:06.083Z",
+  "bundleId": "cc.sommomi.mymemory",
+  "bundleResource": "M5DK5NJ6KP",
+  "teamId": "L6CS7PYA4B",
+  "capabilityType": "APPLE_ID_AUTH",
+  "primaryAppConsent": true,
+  "profile": {
+    "id": "TS467WLHTS",
+    "name": "SommoMemory App Store Accounts Notifications",
+    "uuid": "dc790f0a-5752-4d01-9b8a-9b84d4ff01a7",
+    "state": "ACTIVE",
+    "type": "IOS_APP_STORE",
+    "expirationDate": "2027-10-09T18:58:17.000+00:00",
+    "installed": "/Users/micheletagliabue/Library/Developer/Xcode/UserData/Provisioning Profiles/dc790f0a-5752-4d01-9b8a-9b84d4ff01a7.mobileprovision",
+    "entitlements": {
+      "beta-reports-active": true,
+      "com.apple.developer.associated-domains": "*",
+      "application-identifier": "L6CS7PYA4B.cc.sommomi.mymemory",
+      "keychain-access-groups": [
+        "L6CS7PYA4B.*",
+        "com.apple.token"
+      ],
+      "get-task-allow": false,
+      "com.apple.developer.team-identifier": "L6CS7PYA4B",
+      "com.apple.developer.applesignin": [
+        "Default"
+      ]
+    }
+  },
+  "certificateId": "86762T444Q",
+  "previousProfile": {
+    "id": "66Z2SB723S",
+    "name": "SommoMemory App Store Links",
+    "state": "INVALID"
+  },
+  "serviceId": null,
+  "signInPrivateKeyCreated": false,
+  "published": false,
+  "apiSpecification": {
+    "version": "4.6",
+    "source": "https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip",
+    "operationPaths": 1027,
+    "servicesIdOrSiwaKeyEndpointsAvailable": false
+  },
+  "signingConfigurationUpdated": [
+    "app/ios/Runner.xcodeproj/project.pbxproj",
+    "app/ios/ExportOptions.plist"
+  ],
+  "supersededProfiles": [
+    {
+      "id": "C3SF43484W",
+      "name": "SommoMemory App Store Accounts",
+      "uuid": "aff30873-05be-4e21-a60e-36dcb3850775",
+      "state": "INVALID",
+      "type": "IOS_APP_STORE",
+      "expirationDate": "2027-10-09T18:58:17.000+00:00",
+      "installed": "/Users/micheletagliabue/Library/Developer/Xcode/UserData/Provisioning Profiles/aff30873-05be-4e21-a60e-36dcb3850775.mobileprovision",
+      "entitlements": {
+        "beta-reports-active": true,
+        "com.apple.developer.associated-domains": "*",
+        "application-identifier": "L6CS7PYA4B.cc.sommomi.mymemory",
+        "keychain-access-groups": [
+          "L6CS7PYA4B.*",
+          "com.apple.token"
+        ],
+        "get-task-allow": false,
+        "com.apple.developer.team-identifier": "L6CS7PYA4B",
+        "com.apple.developer.applesignin": [
+          "Default"
+        ]
+      },
+      "reason": "Apple Developer notification URL save invalidated profile"
+    }
+  ],
+  "profileRegeneratedAt": "2026-11-05T19:25:22.299Z",
+  "notificationEndpoint": "https://sommomemory.sommomi.cc/api/v1/auth/notifications/apple"
+}

@@ -4,7 +4,8 @@ Build 30011 adds four original, locally bundled effects: card opening, correct
 pair, mismatch and turn change. The reproducible sample-free WAV generator is
 `scripts/synthesize-feedback.py`; only the WAV and provenance notice from
 `app/assets/audio/` are bundled. There are no remote sound URLs,
-recordings, advertisements or analytics. The web server serves WAV as `audio/wav`.
+recordings or advertisements; the audio feedback feature sends no analytics events.
+The web server serves WAV as `audio/wav`.
 
 The game presentation drives feedback for local, online and Bluetooth play:
 

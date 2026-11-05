@@ -1,0 +1,136 @@
+{
+  "checkedAt": "2026-11-05T19:37:49.659566+00:00",
+  "appId": "cc.sommomi.mymemory",
+  "scope": "Android30012 source and native dependency manifests; preparation only, no Play form submitted",
+  "trackExemption": {
+    "internalOnlyTrackExempt": true,
+    "source": "https://support.google.com/googleplay/android-developer/answer/10787469?hl=en"
+  },
+  "resolvedDependencies": {
+    "flutterGoogleSignIn": "7.2.0",
+    "flutterGoogleSignInAndroid": "7.2.18",
+    "androidxCredentials": "1.6.0",
+    "androidxCredentialsPlayServicesAuth": "1.6.0",
+    "googleId": "1.2.0",
+    "playServicesAuth": "21.6.0",
+    "playServicesAuthBlockstore": "16.4.0",
+    "evidence": "app/build/app/outputs/logs/manifest-merger-release-report.txt"
+  },
+  "authenticationFlow": {
+    "api": "CredentialManager GetSignInWithGoogleOption, nonce-bound",
+    "additionalGoogleAuthorizationRequested": false,
+    "extraGoogleScopes": [],
+    "firebaseAuthIntegrated": false,
+    "adsSdkIntegrated": false,
+    "gameplayAnalyticsSdkIntegrated": false
+  },
+  "minimumDefiniteCollectionRows": [
+    {
+      "category": "Personal info",
+      "type": "Name",
+      "collected": true,
+      "optional": true,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality",
+        "Account management"
+      ],
+      "basis": "Persisted player displayName; Google Play definition explicitly includes nickname. Provider realname only processed transiently if present."
+    },
+    {
+      "category": "Personal info",
+      "type": "User IDs",
+      "collected": true,
+      "optional": false,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality",
+        "Account management",
+        "Fraud prevention, security, and compliance"
+      ],
+      "basis": "Random guest profile created automatically when initialize syncs online; stable profile/provider subject used for saved wallet and authentication, before any social login choice."
+    },
+    {
+      "category": "App activity",
+      "type": "App interactions",
+      "collected": true,
+      "optional": false,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality"
+      ],
+      "basis": "Chosen collection/difficulty/mode sent and persisted with prepared game tickets and profile-linked unlock state; no separate analytics instrumentation."
+    },
+    {
+      "category": "App activity",
+      "type": "Other actions",
+      "collected": true,
+      "optional": false,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality",
+        "Fraud prevention, security, and compliance"
+      ],
+      "basis": "Google Play definition explicitly includes gameplay. Persisted rooms/game state, validated rewards and claim records are linked to profiles; gameplay proof validation prevents duplicate rewards."
+    }
+  ],
+  "authenticationEmailReview": {
+    "category": "Personal info",
+    "type": "Email address",
+    "collectedInAuthenticationFlow": true,
+    "optional": true,
+    "ephemeralOnSommoMemoryServer": true,
+    "purposes": [
+      "App functionality",
+      "Account management"
+    ],
+    "basis": "Native CredentialManager yields email and IDToken; full IDToken sent to server, verified then payload discarded, only subject persisted. GoogleSDK/provider retention must be separately confirmed before marking whole category ephemeral."
+  },
+  "sdkCollectionReview": {
+    "iosManifestMustNotBeCopiedToAndroid": true,
+    "googleCorePlayServicesBaseBasementTasksDeclareNoEndUserData": true,
+    "thisDoesNotProveNoCollectionByGoogleAuth": true,
+    "authSpecificSdkProviderDisclosureVerified": false,
+    "publicSdkIndexPageMachineReadable": false,
+    "unverifiedAdditionalDataNotInvented": [
+      "Phone number",
+      "Device IDs",
+      "Diagnostics",
+      "Approximate location"
+    ],
+    "requiresSdkProviderGuidanceBeforePublicFormSubmission": true
+  },
+  "sharingReview": {
+    "ownBackendNoThirdPartyResaleOrAds": true,
+    "multiplayerNicknameAndGameState": "User-initiated expected sharing with opponent; Google Play exception may apply",
+    "providerLogin": "User-initiated OAuth consent; evaluate sharing exceptions and provider processing rather than assume every transfer is reportable sharing",
+    "overallNoDataSharedAttested": false
+  },
+  "securityAndDeletion": {
+    "httpsWssToProductionBackend": true,
+    "deletionInAppAndWeb": true,
+    "deletionUrl": "https://sommomemory.sommomi.cc/delete-account",
+    "googleAndAppleAccountCreation": "OAuth",
+    "globalEncryptedInTransitBadgeNotAttested": true,
+    "reason": "BLE peer GATT framing has no app-layer encryption or explicit encrypted-write permission; assess user-directed peer-sharing exemption and radio link before claiming all flows encrypted."
+  },
+  "notCollectedByGameCode": [
+    "GPS location",
+    "Contacts",
+    "Microphone or recordings",
+    "User photos",
+    "Phone number",
+    "Financial payment information",
+    "Advertising ID"
+  ],
+  "sourceDocs": [
+    "https://support.google.com/googleplay/android-developer/answer/10787469?hl=en",
+    "https://developer.android.com/identity/sign-in/credential-manager-siwg",
+    "https://developers.google.com/android/guides/play-data-disclosure",
+    "https://developers.google.com/identity/android-credential-manager/releases",
+    "https://play.google.com/sdks/details/com-google-android-gms-play-services-auth"
+  ],
+  "importantDifferenceFromApple": "Google Play counts off-device transmission, including transient processing in its main collection guidance. Current page FAQ has differing ephemeral wording; use canonical collection definition conservatively and review SDK retention. Apple label uses retention beyond servicing a request.",
+  "metadataChanged": false,
+  "uploadAuthorized": false
+}

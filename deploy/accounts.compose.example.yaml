@@ -1,0 +1,10 @@
+# Copy to /srv/mymemory/private/accounts.compose.yaml on the server.
+# deploy.sh includes that private override when it exists.
+services:
+  api:
+    env_file:
+      - /srv/mymemory/private/accounts.env
+    # Remove this mount for Google-only configuration. The source must exist
+    # and be readable by the container's unprivileged node user.
+    volumes:
+      - /srv/mymemory/private/apple-signin.p8:/run/secrets/mymemory-apple-signin.p8:ro

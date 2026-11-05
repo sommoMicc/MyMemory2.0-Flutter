@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="color-scheme" content="light">
+<title>Admin · SommoMemory</title>
+<link rel="stylesheet" href="/admin/admin.css">
+<script src="/admin/webauthn.js" defer></script><script src="/admin/admin.js" defer></script>
+</head>
+<body>
+<div id="login" class="login-wrap">
+  <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✣</span>SommoMemory<span class="admin-label">Admin</span></a>
+  <main class="login-card">
+    <span class="eyebrow">IL TUO SPAZIO DI CONTROLLO</span>
+    <h1>Uno sguardo<br>al gioco.</h1>
+    <p>Utenti, sfide e lobby. Accedi in sicurezza con la tua passkey.</p>
+    <button id="login-button" class="primary" disabled>Accedi con passkey <span aria-hidden="true">↗</span></button>
+    <p id="login-status" role="status">Verifica dell’accesso…</p>
+    <details id="setup"><summary>Configura il primo accesso o recuperalo</summary>
+      <p>Usa il codice monouso generato sul server. Il dispositivo creerà la tua passkey.</p>
+      <label for="setup-token">Codice di attivazione</label><input id="setup-token" type="password" autocomplete="off" spellcheck="false">
+      <label for="setup-label">Nome della passkey</label><input id="setup-label" maxlength="60" value="La mia passkey">
+      <button id="setup-button" class="secondary">Crea passkey</button>
+    </details>
+    <a href="/" class="back-link">← Torna al gioco</a>
+  </main>
+  <p class="login-foot">Accesso riservato · Nessuna password da ricordare</p>
+</div>
+<div id="dashboard" class="app-shell" hidden>
+  <aside class="sidebar">
+    <a href="/admin" class="brand"><span class="brand-mark" aria-hidden="true">✣</span><span>SommoMemory<small>Amministrazione</small></span></a>
+    <span class="nav-caption">AMMINISTRAZIONE</span>
+    <nav aria-label="Navigazione admin">
+      <button data-view="overview" class="nav-item selected" aria-current="page"><span aria-hidden="true">◫</span> Panoramica</button>
+      <button data-view="live" class="nav-item"><span aria-hidden="true">◉</span> In diretta <b id="live-count">0</b></button>
+      <button data-view="history" class="nav-item"><span aria-hidden="true">▤</span> Partite</button>
+      <button data-view="users" class="nav-item"><span aria-hidden="true">♧</span> Utenti</button>
+      <button data-view="security" class="nav-item"><span aria-hidden="true">⌘</span> Accesso</button>
+    </nav>
+    <div class="sidebar-bottom"><a href="/" target="_blank" rel="noopener">Apri il gioco ↗</a><div><span class="status-dot"></span> Servizio operativo</div><small id="uptime"></small><button id="logout" class="logout">Esci dall’admin ↗</button></div>
+  </aside>
+  <main class="workspace">
+    <header class="topbar"><span>SommoMemory <span class="slash">/</span> <span id="breadcrumb">Panoramica</span></span><span class="private-label">◈ Area riservata</span><button id="logout-mobile" class="text-button mobile-only">Esci ↗</button></header>
+    <div class="content">
+      <div class="page-heading"><div><span class="eyebrow">IL GIOCO, IN NUMERI</span><h1 id="page-title">Panoramica</h1><p id="page-description">Tutto quello che succede in SommoMemory.</p></div><div class="heading-actions"><label class="sr-only" for="period">Periodo</label><select id="period"><option value="1">Ultime 24 ore</option><option value="7" selected>Ultimi 7 giorni</option><option value="30">Ultimi 30 giorni</option><option value="90">Ultimi 90 giorni</option></select><button id="refresh" class="secondary">↻ Aggiorna</button></div></div>
+      <div class="update-row"><span><span class="status-dot"></span> <span id="update-time">Caricamento…</span></span><span>Aggiornamento ogni 15 secondi</span></div>
+      <p id="dashboard-status" class="notice" role="status" hidden></p>
+      <section data-section="overview">
+        <div id="metrics" class="metrics"></div>
+        <div class="two-col"><article class="panel chart-panel"><div class="panel-heading"><div><h2>Attività nel tempo</h2><p>Profili attivi e partite online iniziate · giorni UTC</p></div><div class="legend"><span>● Utenti</span><span>● Partite</span></div></div><div id="chart" class="chart"></div></article><article class="panel"><div class="panel-heading"><div><h2>Come si gioca</h2><p>Partite iniziate per arena</p></div></div><div id="arenas" class="arena-list"></div></article></div>
+        <div id="secondary-metrics" class="secondary-metrics"></div>
+        <div class="section-heading"><h2>Adesso nel gioco</h2><button class="text-button" data-go="live">Vedi tutto ↗</button></div><div id="live-preview" class="live-grid"></div>
+        <p id="coverage" class="footnote"></p>
+      </section>
+      <section data-section="live" hidden><div class="section-heading"><h2>Partite in corso</h2><span id="playing-total" class="count-label"></span></div><div id="live-games" class="live-grid"></div><div class="section-heading spaced"><h2>Lobby in attesa</h2><span id="lobby-total" class="count-label"></span></div><div id="lobbies" class="live-grid"></div><p class="footnote">Le connessioni includono anche i client che non occupano una stanza. I giocatori connessi sono conteggiati per profilo, dove disponibile.</p></section>
+      <section data-section="history" hidden>
+        <div class="panel"><div class="filter-row"><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Cerca stanza o nickname" aria-label="Cerca stanza o nickname" maxlength="80"></label><label class="sr-only" for="mode">Modalità</label><select id="mode"><option value="">Tutte le modalità</option><option value="friendly">Amichevoli</option><option value="ranked">Classificate</option></select><label class="sr-only" for="phase">Stato</label><select id="phase"><option value="">Tutti gli stati</option><option value="playing">In corso</option><option value="roundFinished">Tra i round</option><option value="finished">Terminate</option><option value="unavailable">Non più disponibili</option></select><button id="export" class="secondary">Esporta CSV</button></div><div class="table-scroll"><table><thead><tr><th>Stanza / inizio</th><th>Giocatori</th><th>Modalità</th><th>Deck</th><th>Stato</th><th>Risultato</th><th>Durata</th></tr></thead><tbody id="match-rows"></tbody></table></div><div class="pagination"><span id="pagination-label"></span><div><button id="previous" class="secondary" aria-label="Pagina precedente">←</button><span id="page-number"></span><button id="next" class="secondary" aria-label="Pagina successiva">→</button></div></div></div><p class="footnote">Storico delle partite online osservate dal server, conservato per 90 giorni. Il CSV esporta la pagina filtrata (fino a 25 partite). I punteggi delle classificate sono cumulativi sui round; vince chi usa meno tentativi. I nomi nello storico riflettono il profilo attuale.</p>
+      </section>
+      <section data-section="users" hidden><div class="panel"><div class="panel-heading"><div><h2>Profili recenti</h2><p>Fino a 50 profili, ordinati per ultima attività rilevata.</p></div><label class="search"><input id="user-search" type="search" maxlength="80" placeholder="Nickname o ID profilo" aria-label="Cerca profilo"></label></div><div class="table-scroll"><table><thead><tr><th>Profilo</th><th>Ultima attività</th><th>Creato il</th><th>Gemme</th><th>Corone</th><th>Account collegati</th></tr></thead><tbody id="profile-rows"></tbody></table></div></div><p class="footnote">Un utente attivo è un profilo autenticato che ha contattato il server o giocato online. Più dispositivi dello stesso profilo contano una volta. La pratica interamente offline non è rilevata. Non vengono mostrati email, indirizzi IP o credenziali.</p></section>
+      <section data-section="security" hidden><div class="security-grid"><article class="panel security-card"><span class="security-icon" aria-hidden="true">⌘</span><h2>Le tue passkey</h2><p>Touch ID, Face ID o il tuo gestore di credenziali. Aggiungi una seconda passkey per avere un’alternativa.</p><div id="passkeys"></div><label for="key-label">Nome della nuova passkey</label><input id="key-label" maxlength="60" placeholder="Es. Chiave di riserva"><button id="add-key" class="primary">Aggiungi passkey ↗</button></article><article class="panel security-card"><h2>Accesso protetto</h2><ul class="security-list"><li>Verifica del dispositivo a ogni accesso</li><li>Sessione riservata, con scadenza dopo 8 ore</li><li>Primo codice di attivazione monouso</li><li>Gestione delle chiavi entro 5 minuti dall’accesso</li></ul><p>Per aggiungere o rimuovere chiavi dopo 5 minuti, esci e accedi di nuovo. Se perdi tutte le passkey, puoi avviare il recupero dal server.</p></article></div></section>
+    </div>
+    <footer>SommoMemory · Amministrazione</footer>
+  </main>
+</div>
+</body></html>

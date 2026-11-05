@@ -1,66 +1,103 @@
 # Illustrated deck collections
 
-Researched and downloaded on 5 November 2026. Six illustrated collections are bundled in
-the app: **Animali**, **Spazio**, **Oceano**, **Cibo**, **Sport**, **Viaggi**, each with 18 distinct illustrations. A seventh collection, **Paola**, uses 18 Italian syllables rendered as scalable text.
-They use local PNG files rather than system emoji characters or Material icons,
-so Android, iOS and web render the same artwork and work offline.
+The app bundles **21 illustrated collections** with 18 distinct cards each
+(378 card PNGs total). Twelve decks use unchanged Noto Emoji 2D images; nine
+specialist decks use original illustrations generated for SommoMemory and
+sliced from transparent atlases. **Paola** is an additional free collection
+with 18 Italian syllables rendered as scalable text. Local assets render
+consistently on Android, iOS and web and work offline.
 
-## Sources compared
-
-| Source | Official licensing information | Fit for these collections |
+| Arena | Free collections | Gem collections |
 | --- | --- | --- |
-| [Google Noto Emoji 2D](https://github.com/googlefonts/noto-emoji) | The project distinguishes image resources under Apache 2.0 from font files under OFL. The [2D image notice at the pinned commit](https://github.com/googlefonts/noto-emoji/blob/99701e07d3d1fe1bdbcdb14964547f0fd592966f/2D/svg/LICENSE) identifies the Apache 2.0 terms and Google copyright. | Selected: consistent color illustrations across animals, space and sea objects, with original transparent PNG exports. |
-| [Kenney Animal Pack](https://kenney.nl/assets/animal-pack) and [Animal Pack Remastered](https://kenney.nl/assets/animal-pack-remastered) | The official asset pages list Creative Commons CC0. | Suitable animal illustrations, but these packs do not supply all three themes in one visual system. |
-| [OpenMoji](https://github.com/hfg-gmuend/openmoji#license) | Graphics use CC BY-SA 4.0. The official project provides an attribution statement and describes its graphics/code licensing separately. | A complete alternative with a different outline style and share-alike requirements for the graphics. |
+| Valle Selvaggia | Animali, Fattoria, Fiori e piante | Insetti, Dinosauri |
+| Baia Corallina | Oceano, Spiaggia, Navigazione | Pirati, Abissi |
+| Grande Città | Veicoli, Mestieri, Strumenti musicali | Cibo, Sport, Viaggi |
+| Frontiera Spaziale | Spazio, Laboratorio, Base spaziale | Alieni, Robot |
 
-The selected assets come only from Noto's **2D** directory; no Noto 3D artwork,
-font files, flags or third-party character packs are included. The downloaded
-images are unchanged. SommoMemory selects and orders them into collections.
+Specialist collections include relevant equipment and environments: Dinosauri
+covers prehistory and excavation, Abissi contains deep-sea life, Insetti covers
+small invertebrates, and Robot contains distinct mechanical characters.
+Labels describe the pictured subject. Within each deck all 18 image files and
+labels are distinct. Artwork hashes are also checked for reuse between decks
+in the same arena. The collections do not use recolored duplicates or
+system-font emoji.
+
+## Artwork sources
+
+| Source | Provenance and license handling | Decks |
+| --- | --- | --- |
+| Google [Noto Emoji 2D](https://github.com/googlefonts/noto-emoji) | 216 unchanged PNGs from a pinned upstream commit. Noto's image notice and Apache 2.0 license are retained in the bundle; font licensing is not applicable because no font files are included. | Animali, Spazio, Oceano, Cibo, Sport, Viaggi, Fattoria, Fiori e piante, Veicoli, Mestieri, Strumenti musicali, Laboratorio |
+| OpenAI ImageGen built-in | 162 original generated illustrations. Prompts, atlas hashes, grid cells and crop metadata are recorded. No third-party SPDX license is asserted for these images. | Insetti, Dinosauri, Spiaggia, Navigazione, Pirati, Abissi, Base spaziale, Alieni, Robot |
+
+The Noto images come from the **2D** directory only. No Noto 3D artwork, font
+files, flags, or third-party character packs are included. The Noto source image
+copyright and Apache license notice are retained separately from the disclosure
+for generated artwork.
 
 ## Pinned provenance and reproduction
 
-Upstream repository: `googlefonts/noto-emoji`.
-Pinned commit: `99701e07d3d1fe1bdbcdb14964547f0fd592966f`.
-Upstream image path: `2D/png/512/emoji_u<codepoint>.png`.
+Noto repository: `googlefonts/noto-emoji`
+Pinned commit: `99701e07d3d1fe1bdbcdb14964547f0fd592966f`
+Image path: `2D/png/512/emoji_u<codepoint>.png`
 
-`app/assets/decks/manifest.json` records all 108 original image URLs, source paths, local
-paths, Italian labels, dimensions, byte counts and SHA-256 fingerprints. Every
-download was checked for HTTP 200, PNG signature and 512×512 dimensions. The
-108 images total approximately 2.51 MiB compressed. The original resolution
-supports the large cards on Retina displays; decoded image caches can choose a
-smaller render size where appropriate.
+The curated Noto mappings are stored in `scripts/arena-decks.json`. Original
+subjects and prompts are stored in `scripts/arena-original-art.json`; source
+atlases are kept under `artifacts/arenas/source-art/`. The deterministic crop
+tool is `scripts/slice-arena-atlases.py`. It cuts 6×3 atlases using recorded row
+boundaries, trims to the visible alpha silhouette, preserves transparency,
+centers the subject, and pads each result to 512×512.
 
-To reproduce the exact bundle from the pinned source:
+To reproduce the bundle, use Node 22.13+, Python 3.9+ with Pillow 10.3, and all
+nine source atlases, then run:
 
 ```sh
 node scripts/fetch-decks.mjs
 ```
 
-The script also regenerates the ordered catalog. Preserve its card order: IDs
-`garden`, `cosmos`, `ocean`, `food`, `sports`, `travel`, `paola` and values 0–17 remain the multiplayer protocol's
-stable mapping. No server or Bluetooth protocol changes are required.
+The script uses `python3` by default. Set `PYTHON3` to a different interpreter
+when Pillow is installed in a separate environment.
+
+The script downloads Noto images from the pinned commit, verifies PNG signatures
+and dimensions, slices original atlases, checks each deck and arena for repeated
+artwork, writes separate source notices, and regenerates `app/lib/decks.dart`.
+It removes only superseded PNG drafts from the nine replaced deck folders and
+preserves all six legacy collections and their value ordering.
+
+`app/assets/decks/manifest.json` records all 378 local assets, Italian labels,
+dimensions, byte counts, and SHA-256 hashes. Each Noto record also includes the
+source URL, path, commit, and Apache 2.0 license. Each generated-art record
+includes its source atlas, atlas hash, prompt, cell, crop bounds, and tool. The
+app contains 21 illustrated decks plus Paola; deck IDs and prices match
+`server/catalog/arenas.v1.json`.
+Ranked sessions require both `ranked-v1` and `ranked-attempts-v1`; see
+`server/PROTOCOL.md`.
 
 ## Files and application interface
 
-Images live under `app/assets/decks/{garden,cosmos,ocean,food,sports,travel}/`. The Flutter assets
-section includes those folders and the accompanying documents. `app/lib/decks.dart`
-exports `deckNames`, `deckPrices`, `deckAssets`, `deckLabels`, `deckAsset(theme, value)`,
-`deckCover(theme)` and `deckLabel(theme, value)`. Labels provide Italian names
-for accessibility. The UI calls `registerDeckLicenses()` at startup.
+Images live under `app/assets/decks/<deckId>/`. The Flutter assets section
+includes these folders and their notices. `app/lib/decks.dart` exports
+`deckNames`, `deckPrices`, `deckAssets`, `deckLabels`, `deckAsset(theme, value)`,
+`deckCover(theme)`, and `deckLabel(theme, value)`.
 
 The bundle contains:
 
-- `LICENSE-APACHE-2.0.txt`: complete [Apache 2.0 license text](https://www.apache.org/licenses/LICENSE-2.0.txt).
-- `UPSTREAM-NOTICE.txt`: retained Google image copyright and license notice.
-- `NOTICE.txt`: project attribution, pinned source and scope of this selection.
+- `LICENSE-APACHE-2.0.txt` and `UPSTREAM-NOTICE.txt` for Noto assets.
+- `NOTICE.txt` with Noto attribution and scope.
+- `ORIGINAL-ART-NOTICE.txt` as a separate generated-art disclosure. It does not
+  assert a third-party license.
 
-`registerDeckLicenses()` makes these documents available in Flutter's license
-registry without duplicating registrations. The deck tests load and decode every
-bundled card, check all 18 protocol values per theme, and verify the complete
-license is accessible through that registry.
+`registerDeckLicenses()` registers the Noto license and original-art disclosure
+as separate entries. Artwork tests decode all 378 PNGs, verify the 18 labels
+and images per deck, check that hashes are unique within each deck and arena,
+and validate provenance for both sources.
 
 ## Paola syllable collection
 
-Paola is free for every profile, including profiles created before this release. Its stable card labels are `PA PE PI PO PU LA LE LI LO LU MA ME MI MO MU SA SE SI`. Each chosen label appears twice on a board, using the same card-value protocol as the illustrated decks. Text is rendered in the bundled Outfit font, so it remains readable when the board resizes; it uses no image files or third-party card artwork. `deckAsset` and `deckCover` intentionally return null for this collection; `DeckArtwork` renders the syllable instead. The background is an original code-drawn notebook and the back uses a book symbol, distinct from every front syllable.
-
-The catalog, illustrated previews and selection before starting support all seven decks. Every board still uses complete equal-length rows and the existing 320 ms flip timing.
+Paola is free for every profile, including profiles created before this release.
+Its stable labels are `PA PE PI PO PU LA LE LI LO LU MA ME MI MO MU SA SE SI`.
+Each chosen label appears twice on a board, using the same card-value protocol
+as illustrated decks. Text is rendered in the bundled Outfit font. `deckAsset`
+and `deckCover` intentionally return null for Paola; `DeckArtwork` renders each
+syllable. The background is an original code-drawn notebook and the back uses a
+book symbol. Paola remains outside ranked draws and available in non-ranked
+play.

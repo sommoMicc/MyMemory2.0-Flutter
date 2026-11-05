@@ -1,0 +1,718 @@
+{
+  "schemaVersion": 1,
+  "generator": "OpenAI ImageGen built-in",
+  "grid": {
+    "columns": 6,
+    "rows": 3
+  },
+  "decks": {
+    "abyss": {
+      "atlas": "artifacts/arenas/source-art/abyss-spaced.png",
+      "prompt": "Create a game sprite atlas on a completely transparent background: 6 columns by 3 rows, exactly 18 small separated sticker icons. Landscape1536x1024. IMPORTANT: each imaginary grid cell is256x341pixels. Every icon must be small, centered, maximum160pixels wide and200pixels tall, leaving AT LEAST48pixels empty transparent margin on the left and right of EVERY individual icon. No glow, no shadow, no gradients around the subjects, no atmosphere, no backdrop, no box, no grid or text. Crisp flat colorful cartoon vector-like cutout illustrations, high opacity subjects with thin dark outlines. Only silhouette pixels should be present, every other pixel truly transparent. Subjects in exact row-major order: Pesce lanterna; Calamaro vampiro; Polpo Dumbo; Anguilla pellicano; Pesce vipera; Calamaro di vetro; Gambero abissale; Isopode gigante; Nautilo; Cetriolo di mare; Stella serpentina; Sifonoforo; Medusa pettine; Vermi tubicoli; Pesce drago; Pesce granatiere; Ragno di mare; Camino idrotermale. Friendly recognizable deep-sea animals and thermal vent. All18 icons fully inside their own cells, no part crossing any cell boundary; no extra items.",
+      "cards": [
+        {
+          "id": "anglerfish",
+          "label": "Pesce lanterna"
+        },
+        {
+          "id": "vampire-squid",
+          "label": "Calamaro vampiro"
+        },
+        {
+          "id": "dumbo-octopus",
+          "label": "Polpo Dumbo"
+        },
+        {
+          "id": "gulper-eel",
+          "label": "Anguilla pellicano"
+        },
+        {
+          "id": "viperfish",
+          "label": "Pesce vipera"
+        },
+        {
+          "id": "glass-squid",
+          "label": "Calamaro di vetro"
+        },
+        {
+          "id": "red-shrimp",
+          "label": "Gambero abissale"
+        },
+        {
+          "id": "giant-isopod",
+          "label": "Isopode gigante"
+        },
+        {
+          "id": "nautilus",
+          "label": "Nautilo"
+        },
+        {
+          "id": "sea-cucumber",
+          "label": "Cetriolo di mare"
+        },
+        {
+          "id": "brittle-star",
+          "label": "Stella serpentina"
+        },
+        {
+          "id": "siphonophore",
+          "label": "Sifonoforo"
+        },
+        {
+          "id": "comb-jelly",
+          "label": "Medusa pettine"
+        },
+        {
+          "id": "tube-worms",
+          "label": "Vermi tubicoli"
+        },
+        {
+          "id": "dragonfish",
+          "label": "Pesce drago"
+        },
+        {
+          "id": "rattail",
+          "label": "Pesce granatiere"
+        },
+        {
+          "id": "sea-spider",
+          "label": "Ragno di mare"
+        },
+        {
+          "id": "vent",
+          "label": "Camino idrotermale"
+        }
+      ],
+      "rowCuts": [
+        0,
+        375,
+        690,
+        1024
+      ]
+    },
+    "insects": {
+      "atlas": "artifacts/arenas/source-art/insects-final.png",
+      "prompt": "Create a game sprite atlas on a completely transparent background, landscape1536x1024, 6columns by3rows, EXACTLY18 small separated cutout INSECT icons. Crisp friendly cartoon vector-like illustration, solid colors, thin dark outlines. Each icon occupies at most55%of its cell width and height, centered well inside that cell, leaving VERY LARGE EMPTY TRANSPARENT GAPS between neighboring icons and rows. Maximum150px wide by180px tall on this1536x1024canvas. No shadows, glow, haze, atmosphere, colored rectangles, grid, text, white background or backdrop. Silhouettes with crisp antialiased edges; every pixel outside18silhouettes alpha0. EXACT row-major order: row1 ANT, HONEY BEE INSECT yellow black striped with wings not a monkey, LADYBUG, MOSQUITO, GRASSHOPPER, HOUSEFLY; row2 STAG BEETLE, GREEN CATERPILLAR, ORANGE BUTTERFLY, BLUE DRAGONFLY, MOTH, COCKROACH; row3 STICK INSECT, PRAYING MANTIS, FIREFLY, GREEN LEAF INSECT, FLUFFY BUMBLEBEE, YELLOW WASP. Only18insects; eachsubject clear and distinguishable, fullbody within its own cell.",
+      "cards": [
+        {
+          "id": "ant",
+          "label": "Formica"
+        },
+        {
+          "id": "honeybee",
+          "label": "Ape"
+        },
+        {
+          "id": "ladybird",
+          "label": "Coccinella"
+        },
+        {
+          "id": "mosquito",
+          "label": "Zanzara"
+        },
+        {
+          "id": "grasshopper",
+          "label": "Cavalletta"
+        },
+        {
+          "id": "fly",
+          "label": "Mosca"
+        },
+        {
+          "id": "stag-beetle",
+          "label": "Cervo volante"
+        },
+        {
+          "id": "caterpillar",
+          "label": "Bruco"
+        },
+        {
+          "id": "butterfly",
+          "label": "Farfalla"
+        },
+        {
+          "id": "dragonfly",
+          "label": "Libellula"
+        },
+        {
+          "id": "moth",
+          "label": "Falena"
+        },
+        {
+          "id": "cockroach",
+          "label": "Scarafaggio"
+        },
+        {
+          "id": "stick-insect",
+          "label": "Insetto stecco"
+        },
+        {
+          "id": "mantis",
+          "label": "Mantide"
+        },
+        {
+          "id": "firefly",
+          "label": "Lucciola"
+        },
+        {
+          "id": "aphid",
+          "label": "Insetto foglia"
+        },
+        {
+          "id": "bumblebee",
+          "label": "Bombo"
+        },
+        {
+          "id": "wasp",
+          "label": "Vespa"
+        }
+      ]
+    },
+    "dinosaurs": {
+      "atlas": "artifacts/arenas/source-art/dinosaurs-spaced.png",
+      "prompt": "Create a game sprite atlas on a completely transparent background, landscape1536x1024, 6columns by3rows, EXACTLY18 small separated cutout icons. Use crisp friendly cartoon vector-like illustration, solid colors, thin dark outlines. IMPORTANT: Every icon occupies at most55%of its own imaginary cell width and height, and is centered well inside that cell, leaving VERY LARGE TRANSPARENT GAPS between neighboring icons and rows. All icons small and equal-sized, maximum150px wide by180px tall on this1536x1024 canvas. No shadows, no glow, no haze, no atmosphere, no colored rectangles, no grid, no text, no backdrop. Keep all appendages well within the cell. Subject silhouettes with crisp antialiased edges; every pixel outside the18silhouettes completely transparent. EXACT row-major order, no extra objects: Tirannosauro; Brachiosauro; Triceratopo; Stegosauro; Anchilosauro; Spinosauro; Parasaurolofo; Velociraptor; Pachicefalosauro; Carnotauro; Pteranodonte; Plesiosauro; Mammut; Uovo di dinosauro; Impronta; Teschio fossile; Ammonite; Vulcano. Each subject clearly distinguishable at small size; themed collection dinosaurs.",
+      "cards": [
+        {
+          "id": "t-rex",
+          "label": "Tirannosauro"
+        },
+        {
+          "id": "brachiosaur",
+          "label": "Brachiosauro"
+        },
+        {
+          "id": "triceratops",
+          "label": "Triceratopo"
+        },
+        {
+          "id": "stegosaur",
+          "label": "Stegosauro"
+        },
+        {
+          "id": "ankylosaur",
+          "label": "Anchilosauro"
+        },
+        {
+          "id": "spinosaur",
+          "label": "Spinosauro"
+        },
+        {
+          "id": "parasaurolophus",
+          "label": "Parasaurolofo"
+        },
+        {
+          "id": "raptor",
+          "label": "Velociraptor"
+        },
+        {
+          "id": "pachycephalosaur",
+          "label": "Pachicefalosauro"
+        },
+        {
+          "id": "carnotaur",
+          "label": "Carnotauro"
+        },
+        {
+          "id": "pteranodon",
+          "label": "Pteranodonte"
+        },
+        {
+          "id": "plesiosaur",
+          "label": "Plesiosauro"
+        },
+        {
+          "id": "mammoth",
+          "label": "Mammut"
+        },
+        {
+          "id": "dinosaur-egg",
+          "label": "Uovo di dinosauro"
+        },
+        {
+          "id": "footprint",
+          "label": "Impronta"
+        },
+        {
+          "id": "fossil-skull",
+          "label": "Teschio fossile"
+        },
+        {
+          "id": "ammonite",
+          "label": "Ammonite"
+        },
+        {
+          "id": "volcano",
+          "label": "Vulcano"
+        }
+      ]
+    },
+    "beach": {
+      "atlas": "artifacts/arenas/source-art/beach-spaced.png",
+      "prompt": "Create a game sprite atlas on a completely transparent background, landscape1536x1024, 6columns by3rows, EXACTLY18 small separated cutout icons. Use crisp friendly cartoon vector-like illustration, solid colors, thin dark outlines. IMPORTANT: Every icon occupies at most55%of its own imaginary cell width and height, and is centered well inside that cell, leaving VERY LARGE TRANSPARENT GAPS between neighboring icons and rows. All icons small and equal-sized, maximum150px wide by180px tall on this1536x1024 canvas. No shadows, no glow, no haze, no atmosphere, no colored rectangles, no grid, no text, no backdrop. Keep all appendages well within the cell. Subject silhouettes with crisp antialiased edges; every pixel outside the18silhouettes completely transparent. EXACT row-major order, no extra objects: Ombrellone; Pallone da spiaggia; Occhiali da sole; Crema solare; Secchiello; Infradito; Tavola da surf; Salvagente; Conchiglia; Castello di sabbia; Stella marina; Bibita al cocco; Gelato; Cappello di paglia; Sdraio; Palma; Telo da mare; Aquilone. Each subject clearly distinguishable at small size; themed collection beach.",
+      "cards": [
+        {
+          "id": "umbrella",
+          "label": "Ombrellone"
+        },
+        {
+          "id": "beach-ball",
+          "label": "Pallone da spiaggia"
+        },
+        {
+          "id": "sunglasses",
+          "label": "Occhiali da sole"
+        },
+        {
+          "id": "sunscreen",
+          "label": "Crema solare"
+        },
+        {
+          "id": "bucket",
+          "label": "Secchiello"
+        },
+        {
+          "id": "flip-flops",
+          "label": "Infradito"
+        },
+        {
+          "id": "surfboard",
+          "label": "Tavola da surf"
+        },
+        {
+          "id": "lifering",
+          "label": "Salvagente"
+        },
+        {
+          "id": "seashell",
+          "label": "Conchiglia"
+        },
+        {
+          "id": "sandcastle",
+          "label": "Castello di sabbia"
+        },
+        {
+          "id": "starfish",
+          "label": "Stella marina"
+        },
+        {
+          "id": "coconut-drink",
+          "label": "Bibita al cocco"
+        },
+        {
+          "id": "ice-cream",
+          "label": "Gelato"
+        },
+        {
+          "id": "straw-hat",
+          "label": "Cappello di paglia"
+        },
+        {
+          "id": "beach-chair",
+          "label": "Sdraio"
+        },
+        {
+          "id": "palm-tree",
+          "label": "Palma"
+        },
+        {
+          "id": "towel",
+          "label": "Telo da mare"
+        },
+        {
+          "id": "kite",
+          "label": "Aquilone"
+        }
+      ]
+    },
+    "navigation": {
+      "atlas": "artifacts/arenas/source-art/navigation-spaced.png",
+      "prompt": "Create a game sprite atlas on a completely transparent background, landscape1536x1024, 6columns by3rows, EXACTLY18 small separated cutout icons. Use crisp friendly cartoon vector-like illustration, solid colors, thin dark outlines. IMPORTANT: Every icon occupies at most55%of its own imaginary cell width and height, and is centered well inside that cell, leaving VERY LARGE TRANSPARENT GAPS between neighboring icons and rows. All icons small and equal-sized, maximum150px wide by180px tall on this1536x1024 canvas. No shadows, no glow, no haze, no atmosphere, no colored rectangles, no grid, no text, no backdrop. Keep all appendages well within the cell. Subject silhouettes with crisp antialiased edges; every pixel outside the18silhouettes completely transparent. EXACT row-major order, no extra objects: Bussola; Carta nautica; Cannocchiale; Faro; Timone; Ancora; Scialuppa; Boa; Campana di bordo; Sestante; Radar; Binocolo; Cima nautica; Anemometro; Barca a vela; Diario di bordo; Navigatore GPS; Bandiera di segnalazione. Each subject clearly distinguishable at small size; themed collection navigation.",
+      "cards": [
+        {
+          "id": "compass",
+          "label": "Bussola"
+        },
+        {
+          "id": "nautical-chart",
+          "label": "Carta nautica"
+        },
+        {
+          "id": "spyglass",
+          "label": "Cannocchiale"
+        },
+        {
+          "id": "lighthouse",
+          "label": "Faro"
+        },
+        {
+          "id": "ship-wheel",
+          "label": "Timone"
+        },
+        {
+          "id": "anchor",
+          "label": "Ancora"
+        },
+        {
+          "id": "lifeboat",
+          "label": "Scialuppa"
+        },
+        {
+          "id": "buoy",
+          "label": "Boa"
+        },
+        {
+          "id": "ship-bell",
+          "label": "Campana di bordo"
+        },
+        {
+          "id": "sextant",
+          "label": "Sestante"
+        },
+        {
+          "id": "radar",
+          "label": "Radar"
+        },
+        {
+          "id": "binoculars",
+          "label": "Binocolo"
+        },
+        {
+          "id": "rope",
+          "label": "Cima nautica"
+        },
+        {
+          "id": "anemometer",
+          "label": "Anemometro"
+        },
+        {
+          "id": "sailboat",
+          "label": "Barca a vela"
+        },
+        {
+          "id": "logbook",
+          "label": "Diario di bordo"
+        },
+        {
+          "id": "gps",
+          "label": "Navigatore GPS"
+        },
+        {
+          "id": "signal-flag",
+          "label": "Bandiera di segnalazione"
+        }
+      ]
+    },
+    "pirates": {
+      "atlas": "artifacts/arenas/source-art/pirates-spaced.png",
+      "prompt": "Create a game sprite atlas on a completely transparent background, landscape1536x1024, 6columns by3rows, EXACTLY18 small separated cutout icons. Use crisp friendly cartoon vector-like illustration, solid colors, thin dark outlines. IMPORTANT: Every icon occupies at most55%of its own imaginary cell width and height, and is centered well inside that cell, leaving VERY LARGE TRANSPARENT GAPS between neighboring icons and rows. All icons small and equal-sized, maximum150px wide by180px tall on this1536x1024 canvas. No shadows, no glow, no haze, no atmosphere, no colored rectangles, no grid, no text, no backdrop. Keep all appendages well within the cell. Subject silhouettes with crisp antialiased edges; every pixel outside the18silhouettes completely transparent. EXACT row-major order, no extra objects: Tricorno; Bandiera pirata; Pappagallo; Sciabola; Forziere; Moneta d’oro; Cannone; Uncino; Galeone; Mappa del tesoro; Bussola del capitano; Ancora del galeone; Barile; Timone del galeone; Nodo; Cannocchiale del capitano; Chiave del forziere; Isola del tesoro. Each subject clearly distinguishable at small size; themed collection pirates.",
+      "cards": [
+        {
+          "id": "pirate-hat",
+          "label": "Tricorno"
+        },
+        {
+          "id": "pirate-flag",
+          "label": "Bandiera pirata"
+        },
+        {
+          "id": "parrot",
+          "label": "Pappagallo"
+        },
+        {
+          "id": "cutlass",
+          "label": "Sciabola"
+        },
+        {
+          "id": "treasure-chest",
+          "label": "Forziere"
+        },
+        {
+          "id": "gold-coin",
+          "label": "Moneta d’oro"
+        },
+        {
+          "id": "cannon",
+          "label": "Cannone"
+        },
+        {
+          "id": "hook",
+          "label": "Uncino"
+        },
+        {
+          "id": "galleon",
+          "label": "Galeone"
+        },
+        {
+          "id": "treasure-map",
+          "label": "Mappa del tesoro"
+        },
+        {
+          "id": "compass",
+          "label": "Bussola del capitano"
+        },
+        {
+          "id": "anchor",
+          "label": "Ancora del galeone"
+        },
+        {
+          "id": "barrel",
+          "label": "Barile"
+        },
+        {
+          "id": "ship-wheel",
+          "label": "Timone del galeone"
+        },
+        {
+          "id": "knotted-rope",
+          "label": "Nodo"
+        },
+        {
+          "id": "spyglass",
+          "label": "Cannocchiale del capitano"
+        },
+        {
+          "id": "key",
+          "label": "Chiave del forziere"
+        },
+        {
+          "id": "island",
+          "label": "Isola del tesoro"
+        }
+      ]
+    },
+    "space_base": {
+      "atlas": "artifacts/arenas/source-art/space_base-spaced.png",
+      "prompt": "Create a game sprite atlas on a completely transparent background, landscape1536x1024, 6columns by3rows, EXACTLY18 small separated cutout icons. Use crisp friendly cartoon vector-like illustration, solid colors, thin dark outlines. IMPORTANT: Every icon occupies at most55%of its own imaginary cell width and height, and is centered well inside that cell, leaving VERY LARGE TRANSPARENT GAPS between neighboring icons and rows. All icons small and equal-sized, maximum150px wide by180px tall on this1536x1024 canvas. No shadows, no glow, no haze, no atmosphere, no colored rectangles, no grid, no text, no backdrop. Keep all appendages well within the cell. Subject silhouettes with crisp antialiased edges; every pixel outside the18silhouettes completely transparent. EXACT row-major order, no extra objects: Stazione orbitale; Casco spaziale; Capsula; Rover lunare; Pannello solare; Torre di lancio; Portello stagno; Console di bordo; Bombola d’ossigeno; Stivali spaziali; Guanti spaziali; Tuta spaziale; Parabola; Braccio della stazione; Modulo lunare; Antenna di comunicazione; Osservatorio; Cella energetica. Each subject clearly distinguishable at small size; themed collection space_base.",
+      "cards": [
+        {
+          "id": "orbital-station",
+          "label": "Stazione orbitale"
+        },
+        {
+          "id": "helmet",
+          "label": "Casco spaziale"
+        },
+        {
+          "id": "capsule",
+          "label": "Capsula"
+        },
+        {
+          "id": "rover",
+          "label": "Rover lunare"
+        },
+        {
+          "id": "solar-array",
+          "label": "Pannello solare"
+        },
+        {
+          "id": "launch-tower",
+          "label": "Torre di lancio"
+        },
+        {
+          "id": "airlock",
+          "label": "Portello stagno"
+        },
+        {
+          "id": "console",
+          "label": "Console di bordo"
+        },
+        {
+          "id": "oxygen-cylinder",
+          "label": "Bombola d’ossigeno"
+        },
+        {
+          "id": "space-boots",
+          "label": "Stivali spaziali"
+        },
+        {
+          "id": "space-gloves",
+          "label": "Guanti spaziali"
+        },
+        {
+          "id": "spacesuit",
+          "label": "Tuta spaziale"
+        },
+        {
+          "id": "radar-dish",
+          "label": "Parabola"
+        },
+        {
+          "id": "robot-arm",
+          "label": "Braccio della stazione"
+        },
+        {
+          "id": "moon-habitat",
+          "label": "Modulo lunare"
+        },
+        {
+          "id": "antenna",
+          "label": "Antenna di comunicazione"
+        },
+        {
+          "id": "observatory",
+          "label": "Osservatorio"
+        },
+        {
+          "id": "power-cell",
+          "label": "Cella energetica"
+        }
+      ]
+    },
+    "aliens": {
+      "atlas": "artifacts/arenas/source-art/aliens-spaced.png",
+      "prompt": "Create a game sprite atlas on a completely transparent background, landscape1536x1024, 6columns by3rows, EXACTLY18 small separated cutout icons. Use crisp friendly cartoon vector-like illustration, solid colors, thin dark outlines. IMPORTANT: Every icon occupies at most55%of its own imaginary cell width and height, and is centered well inside that cell, leaving VERY LARGE TRANSPARENT GAPS between neighboring icons and rows. All icons small and equal-sized, maximum150px wide by180px tall on this1536x1024 canvas. No shadows, no glow, no haze, no atmosphere, no colored rectangles, no grid, no text, no backdrop. Keep all appendages well within the cell. Subject silhouettes with crisp antialiased edges; every pixel outside the18silhouettes completely transparent. EXACT row-major order, no extra objects: Alieno a tre occhi; Alieno tentacolare; Alieno saltatore; Alieno longilineo; Alieno corazzato; Alieno con corna; Alieno di roccia; Alieno vegetale; Alieno lumaca; Alieno peloso; Alieno alato; Alieno millezampe; Alieno di cristallo; Alieno fungo; Insetto lunare; Alieno acquatico; Alieno a spirale; Alieno ciclope. Each subject clearly distinguishable at small size; themed collection aliens.",
+      "cards": [
+        {
+          "id": "three-eyes",
+          "label": "Alieno a tre occhi"
+        },
+        {
+          "id": "tentacles",
+          "label": "Alieno tentacolare"
+        },
+        {
+          "id": "gecko",
+          "label": "Alieno saltatore"
+        },
+        {
+          "id": "tall",
+          "label": "Alieno longilineo"
+        },
+        {
+          "id": "crab",
+          "label": "Alieno corazzato"
+        },
+        {
+          "id": "horns",
+          "label": "Alieno con corna"
+        },
+        {
+          "id": "rock",
+          "label": "Alieno di roccia"
+        },
+        {
+          "id": "plant",
+          "label": "Alieno vegetale"
+        },
+        {
+          "id": "slug",
+          "label": "Alieno lumaca"
+        },
+        {
+          "id": "fur",
+          "label": "Alieno peloso"
+        },
+        {
+          "id": "wings",
+          "label": "Alieno alato"
+        },
+        {
+          "id": "many-legs",
+          "label": "Alieno millezampe"
+        },
+        {
+          "id": "crystal",
+          "label": "Alieno di cristallo"
+        },
+        {
+          "id": "mushroom",
+          "label": "Alieno fungo"
+        },
+        {
+          "id": "moon-bug",
+          "label": "Insetto lunare"
+        },
+        {
+          "id": "aquatic",
+          "label": "Alieno acquatico"
+        },
+        {
+          "id": "spiral",
+          "label": "Alieno a spirale"
+        },
+        {
+          "id": "one-eye",
+          "label": "Alieno ciclope"
+        }
+      ]
+    },
+    "robots": {
+      "atlas": "artifacts/arenas/source-art/robots-spaced.png",
+      "prompt": "Create a game sprite atlas on a completely transparent background, landscape1536x1024, 6columns by3rows, EXACTLY18 small separated cutout icons. Use crisp friendly cartoon vector-like illustration, solid colors, thin dark outlines. IMPORTANT: Every icon occupies at most55%of its own imaginary cell width and height, and is centered well inside that cell, leaving VERY LARGE TRANSPARENT GAPS between neighboring icons and rows. All icons small and equal-sized, maximum150px wide by180px tall on this1536x1024 canvas. No shadows, no glow, no haze, no atmosphere, no colored rectangles, no grid, no text, no backdrop. Keep all appendages well within the cell. Subject silhouettes with crisp antialiased edges; every pixel outside the18silhouettes completely transparent. EXACT row-major order, no extra objects: Robot quadrato; Robot sferico; Robot su ruote; Robot esploratore; Robot volante; Robot granchio; Robot cingolato; Robot braccio; Robot treppiede; Robot a molla; Robot sottomarino; Robot monoruota; Robot giardiniere; Robot cuoco; Robot medico; Robot astronomo; Cane robot; Robot da lavoro. Each subject clearly distinguishable at small size; themed collection robots.",
+      "cards": [
+        {
+          "id": "box",
+          "label": "Robot quadrato"
+        },
+        {
+          "id": "sphere",
+          "label": "Robot sferico"
+        },
+        {
+          "id": "wheels",
+          "label": "Robot su ruote"
+        },
+        {
+          "id": "quadruped",
+          "label": "Robot esploratore"
+        },
+        {
+          "id": "drone",
+          "label": "Robot volante"
+        },
+        {
+          "id": "crab",
+          "label": "Robot granchio"
+        },
+        {
+          "id": "tracks",
+          "label": "Robot cingolato"
+        },
+        {
+          "id": "arm",
+          "label": "Robot braccio"
+        },
+        {
+          "id": "tripod",
+          "label": "Robot treppiede"
+        },
+        {
+          "id": "clockwork",
+          "label": "Robot a molla"
+        },
+        {
+          "id": "submarine",
+          "label": "Robot sottomarino"
+        },
+        {
+          "id": "unicycle",
+          "label": "Robot monoruota"
+        },
+        {
+          "id": "gardener",
+          "label": "Robot giardiniere"
+        },
+        {
+          "id": "chef",
+          "label": "Robot cuoco"
+        },
+        {
+          "id": "medical",
+          "label": "Robot medico"
+        },
+        {
+          "id": "telescope",
+          "label": "Robot astronomo"
+        },
+        {
+          "id": "dog",
+          "label": "Cane robot"
+        },
+        {
+          "id": "heavy",
+          "label": "Robot da lavoro"
+        }
+      ]
+    }
+  }
+}

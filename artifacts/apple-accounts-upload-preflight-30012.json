@@ -1,0 +1,20 @@
+{
+  "verifiedAt": "2026-11-05T19:41:28.980Z",
+  "appId": "6831015201",
+  "ipa": "/Users/micheletagliabue/workspace/MyMemory/artifacts/SommoMemory-3.0.0-30012.ipa",
+  "sha256": "857610d7b2a0ab5898b6b69ec1a63918e47f1c91ef03b21945b04134993271db",
+  "bundleId": "cc.sommomi.mymemory",
+  "version": "3.0.0",
+  "build": "30012",
+  "profile": {
+    "id": "TS467WLHTS",
+    "name": "SommoMemory App Store Accounts Notifications",
+    "uuid": "dc790f0a-5752-4d01-9b8a-9b84d4ff01a7",
+    "state": "ACTIVE"
+  },
+  "deepStrictSignatureVerified": true,
+  "appleSignInEntitlement": true,
+  "uploadAuthorized": true,
+  "reuseEmptyUploadId": "0d979073-15ee-43ee-9885-4e755b964130",
+  "groupAttachmentAuthorized": false
+}

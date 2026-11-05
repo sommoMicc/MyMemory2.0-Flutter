@@ -1,0 +1,43 @@
+{
+  "stagedAt": "2026-11-05T19:23:09.702858+00:00",
+  "publicOrigin": "https://sommomemory.sommomi.cc",
+  "privateDirectory": "/srv/mymemory/private",
+  "directoryMode": "0700",
+  "files": {
+    "accounts.env": {
+      "mode": "0600",
+      "ownerUid": 1000
+    },
+    "apple-signin.p8": {
+      "mode": "0600",
+      "ownerUid": 1000,
+      "keyValidatedWithoutDisclosure": true
+    },
+    "accounts.compose.yaml": {
+      "mode": "0600",
+      "ownerUid": 1000
+    }
+  },
+  "appleKeyMountedReadOnly": true,
+  "composeConfigurationValidated": true,
+  "expectedProviders": {
+    "web": [
+      "apple",
+      "google"
+    ],
+    "ios": [
+      "apple",
+      "google"
+    ],
+    "android": [
+      "apple",
+      "google"
+    ]
+  },
+  "googleWebClientSecretCopied": false,
+  "credentialValuesIncludedInReceipt": false,
+  "restartPerformed": false,
+  "deploymentPerformed": false,
+  "liveReleaseAtStaging": "20261105T180636Z-accounts",
+  "state": "Private configuration staged; awaiting root GO after portal and privacy updates"
+}

@@ -6,6 +6,49 @@ const teal = Color(0xFF207B73);
 const coral = Color(0xFFE77962);
 const muted = Color(0xFF7B827E);
 const line = Color(0xFFE6E6DC);
+String deckWorldTheme(String theme) => switch (theme) {
+  'garden' || 'farm' || 'flora' || 'insects' || 'dinosaurs' => 'garden',
+  'ocean' || 'beach' || 'navigation' || 'pirates' || 'abyss' => 'ocean',
+  'vehicles' ||
+  'professions' ||
+  'instruments' ||
+  'food' ||
+  'sports' ||
+  'travel' => 'travel',
+  'cosmos' || 'laboratory' || 'space_base' || 'aliens' || 'robots' => 'cosmos',
+  'paola' => 'paola',
+  _ => 'garden',
+};
+
+IconData deckBackIcon(String theme) => switch (deckWorldTheme(theme)) {
+  'ocean' => Icons.waves_rounded,
+  'travel' => Icons.location_city_rounded,
+  'cosmos' => Icons.auto_awesome_rounded,
+  'paola' => Icons.menu_book_rounded,
+  _ => Icons.landscape_rounded,
+};
+
+Color deckAccent(String theme) => switch (theme) {
+  'farm' => const Color(0xFF8B6A45),
+  'flora' => const Color(0xFF73964D),
+  'insects' => const Color(0xFFB79A35),
+  'dinosaurs' => const Color(0xFF8C6557),
+  'beach' => const Color(0xFF2B93B8),
+  'navigation' => const Color(0xFF466E93),
+  'pirates' => const Color(0xFF9B5C43),
+  'abyss' => const Color(0xFF315C88),
+  'vehicles' => const Color(0xFF426F8E),
+  'professions' => const Color(0xFF597B66),
+  'instruments' => const Color(0xFF95649A),
+  'laboratory' => const Color(0xFF538D8A),
+  'space_base' => const Color(0xFF5569A0),
+  'aliens' => const Color(0xFF8466A5),
+  'robots' => const Color(0xFF607B95),
+  'cosmos' => const Color(0xFF8066B5),
+  'ocean' => const Color(0xFF3E99BD),
+  'travel' => const Color(0xFF81B3C4),
+  _ => teal,
+};
 const themeNames = {
   'garden': 'Piccolo giardino',
   'cosmos': 'Tra le stelle',
