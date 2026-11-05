@@ -1,0 +1,21 @@
+{
+  "bundleId": "cc.sommomi.mymemory",
+  "bundleResourceId": "M5DK5NJ6KP",
+  "capabilityId": "M5DK5NJ6KP_ASSOCIATED_DOMAINS",
+  "capabilityType": "ASSOCIATED_DOMAINS",
+  "profile": {
+    "id": "66Z2SB723S",
+    "name": "SommoMemory App Store Links",
+    "uuid": "f4f89090-799a-486e-b289-1e0546b0df6f",
+    "state": "ACTIVE",
+    "expirationDate": "2027-10-09T18:58:17.000+00:00"
+  },
+  "previousProfile": {
+    "id": "AC9UG6997P",
+    "name": "MyMemory App Store",
+    "state": "INVALID",
+    "deleted": false
+  },
+  "certificateId": "86762T444Q",
+  "verifiedAt": "2026-11-05T14:28:05.204Z"
+}

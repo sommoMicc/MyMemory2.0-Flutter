@@ -8,19 +8,31 @@ import 'game.dart';
 import 'online.dart';
 import 'palette.dart';
 import 'decks.dart';
+import 'economy.dart';
+import 'invite_links.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'ui/collection_shop.dart';
+import 'ui/profile_panel.dart';
+import 'ui/deck_art.dart';
 import 'ui/game_world.dart';
 import 'bluetooth/bluetooth_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final invites = InviteLinks();
+  unawaited(invites.start());
   await registerDeckLicenses();
   final prefs = await SharedPreferences.getInstance();
-  runApp(MyMemory(prefs: prefs));
+  final economy = EconomyController(prefs: prefs);
+  unawaited(economy.initialize());
+  runApp(MyMemory(prefs: prefs, economy: economy, invites: invites));
 }
 
 class MyMemory extends StatelessWidget {
-  const MyMemory({super.key, required this.prefs});
+  const MyMemory({super.key, required this.prefs, this.economy, this.invites});
   final SharedPreferences prefs;
+  final EconomyController? economy;
+  final InviteLinks? invites;
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: 'SommoMemory',
@@ -61,13 +73,15 @@ class MyMemory extends StatelessWidget {
         ),
       ),
     ),
-    home: Home(prefs: prefs),
+    home: Home(prefs: prefs, economy: economy, invites: invites),
   );
 }
 
 class Home extends StatefulWidget {
-  const Home({super.key, required this.prefs});
+  const Home({super.key, required this.prefs, this.economy, this.invites});
   final SharedPreferences prefs;
+  final EconomyController? economy;
+  final InviteLinks? invites;
   @override
   State<Home> createState() => _HomeState();
 }
@@ -77,103 +91,298 @@ class _HomeState extends State<Home> {
   int pairs = 8;
   String theme = 'garden';
   bool configuring = false;
+  bool starting = false;
+  String? observedProfileId, observedProfileName;
+  int navigationGeneration = 0;
+  String? inviteCode;
+  bool handlingInvite = false;
+  String? queuedInvite;
+  StreamSubscription<String>? inviteSubscription;
+  final activeGameKey = GlobalKey<_GameScreenState>();
   late final TextEditingController name;
   final room = TextEditingController();
   @override
   void initState() {
     super.initState();
-    name = TextEditingController(text: widget.prefs.getString('name') ?? '');
+    final initialProfile = widget.economy?.profile;
+    final pendingName =
+        widget.prefs.getBool('name.localPending') == true &&
+        (widget.prefs.getString('name.localProfile') == null ||
+            initialProfile == null ||
+            widget.prefs.getString('name.localProfile') == initialProfile.id);
+    name = TextEditingController(
+      text:
+          !pendingName &&
+              initialProfile != null &&
+              (initialProfile.activated ||
+                  initialProfile.displayName.isNotEmpty)
+          ? initialProfile.displayName
+          : widget.prefs.getString('name') ?? '',
+    );
+    observedProfileId = widget.economy?.profile?.id;
+    observedProfileName = widget.economy?.profile?.displayName;
+    widget.economy?.addListener(economyChanged);
     final savedPairs = widget.prefs.getInt('game.pairs');
     if ([6, 8, 12, 18].contains(savedPairs)) pairs = savedPairs!;
     final savedTheme = widget.prefs.getString('game.collection');
     if (deckNames.containsKey(savedTheme)) theme = savedTheme!;
-    final invite = Uri.base.queryParameters['room'];
+    final invite =
+        widget.invites?.takePendingRoomCode() ??
+        roomCodeFromInviteUri(Uri.base);
     if (invite != null) {
       mode = PlayMode.online;
       room.text = invite;
+      inviteCode = invite;
       configuring = true;
     }
+    inviteSubscription = widget.invites?.roomCodes.listen((code) {
+      widget.invites?.takePendingRoomCode();
+      unawaited(handleInvite(code));
+    });
+    prefetch();
+  }
+
+  void prefetch() {
+    final economy = widget.economy;
+    if (economy != null && (mode == PlayMode.solo || mode == PlayMode.local)) {
+      unawaited(
+        economy.prefetchTicket(mode: mode.name, pairs: pairs, theme: theme),
+      );
+    }
+  }
+
+  Future<void> handleInvite(String code) async {
+    if (!RegExp(r'^[A-Z0-9]{6}$').hasMatch(code) || !mounted) return;
+    if (handlingInvite) {
+      queuedInvite = code;
+      return;
+    }
+    handlingInvite = true;
+    try {
+      final game = activeGameKey.currentState;
+      if (game != null || starting) {
+        final accept = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Aprire l’invito?'),
+            content: Text(
+              'Stanza $code. La partita in corso verrà abbandonata.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Resta'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Apri invito'),
+              ),
+            ],
+          ),
+        );
+        if (accept != true || !mounted) return;
+        await game?.leaveForInvite();
+      }
+      if (!mounted) return;
+      navigationGeneration++;
+      starting = false;
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      setState(() {
+        mode = PlayMode.online;
+        room.text = code;
+        inviteCode = code;
+        configuring = true;
+      });
+    } finally {
+      handlingInvite = false;
+      final pending = queuedInvite;
+      queuedInvite = null;
+      if (pending != null && mounted && pending != inviteCode) {
+        unawaited(handleInvite(pending));
+      }
+    }
+  }
+
+  void economyChanged() {
+    if (!mounted) return;
+    final profile = widget.economy?.profile;
+    if (profile != null) {
+      if (profile.id != observedProfileId ||
+          profile.displayName != observedProfileName) {
+        final firstEmptyGuest =
+            observedProfileId == null &&
+            !profile.activated &&
+            profile.displayName.isEmpty;
+        final profileSwitched =
+            observedProfileId != null && observedProfileId != profile.id;
+        if (profileSwitched) widget.prefs.remove('name.localPending');
+        if (!firstEmptyGuest &&
+            (profileSwitched ||
+                widget.prefs.getBool('name.localPending') != true)) {
+          name.text = profile.displayName;
+        }
+        observedProfileId = profile.id;
+        observedProfileName = profile.displayName;
+      }
+      if (!widget.economy!.ownsDeck(theme)) theme = 'garden';
+    }
+    setState(() {});
+    prefetch();
+  }
+
+  void profile() {
+    navigationGeneration++;
+    setState(() => starting = false);
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => ProfilePanel(economy: widget.economy!),
+      ),
+    );
   }
 
   @override
   void dispose() {
+    widget.economy?.removeListener(economyChanged);
+    unawaited(inviteSubscription?.cancel());
     name.dispose();
     room.dispose();
     super.dispose();
   }
 
   void start({bool join = false, bool resume = false}) async {
-    widget.prefs.setString('name', name.text.trim());
-    if (mode == PlayMode.solo || mode == PlayMode.local) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute<void>(
-          builder: (_) => GameScreen(
-            prefs: widget.prefs,
-            pairs: pairs,
-            theme: theme,
-            mode: mode,
-          ),
-        ),
-      );
-    } else if (mode == PlayMode.online) {
-      if (join && room.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Inserisci il codice della stanza')),
-        );
-        return;
-      }
-      final online = OnlineGame(widget.prefs);
-      unawaited(
-        online.open(
-          resume
-              ? null
-              : join
-              ? {
-                  'type': 'join',
-                  'code': room.text.trim().toUpperCase(),
-                  'name': name.text.trim().isEmpty
-                      ? 'Ospite'
-                      : name.text.trim(),
-                }
-              : {
-                  'type': 'create',
-                  'name': name.text.trim().isEmpty
-                      ? 'Giocatore'
-                      : name.text.trim(),
-                  'pairs': pairs,
-                  'theme': theme,
-                },
-        ),
-      );
-      if (!mounted) return;
-      await Navigator.push(
-        context,
-        MaterialPageRoute<void>(
-          builder: (_) => GameScreen(
-            prefs: widget.prefs,
-            pairs: pairs,
-            theme: theme,
-            mode: mode,
-            online: online,
-          ),
-        ),
-      );
-      online.dispose();
-    } else {
-      await Navigator.push(
-        context,
-        MaterialPageRoute<void>(
-          builder: (_) => BluetoothLobby(
-            prefs: widget.prefs,
-            name: name.text.trim().isEmpty ? 'Giocatore' : name.text.trim(),
-            pairs: pairs,
-            theme: theme,
-          ),
-        ),
-      );
+    if (starting) return;
+    if (!join &&
+        !resume &&
+        widget.economy != null &&
+        !widget.economy!.ownsDeck(theme)) {
+      chooseTheme();
+      return;
     }
-    if (mounted) setState(() {});
+    final requestGeneration = ++navigationGeneration;
+    final playMode = mode;
+    final pairCount = pairs;
+    final collection = theme;
+    setState(() => starting = true);
+    try {
+      GameTicket? ticket;
+      if (playMode == PlayMode.solo || playMode == PlayMode.local) {
+        ticket = await widget.economy?.takeTicket(
+          mode: playMode.name,
+          pairs: pairCount,
+          theme: collection,
+        );
+        if (!mounted || requestGeneration != navigationGeneration) return;
+        if (widget.economy != null && ticket == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Puoi giocare; il premio non è disponibile per questa partita.',
+              ),
+            ),
+          );
+        }
+      }
+      widget.prefs.setString('name', name.text.trim());
+      if (playMode == PlayMode.solo || playMode == PlayMode.local) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => GameScreen(
+              key: activeGameKey,
+              prefs: widget.prefs,
+              pairs: pairCount,
+              theme: collection,
+              mode: playMode,
+              economy: widget.economy,
+              ticket: ticket,
+            ),
+          ),
+        );
+      } else if (playMode == PlayMode.online) {
+        if (join && room.text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Inserisci il codice della stanza')),
+          );
+          return;
+        }
+        final online = OnlineGame(widget.prefs);
+        unawaited(
+          online.open(
+            resume
+                ? null
+                : join
+                ? {
+                    'type': 'join',
+                    'supportedDecks': deckNames.keys.toList(),
+                    if (widget.economy?.profileToken != null)
+                      'profileToken': widget.economy!.profileToken,
+                    'code': room.text.trim().toUpperCase(),
+                    'name': name.text.trim().isEmpty
+                        ? 'Ospite'
+                        : name.text.trim(),
+                  }
+                : {
+                    'type': 'create',
+                    'supportedDecks': deckNames.keys.toList(),
+                    if (widget.economy?.profileToken != null)
+                      'profileToken': widget.economy!.profileToken,
+                    'name': name.text.trim().isEmpty
+                        ? 'Giocatore'
+                        : name.text.trim(),
+                    'pairs': pairCount,
+                    'theme': collection,
+                  },
+          ),
+        );
+        if (!mounted || requestGeneration != navigationGeneration) return;
+        await Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => GameScreen(
+              key: activeGameKey,
+              prefs: widget.prefs,
+              pairs: pairCount,
+              theme: collection,
+              mode: playMode,
+              economy: widget.economy,
+              ticket: ticket,
+              online: online,
+            ),
+          ),
+        );
+        online.dispose();
+      } else {
+        await Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => BluetoothLobby(
+              gameKey: activeGameKey,
+              prefs: widget.prefs,
+              economy: widget.economy,
+              name: name.text.trim().isEmpty ? 'Giocatore' : name.text.trim(),
+              pairs: pairCount,
+              theme: collection,
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.economy?.lastError ??
+                  'Impossibile avviare la partita. Riprova.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted && requestGeneration == navigationGeneration) {
+        setState(() => starting = false);
+      }
+    }
   }
 
   Future<void> editName() async {
@@ -191,6 +400,28 @@ class _HomeState extends State<Home> {
     );
     if (saved != true) name.text = previousName;
     widget.prefs.setString('name', name.text.trim());
+    if (saved == true && widget.economy != null) {
+      try {
+        await widget.economy!.setDisplayName(name.text.trim());
+        widget.prefs.remove('name.localPending');
+        widget.prefs.remove('name.localProfile');
+      } catch (_) {
+        widget.prefs.setBool('name.localPending', true);
+        final profileId = widget.economy!.profile?.id;
+        if (profileId != null) {
+          widget.prefs.setString('name.localProfile', profileId);
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Nome salvato su questo dispositivo. Il profilo online non è stato aggiornato.',
+              ),
+            ),
+          );
+        }
+      }
+    }
     if (mounted) setState(() {});
   }
 
@@ -226,6 +457,7 @@ class _HomeState extends State<Home> {
                 onSelected: (_) {
                   setState(() => pairs = p);
                   widget.prefs.setInt('game.pairs', p);
+                  prefetch();
                   Navigator.pop(context);
                 },
               ),
@@ -235,53 +467,49 @@ class _HomeState extends State<Home> {
     ),
   );
 
-  void chooseTheme() => showDialog<void>(
-    context: context,
-    builder: (context) => Dialog(
-      insetPadding: const EdgeInsets.all(16),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 440),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Collezioni',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'Chiudi collezioni',
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded),
-                  ),
-                ],
-              ),
-              for (final t in deckNames.keys) ...[
-                const SizedBox(height: 8),
-                _CollectionTile(
-                  theme: t,
-                  selected: theme == t,
-                  onTap: () {
-                    setState(() => theme = t);
-                    widget.prefs.setString('game.collection', t);
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ],
+  Future<void> openInvitationInApp() async {
+    final code = inviteCode;
+    if (code == null) return;
+    try {
+      final opened = await launchUrl(
+        inviteAppUriForRoom(code),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!opened && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Puoi continuare nel browser con il codice della stanza.',
+            ),
           ),
-        ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Puoi continuare nel browser con il codice della stanza.',
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> chooseTheme() async {
+    final selected = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            CollectionShop(selected: theme, economy: widget.economy),
       ),
-    ),
-  );
+    );
+    if (!mounted || selected == null) return;
+    setState(() => theme = selected);
+    widget.prefs.setString('game.collection', selected);
+    prefetch();
+  }
 
   void settings() => showDialog<void>(
     context: context,
@@ -347,13 +575,21 @@ class _HomeState extends State<Home> {
                           Expanded(
                             child: Text(
                               configuring ? modeTitle : 'SommoMemory',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                fontSize: 24,
+                                fontSize: 21,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: -.6,
                               ),
                             ),
                           ),
+                          if (widget.economy != null)
+                            IconButton(
+                              tooltip: 'Profilo',
+                              onPressed: profile,
+                              icon: const Icon(Icons.person_outline_rounded),
+                            ),
                           IconButton(
                             tooltip: 'Come si gioca e impostazioni',
                             onPressed: settings,
@@ -363,15 +599,23 @@ class _HomeState extends State<Home> {
                       ),
                       const SizedBox(height: 12),
                       if (!configuring) ...[
-                        const Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Modalità di gioco',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                'Modalità di gioco',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
-                          ),
+                            if (widget.economy != null)
+                              GemBalance(
+                                economy: widget.economy!,
+                                onTap: chooseTheme,
+                              ),
+                          ],
                         ),
                         const SizedBox(height: 12),
                         Expanded(
@@ -403,6 +647,7 @@ class _HomeState extends State<Home> {
                                           onTap: () => setState(() {
                                             mode = m.$1;
                                             configuring = true;
+                                            prefetch();
                                           }),
                                         ),
                                       ),
@@ -459,21 +704,56 @@ class _HomeState extends State<Home> {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   FilledButton.icon(
-                                    onPressed: () => start(),
+                                    onPressed: starting
+                                        ? null
+                                        : () => start(
+                                            join:
+                                                mode == PlayMode.online &&
+                                                inviteCode != null,
+                                          ),
                                     icon: const Icon(Icons.play_arrow_rounded),
                                     label: Text(switch (mode) {
-                                      PlayMode.online => 'Crea stanza',
+                                      PlayMode.online =>
+                                        inviteCode == null
+                                            ? 'Crea stanza'
+                                            : 'Entra in $inviteCode',
                                       PlayMode.bluetooth => 'Continua',
                                       _ => 'Inizia partita',
                                     }),
                                   ),
                                   if (mode == PlayMode.online) ...[
                                     const SizedBox(height: 8),
-                                    OutlinedButton.icon(
-                                      onPressed: joinRoom,
-                                      icon: const Icon(Icons.login_rounded),
-                                      label: const Text('Entra con un codice'),
-                                    ),
+                                    if (kIsWeb && inviteCode != null)
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: TextButton(
+                                              onPressed: joinRoom,
+                                              child: const Text('Altro codice'),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: TextButton.icon(
+                                              onPressed: openInvitationInApp,
+                                              icon: const Icon(
+                                                Icons.open_in_new_rounded,
+                                                size: 16,
+                                              ),
+                                              label: const Text(
+                                                'Apri nell’app',
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    else
+                                      OutlinedButton.icon(
+                                        onPressed: joinRoom,
+                                        icon: const Icon(Icons.login_rounded),
+                                        label: const Text(
+                                          'Entra con un codice',
+                                        ),
+                                      ),
                                     if (widget.prefs.getString('room.token') !=
                                         null)
                                       TextButton.icon(
@@ -760,6 +1040,10 @@ class BrandMark extends StatelessWidget {
 Color collectionColor(String theme) => switch (theme) {
   'cosmos' => const Color(0xFF7661B5),
   'ocean' => const Color(0xFF2589B2),
+  'food' => const Color(0xFFC9773B),
+  'sports' => const Color(0xFF418B56),
+  'travel' => const Color(0xFF6879B9),
+  'paola' => const Color(0xFF9B6FAD),
   _ => teal,
 };
 
@@ -1146,14 +1430,17 @@ class _MemoryCardState extends State<MemoryCard>
                                   color: paper.withValues(alpha: .55),
                                 ),
                               ),
-                              child: Icon(
-                                switch (widget.theme) {
-                                  'cosmos' => Icons.auto_awesome_rounded,
-                                  'ocean' => Icons.water_rounded,
-                                  _ => Icons.pets_rounded,
-                                },
-                                color: paper,
-                                size: side * .32,
+                              child: ExcludeSemantics(
+                                child: Icon(
+                                  switch (widget.theme) {
+                                    'paola' => Icons.menu_book_rounded,
+                                    'cosmos' => Icons.auto_awesome_rounded,
+                                    'ocean' => Icons.water_rounded,
+                                    _ => Icons.pets_rounded,
+                                  },
+                                  color: paper,
+                                  size: side * .32,
+                                ),
                               ),
                             ),
                           ),
@@ -1182,6 +1469,11 @@ class _CollectionSymbol extends StatelessWidget {
   final double size;
   @override
   Widget build(BuildContext context) {
+    if (theme == 'paola') {
+      return ExcludeSemantics(
+        child: DeckArtwork(collection: theme, value: value),
+      );
+    }
     final path = deckAsset(theme, value);
     if (path != null) {
       return Image.asset(
@@ -1194,7 +1486,7 @@ class _CollectionSymbol extends StatelessWidget {
       );
     }
     return Icon(
-      symbols[theme]![value % 18],
+      (symbols[theme] ?? symbols['garden']!)[value % 18],
       color: symbolColors[value % symbolColors.length],
       size: size,
     );
@@ -1202,14 +1494,10 @@ class _CollectionSymbol extends StatelessWidget {
 }
 
 class _CollectionTile extends StatelessWidget {
-  const _CollectionTile({
-    required this.theme,
-    required this.onTap,
-    this.selected = false,
-  });
+  const _CollectionTile({required this.theme, required this.onTap});
   final String theme;
   final VoidCallback onTap;
-  final bool selected;
+  static const selected = false;
   @override
   Widget build(BuildContext context) {
     final color = collectionColor(theme);
@@ -1351,6 +1639,8 @@ class GameScreen extends StatefulWidget {
     required this.mode,
     this.online,
     this.bluetooth,
+    this.economy,
+    this.ticket,
   });
   final SharedPreferences prefs;
   final int pairs;
@@ -1358,6 +1648,8 @@ class GameScreen extends StatefulWidget {
   final PlayMode mode;
   final OnlineGame? online;
   final BluetoothController? bluetooth;
+  final EconomyController? economy;
+  final GameTicket? ticket;
   @override
   State<GameScreen> createState() => _GameScreenState();
 }
@@ -1375,7 +1667,20 @@ class _BoardFrame {
     required this.theme,
     this.winnerId,
     this.finishReason,
-  }) : cards = List.unmodifiable(cards),
+    this.roundId,
+    Map<String, dynamic>? rewardReceipt,
+    Map<String, dynamic>? rewardProof,
+  }) : rewardReceipt = rewardReceipt == null
+           ? null
+           : Map.unmodifiable(rewardReceipt),
+       rewardProof = rewardProof == null
+           ? null
+           : Map.unmodifiable({
+               ...rewardProof,
+               if (rewardProof['moves'] is List)
+                 'moves': List.unmodifiable(rewardProof['moves'] as List),
+             }),
+       cards = List.unmodifiable(cards),
        matched = Set.unmodifiable(matched),
        scores = List.unmodifiable(scores),
        players = List.unmodifiable(
@@ -1389,7 +1694,8 @@ class _BoardFrame {
   final int moves;
   final bool finished;
   final String theme;
-  final String? winnerId, finishReason;
+  final String? winnerId, finishReason, roundId;
+  final Map<String, dynamic>? rewardReceipt, rewardProof;
   bool sameCards(_BoardFrame other) =>
       theme == other.theme && listEquals(cards, other.cards);
   bool sameEvents(_BoardFrame other) =>
@@ -1398,6 +1704,13 @@ class _BoardFrame {
       finished == other.finished &&
       winnerId == other.winnerId &&
       finishReason == other.finishReason &&
+      roundId == other.roundId &&
+      mapEquals(rewardReceipt, other.rewardReceipt) &&
+      (rewardProof?['ticketId'] == other.rewardProof?['ticketId']) &&
+      listEquals(
+        rewardProof?['moves'] as List?,
+        other.rewardProof?['moves'] as List?,
+      ) &&
       setEquals(matched, other.matched) &&
       listEquals(scores, other.scores) &&
       players.length == other.players.length &&
@@ -1409,6 +1722,11 @@ class _BoardFrame {
 
 class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   LocalGame? local;
+  GameTicket? activeTicket;
+  final List<int> acceptedMoves = [];
+  bool rewardRequested = false;
+  String? rewardMessage;
+  bool replayStarting = false;
   bool recorded = false;
   final Set<int> concealingCards = {};
   final Set<int> turningCards = {};
@@ -1455,10 +1773,21 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       theme: state?['theme'] as String? ?? widget.theme,
       winnerId: state?['winnerId'] as String?,
       finishReason: state?['finishReason'] as String?,
+      roundId: state?['roundId']?.toString(),
+      rewardReceipt: (state?['rewards'] as Map?)?[playerId] is Map
+          ? Map<String, dynamic>.from(
+              (state!['rewards'] as Map)[playerId] as Map,
+            )
+          : null,
+      rewardProof: state?['reward'] is Map
+          ? Map<String, dynamic>.from(state!['reward'] as Map)
+          : null,
     );
   }
 
   void resetPresentation(_BoardFrame frame) {
+    rewardRequested = false;
+    rewardMessage = null;
     presentationGeneration++;
     presentationScheduled = false;
     turningCards.clear();
@@ -1560,6 +1889,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    activeTicket = widget.ticket;
     if (!network) _startLocal();
     resetPresentation(captureFrame());
     widget.online?.addListener(update);
@@ -1573,11 +1903,15 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   void _startLocal() {
+    acceptedMoves.clear();
+    rewardRequested = false;
+    rewardMessage = null;
     concealingCards.clear();
     local?.removeListener(update);
     local?.dispose();
     local = LocalGame(
       pairs: widget.pairs,
+      board: activeTicket?.board,
       twoPlayers: widget.mode == PlayMode.local,
     )..addListener(update);
     recorded = false;
@@ -1674,7 +2008,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       HapticFeedback.selectionClick();
     }
     if (local != null) {
-      local!.flip(i);
+      if (local!.flip(i)) acceptedMoves.add(i);
     } else if (widget.online != null) {
       widget.online!.flip(i);
     } else {
@@ -1682,13 +2016,91 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
   }
 
-  void replay() {
+  Future<void> replay() async {
+    if (replayStarting) return;
     if (local != null) {
-      setState(_startLocal);
+      setState(() => replayStarting = true);
+      try {
+        final next = await widget.economy?.takeTicket(
+          mode: widget.mode.name,
+          pairs: widget.pairs,
+          theme: widget.theme,
+        );
+        if (!mounted) return;
+        setState(() {
+          activeTicket = next;
+          _startLocal();
+        });
+      } finally {
+        if (mounted) setState(() => replayStarting = false);
+      }
     } else if (widget.online != null) {
       widget.online!.rematch();
     } else {
       widget.bluetooth!.rematch();
+    }
+  }
+
+  Future<void> leaveForInvite() async {
+    await widget.online?.leave();
+    await widget.bluetooth?.leave();
+  }
+
+  Future<void> awardFinishedGame(
+    int generation,
+    GameTicket? ticket,
+    List<int> moves,
+    Map<String, dynamic>? receipt,
+    Map<String, dynamic>? proof,
+    bool bluetoothHost,
+  ) async {
+    final economy = widget.economy;
+    if (economy == null) return;
+    String? message;
+    try {
+      if (local != null && ticket != null) {
+        final result = await economy.claimGame(ticket: ticket, moves: moves);
+        message = result == null
+            ? economy.pendingRewards > 0
+                  ? 'Premio in attesa di sincronizzazione'
+                  : 'Premio non disponibile'
+            : result.granted
+            ? '+${result.gems} gemme'
+            : 'Premio già registrato';
+      } else if (widget.bluetooth != null &&
+          proof?['ticketId'] is String &&
+          proof?['moves'] is List) {
+        final result = await economy.claimProof(
+          ticketId: proof!['ticketId'] as String,
+          moves: (proof['moves'] as List).cast<int>(),
+          guestClaimToken: bluetoothHost
+              ? null
+              : proof['guestClaimToken'] as String?,
+        );
+        message = result == null
+            ? economy.pendingRewards > 0
+                  ? 'Premio in attesa di sincronizzazione'
+                  : 'Premio non disponibile'
+            : result.granted
+            ? '+${result.gems} gemme'
+            : 'Premio già registrato';
+      } else if (widget.online != null) {
+        await economy.refresh();
+        message = receipt?['granted'] == true
+            ? '+${receipt!['gems']} gemme'
+            : economy.offline
+            ? 'Saldo in attesa di sincronizzazione'
+            : 'Saldo aggiornato · ${economy.gems} gemme';
+      } else if (local != null) {
+        message = 'Partita senza premio';
+      }
+    } catch (_) {
+      message = economy.pendingRewards > 0
+          ? 'Premio in attesa di sincronizzazione'
+          : 'Premio non disponibile';
+    }
+    if (mounted && generation == presentationGeneration) {
+      setState(() => rewardMessage = message);
     }
   }
 
@@ -1699,6 +2111,28 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final waiting = network && (s == null || s['phase'] == 'waiting');
     final events = displayedEvents!;
     final finished = events.finished;
+    if (finished && !rewardRequested && widget.economy != null) {
+      rewardRequested = true;
+      final ticket = activeTicket;
+      final moves = List<int>.of(acceptedMoves);
+      final receipt = events.rewardReceipt;
+      final proof = events.rewardProof;
+      final bluetoothHost = widget.bluetooth?.isHosting == true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && generation == presentationGeneration) {
+          unawaited(
+            awardFinishedGame(
+              generation,
+              ticket,
+              moves,
+              receipt,
+              proof,
+              bluetoothHost,
+            ),
+          );
+        }
+      });
+    }
     final players = events.players;
     final authorityPlayers =
         (s?['players'] as List?)?.cast<Map<String, dynamic>>() ?? [];
@@ -1734,7 +2168,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         : '${matched.length ~/ 2} / ${widget.pairs} coppie';
     Future<void> copyInvite() async {
       await Clipboard.setData(
-        ClipboardData(text: 'https://sommomemory.sommomi.cc/?room=$code'),
+        ClipboardData(text: inviteUriForRoom(code!).toString()),
       );
       if (context.mounted) {
         ScaffoldMessenger.of(
@@ -2050,10 +2484,25 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                           textAlign: TextAlign.center,
                                           style: const TextStyle(color: muted),
                                         ),
+                                        if (rewardMessage != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 8,
+                                            ),
+                                            child: Text(
+                                              rewardMessage!,
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                color: ink,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
                                         const SizedBox(height: 12),
                                         FilledButton.icon(
                                           onPressed:
-                                              vote ||
+                                              replayStarting ||
+                                                  vote ||
                                                   network &&
                                                       players.any(
                                                         (p) =>
@@ -2209,8 +2658,12 @@ class BluetoothLobby extends StatefulWidget {
     required this.name,
     required this.pairs,
     required this.theme,
+    this.economy,
+    this.gameKey,
   });
   final SharedPreferences prefs;
+  final EconomyController? economy;
+  final GlobalKey? gameKey;
   final String name, theme;
   final int pairs;
   @override
@@ -2218,11 +2671,20 @@ class BluetoothLobby extends StatefulWidget {
 }
 
 class _BluetoothLobbyState extends State<BluetoothLobby> {
-  final ble = BluetoothController();
+  late final BluetoothController ble;
   bool busy = false;
   @override
   void initState() {
     super.initState();
+    ble = BluetoothController(
+      ticketProvider: (pairs, theme) =>
+          widget.economy?.takeTicket(
+            mode: 'bluetooth',
+            pairs: pairs,
+            theme: theme,
+          ) ??
+          Future.value(null),
+    );
     ble.addListener(update);
   }
 
@@ -2250,11 +2712,13 @@ class _BluetoothLobbyState extends State<BluetoothLobby> {
         context,
         MaterialPageRoute<void>(
           builder: (_) => GameScreen(
+            key: widget.gameKey,
             prefs: widget.prefs,
             pairs: widget.pairs,
             theme: widget.theme,
             mode: PlayMode.bluetooth,
             bluetooth: ble,
+            economy: widget.economy,
           ),
         ),
       );

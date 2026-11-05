@@ -3,7 +3,7 @@
 The app and multiplayer service share `https://sommomemory.sommomi.cc`. Caddy
 terminates HTTPS and proxies HTTP/WebSocket requests to `127.0.0.1:8798`.
 No new public server ports are opened. DNS already points to the existing NAS.
-Only the current and legacy production browser origins are accepted; native
+Only the current production browser origin is accepted; native
 Android/iOS clients also use `/ws`. Caddy overwrites `X-Forwarded-For` with the actual remote client address
 and is the sole public path to the private listener. `TRUST_PROXY=1` enables the
 backend's per-address connection limits using that trusted header.
@@ -73,6 +73,6 @@ Caddy, and stop only the `mymemory` Compose project. Existing sites are independ
 
 ## Domain migration
 
-The current public origin is `https://sommomemory.sommomi.cc`. Both the app WebSocket endpoint and shared room links use this hostname. The legacy `https://mymemory.sommomi.cc` redirects ordinary requests to the new hostname, preserving path and query. Its `/ws` endpoint remains proxied to the same service so previously distributed native builds can still play with the current clients. Both origins are explicitly allowed; storage, room protocol, container project and persistent volume retain their existing identities.
+The only supported public origin is `https://sommomemory.sommomi.cc`, with a CNAME targeting `sommomi.cc`. It serves the app, WebSocket endpoint, profile API, privacy/support and native-app association files. At the user's explicit request, the former `mymemory.sommomi.cc` hostname has been removed from the game's Caddy block and origin allowlist; no redirect or old WebSocket proxy is published. Keep the marked `BEGIN/END mymemory` block name stable so updates affect only this game. Storage, room protocol, container project and persistent volume retain their existing identities.
 
-Both hostnames need CNAME records targeting `sommomi.cc`. During a migration, validate the new DNS and HTTPS route before enabling the legacy HTTP redirect. Keep the marked `BEGIN/END mymemory` block name stable to update only this game’s routes.
+Before releasing native invitation handling, deploy the association files and verify HTTP 200, `Content-Type: application/json`, the exact app identifiers and the Google Play signing certificate. Do not use the Android upload certificate in `assetlinks.json`. The current hostname has HSTS `max-age=15552000`, without `includeSubDomains`, and does not change TLS policy for the parent domain or other sites. See [deep links](../docs/DEEP_LINKS.md).

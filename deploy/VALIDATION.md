@@ -1,6 +1,10 @@
 # Sommonas deployment verification
 
-Verified 2026-11-05. Public endpoint: <https://mymemory.sommomi.cc>.
+Current release: **30009**, served only at <https://sommomemory.sommomi.cc>.
+See the final section for current verification. Earlier sections preserve the
+restoration history and contain superseded domains/builds.
+
+Initial verification: 2026-11-05 at the former hostname.
 
 - Current server release: `20261105T062528Z`.
 - Runtime image: `mymemory:20261105T062528Z`.
@@ -135,3 +139,79 @@ Root browser QA confirmed the new-domain SommoMemory home at 320×568 without
 overflow; its viewport was reset afterwards. Proof:
 `artifacts/sommomemory-live-30008.png`. Public verification receipt:
 `artifacts/web-deploy-30008.json`.
+
+
+## Profiles, collections and invitations — build 30009
+
+Final release `20261105T154100Z`, runtime `main.ce4250bf8376bded.dart.js`, SHA-256
+`ce4250bf8376bded8dd1a201365e2d759c0efdfa3c2dccc1a6c819a5506209fb`.
+The web client was rebuilt with explicit production profile/WebSocket endpoints;
+the QA `localhost:8787` endpoints are absent. All 108 PNGs, the catalog manifest
+and deck license/notice files were downloaded over verified public HTTPS and
+compared byte-for-byte. The catalog has six illustrated collections plus the
+free Paola collection of 18 text syllables. Native packages contain the same
+assets and have 203 frozen source/configuration/asset fingerprints.
+
+At the user's explicit request, **only `sommomemory.sommomi.cc` is supported**.
+The former hostname was removed from the game's Caddy block, origin allowlist,
+Android verified intent filters and iOS associated-domain entitlement. Native
+30009 packages were rebuilt after that change, before any store reservation or
+upload. The primary hostname has HSTS `max-age=15552000` without
+`includeSubDomains`. Parent-domain and unrelated-site TLS policy is unchanged.
+
+The AASA well-known route, its root alias and Android Asset Links all returned
+HTTP 200 `application/json`, without redirects and byte-identical to source,
+before the store upload agents were released. Android uses the Google Play App
+Signing fingerprint, not the upload certificate. The exported IPA has the sole
+current associated domain and only `L6CS7PYA4B.cc.sommomi.mymemory` as its Keychain
+access group. The explicit `sommomemory://invite/CODE` fallback contains only a
+room code. Physical OS routing, Safari user preferences and physical Bluetooth
+interoperability remain manual checks; see `docs/DEEP_LINKS.md`.
+
+The public profile API verified seven decks/four free, recovery-version metadata,
+100 initial gems, a completed Paola ticket paying 20 exactly once, replay-safe
+claim retries, preview/recovery on a second session with the same 120-gem wallet
+and no second welcome grant, and deletion/revocation of the disposable test
+profile and recovery code. Tokens/codes were held only in the test process and
+are absent from receipts. The final origin-only server adjustment retained the
+same economy implementation; the removed browser origin returns HTTP 403.
+
+Two real public WebSocket clients (native-style and production browser origin)
+created/joined a Paola 36-card room, synchronized the revealed card and explicitly
+left. An older client lacking Paola support received `UPDATE_REQUIRED` before
+joining. The test room was removed. The preexisting room count was one before
+and after these checks; no unrelated room was removed.
+
+The container is healthy, Node 24.22.1, non-root, read-only except for the existing
+`mymemory-data` volume and temporary directory, with only the private
+127.0.0.1:8798 listener. Existing data was not reset. SQLite, its WAL/SHM and the
+capability key are mode 0600 and persisted across the final deployment. Local
+`server/data` was excluded from transfer. Backups must preserve a consistent
+SQLite snapshot/WAL together with its capability key; never copy only a live
+SQLite file. The Caddy source outside this game's marked block retained SHA-256
+`3f5beb947168dcf9baede9d1f90eca2bea7c7f6c42ed21244d8470e4e44d9936`
+before and after the change. Full evidence: `artifacts/web-deploy-30009.json`.
+
+All 71 Flutter tests and 28 Node tests passed before packaging, with five targeted
+server association/origin/protocol tests passing after the final hostname-only
+configuration change. No additional gameplay or UI changes were made during
+packaging or deployment.
+
+### Final browser and regression checks — 30009
+
+After the final new-domain-only deploy, the public website was checked at
+390×844. Paola was selected before starting a solo game; all 36 cards fit in
+nine complete rows of four, with no page scrolling. A card revealed a real
+syllable after its flip; the covered cards use a distinct book back. Safe public
+proof: `artifacts/paola-live-30009.png`. The `/invite/ABC234` route opened the
+online setup with that code prefilled and an explicit **Apri nell’app** action.
+This browser check does not establish native OS handoff on a physical phone.
+The viewport override was reset afterward.
+
+The final frozen sources passed Flutter analysis, all **71 Flutter tests** and
+all **28 Node tests**. All **203 source fingerprints** still match the final
+native build receipt. Local browser QA separately completed a valid game
+(100→120 gems), activated recovery, previewed and restored the same 120-gem
+profile in a separate browser origin without merging balances, and verified
+persistence after reload. Its isolated test database and recovery credentials
+were removed; no recovery code is stored in the repository.

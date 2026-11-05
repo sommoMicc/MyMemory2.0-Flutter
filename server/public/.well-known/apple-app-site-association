@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["L6CS7PYA4B.cc.sommomi.mymemory"],
+        "components": [
+          {"/": "/invite/*", "comment": "Room invitations"},
+          {"/": "/", "?": {"room": "??????"}, "comment": "Legacy room invitations"}
+        ]
+      }
+    ]
+  }
+}

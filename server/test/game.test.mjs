@@ -13,6 +13,29 @@ const setup = options => {
   return { game, first, second, advance(ms) { time += ms; game.tick(); } };
 };
 
+test('deck capabilities are strict, bounded and checked before any room or seat mutation', () => {
+  const game = new GameEngine();
+  const invalid = [null, 'garden', {}, [1], ['unknown'], ['Garden'], ['garden '], ['garden', 'garden'], Array(11).fill('garden')];
+  for (const supportedDecks of invalid) {
+    assert.throws(() => game.create({ name: 'A', theme: 'garden', supportedDecks }), { code: 'INVALID_CAPABILITIES' });
+    assert.equal(game.rooms.size, 0);
+  }
+  assert.throws(() => game.create({ name: 'A', theme: 'paola' }), { code: 'UPDATE_REQUIRED' });
+  assert.equal(game.rooms.size, 0);
+  const host = game.create({ name: 'A', theme: 'paola', supportedDecks: ['paola'] });
+  const before = game.state(host.code);
+  for (const supportedDecks of invalid) {
+    assert.throws(() => game.join({ code: host.code, name: 'B', supportedDecks }), { code: 'INVALID_CAPABILITIES' });
+    assert.deepEqual(game.state(host.code), before);
+  }
+  game.disconnect(host.code, host.playerId);
+  const disconnected = game.state(host.code);
+  for (const supportedDecks of invalid) {
+    assert.throws(() => game.resume({ ...host, supportedDecks }), { code: 'INVALID_CAPABILITIES' });
+    assert.deepEqual(game.state(host.code), disconnected);
+  }
+});
+
 test('public state never reveals hidden identities, tokens or internal board', () => {
   const { game, first } = setup();
   const state = game.state(first.code);

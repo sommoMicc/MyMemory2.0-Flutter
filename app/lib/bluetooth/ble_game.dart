@@ -7,6 +7,11 @@ class BleGame {
   final String code;
   final List<Map<String, dynamic>> players;
   final Random _random;
+  List<int>? _preparedBoard;
+  String? _rewardTicketId, _guestClaimToken;
+  final List<int> _rewardMoves = [];
+  bool _proofOverflow = false;
+  int _round = 0;
   List<String> _deck = [];
   final Set<int> _matched = {};
   final List<int> _selected = [];
@@ -19,20 +24,55 @@ class BleGame {
   String? winnerId;
   String? finishReason;
 
-  BleGame(String hostName, this.pairs, this.theme, this.code, {Random? random})
-    : _random = random ?? Random.secure(),
-      players = [
-        {
-          'id': 'host',
-          'name': cleanName(hostName),
-          'score': 0,
-          'connected': true,
-        },
-      ] {
+  BleGame(
+    String hostName,
+    this.pairs,
+    this.theme,
+    this.code, {
+    Random? random,
+    List<int>? board,
+    String? ticketId,
+    String? guestClaimToken,
+  }) : _random = random ?? Random.secure(),
+       players = [
+         {
+           'id': 'host',
+           'name': cleanName(hostName),
+           'score': 0,
+           'connected': true,
+         },
+       ] {
     if (![6, 8, 12, 18].contains(pairs) ||
-        !['garden', 'cosmos', 'ocean'].contains(theme)) {
+        ![
+          'garden',
+          'cosmos',
+          'ocean',
+          'food',
+          'sports',
+          'travel',
+          'paola',
+        ].contains(theme)) {
       throw ArgumentError('Configurazione della partita non valida.');
     }
+    _setTicket(board, ticketId, guestClaimToken);
+  }
+
+  void _setTicket(List<int>? board, String? ticketId, String? guestClaimToken) {
+    if (board != null) {
+      if (board.length != pairs * 2 ||
+          board.any((value) => value < 0 || value >= pairs) ||
+          List.generate(
+            pairs,
+            (value) => board.where((v) => v == value).length,
+          ).any((n) => n != 2)) {
+        throw ArgumentError('Tabellone Bluetooth non valido.');
+      }
+      _preparedBoard = List<int>.from(board);
+    } else {
+      _preparedBoard = null;
+    }
+    _rewardTicketId = board == null ? null : ticketId;
+    _guestClaimToken = board == null ? null : guestClaimToken;
   }
 
   static String cleanName(String value) {
@@ -54,9 +94,15 @@ class BleGame {
   }
 
   void _begin() {
-    _deck = [
-      for (var i = 0; i < pairs; i++) ...['$i', '$i'],
-    ]..shuffle(_random);
+    _deck =
+        _preparedBoard?.map((value) => '$value').toList() ??
+        ([
+          for (var i = 0; i < pairs; i++) ...['$i', '$i'],
+        ]..shuffle(_random));
+    _preparedBoard = null;
+    _round++;
+    _rewardMoves.clear();
+    _proofOverflow = false;
     _matched.clear();
     _selected.clear();
     _rematch.clear();
@@ -82,6 +128,15 @@ class BleGame {
         _matched.contains(index) ||
         _selected.contains(index)) {
       return false;
+    }
+    if (!_proofOverflow) {
+      if (_rewardMoves.length >= 1600) {
+        // Keep the final proof below the bounded 8 KiB BLE message size.
+        _proofOverflow = true;
+        _rewardMoves.clear();
+      } else {
+        _rewardMoves.add(index);
+      }
     }
     _selected.add(index);
     if (_selected.length == 2) {
@@ -116,7 +171,12 @@ class BleGame {
     return true;
   }
 
-  void rematch(String player) {
+  bool get rematchReady =>
+      _rematch.length == 2 &&
+      phase == 'finished' &&
+      finishReason == 'completed';
+
+  void rematch(String player, {bool defer = false}) {
     if (phase != 'finished' ||
         finishReason != 'completed' ||
         !players.any((p) => p['id'] == player) ||
@@ -125,10 +185,20 @@ class BleGame {
     }
     _rematch.add(player);
     revision++;
-    if (_rematch.length == 2) {
-      _starter = 1 - _starter;
-      _begin();
+    if (rematchReady && !defer) startRematch();
+  }
+
+  void startRematch({
+    List<int>? board,
+    String? ticketId,
+    String? guestClaimToken,
+  }) {
+    if (!rematchReady || players.any((player) => player['connected'] != true)) {
+      return;
     }
+    _setTicket(board, ticketId, guestClaimToken);
+    _starter = 1 - _starter;
+    _begin();
   }
 
   void disconnect(String player) {
@@ -160,6 +230,14 @@ class BleGame {
     'selected': List<int>.from(_selected),
     'players': players.map((p) => Map<String, dynamic>.from(p)).toList(),
     'revision': revision,
+    'roundId': _rewardTicketId ?? '$code-$_round',
+    if (_rewardTicketId != null && !_proofOverflow)
+      'reward': {
+        'ticketId': _rewardTicketId,
+        if (_guestClaimToken != null) 'guestClaimToken': _guestClaimToken,
+        if (phase == 'finished' && finishReason == 'completed')
+          'moves': List<int>.from(_rewardMoves),
+      },
     'rematch': _rematch.toList(),
     'lockedUntil': lockedUntil,
     'winnerId': winnerId,

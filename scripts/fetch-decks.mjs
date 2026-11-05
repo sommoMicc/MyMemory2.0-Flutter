@@ -34,7 +34,33 @@ const collections = {
     ['jellyfish','1fabc','Medusa'], ['coral','1fab8','Corallo'], ['shell','1f41a','Conchiglia'],
     ['turtle','1f422','Tartaruga'], ['anchor','2693','Ancora'], ['sailboat','26f5','Barca a vela'],
   ] },
+  food: { title: 'Cibo', price: 200, cards: [
+    ['burger','1f354','Hamburger'], ['pizza','1f355','Pizza'], ['fries','1f35f','Patatine'],
+    ['hotdog','1f32d','Hot dog'], ['taco','1f32e','Taco'], ['burrito','1f32f','Burrito'],
+    ['sushi','1f363','Sushi'], ['ramen','1f35c','Ramen'], ['spaghetti','1f35d','Spaghetti'],
+    ['croissant','1f950','Cornetto'], ['pretzel','1f968','Brezel'], ['cupcake','1f9c1','Cupcake'],
+    ['doughnut','1f369','Ciambella'], ['cookie','1f36a','Biscotto'], ['strawberry','1f353','Fragola'],
+    ['cherries','1f352','Ciliegie'], ['avocado','1f951','Avocado'], ['watermelon','1f349','Anguria'],
+  ] },
+  sports: { title: 'Sport', price: 300, cards: [
+    ['basketball','1f3c0','Basket'], ['football','26bd','Calcio'], ['baseball','26be','Baseball'],
+    ['tennis','1f3be','Tennis'], ['volleyball','1f3d0','Pallavolo'], ['rugby','1f3c9','Rugby'],
+    ['american-football','1f3c8','Football americano'], ['table-tennis','1f3d3','Tennistavolo'], ['badminton','1f3f8','Badminton'],
+    ['hockey','1f3d2','Hockey'], ['cricket','1f3cf','Cricket'], ['golf','26f3','Golf'],
+    ['boxing','1f94a','Pugilato'], ['medal','1f3c5','Medaglia'], ['trophy','1f3c6','Trofeo'],
+    ['bowling','1f3b3','Bowling'], ['roller-skate','1f6fc','Pattini'], ['skateboard','1f6f9','Skateboard'],
+  ] },
+  travel: { title: 'Viaggi', price: 400, cards: [
+    ['airplane','2708','Aereo'], ['helicopter','1f681','Elicottero'], ['train','1f682','Treno'],
+    ['high-speed-train','1f684','Treno veloce'], ['car','1f697','Automobile'], ['bus','1f68c','Autobus'],
+    ['bicycle','1f6b2','Bicicletta'], ['scooter','1f6f5','Motorino'], ['ferry','26f4','Traghetto'],
+    ['ship','1f6a2','Nave'], ['tent','26fa','Tenda'], ['ferris-wheel','1f3a1','Ruota panoramica'],
+    ['castle','1f3f0','Castello'], ['tokyo-tower','1f5fc','Torre di Tokyo'], ['statue','1f5fd','Statua della Libertà'],
+    ['luggage','1f9f3','Valigia'], ['compass','1f9ed','Bussola'], ['map','1f5fa','Mappa'],
+  ] },
 };
+const syllables = ['PA','PE','PI','PO','PU','LA','LE','LI','LO','LU','MA','ME','MI','MO','MU','SA','SE','SI'];
+const catalog = {...collections, paola:{title:'Paola',price:0}};
 
 async function download(url) {
   const response = await fetch(url, { redirect:'error', signal:AbortSignal.timeout(30000) });
@@ -63,11 +89,13 @@ const license=await download('https://www.apache.org/licenses/LICENSE-2.0.txt');
 const copyright=await download(`${BASE}/2D/svg/LICENSE`);
 await writeFile(resolve(directory,'LICENSE-APACHE-2.0.txt'),license);
 await writeFile(resolve(directory,'UPSTREAM-NOTICE.txt'),copyright);
-const notice=`Noto Emoji 2D illustrations\nCopyright 2013 Google, Inc. All Rights Reserved.\n\nThese 54 unmodified PNG image resources are from Google Fonts Noto Emoji:\nhttps://github.com/googlefonts/noto-emoji\nPinned commit: ${COMMIT}\nUpstream directory: 2D/png/${SIZE}/\nLicense: Apache License, Version 2.0 (see LICENSE-APACHE-2.0.txt).\nThe upstream image copyright/license notice is retained in UPSTREAM-NOTICE.txt.\n\nSommoMemory selects and orders the images into Animali, Spazio and Oceano.\nNo Noto font files, flags or Noto 3D artwork are included.\n`;
+const notice=`Noto Emoji 2D illustrations\nCopyright 2013 Google, Inc. All Rights Reserved.\n\nThese ${assets.length} unmodified PNG image resources are from Google Fonts Noto Emoji:\nhttps://github.com/googlefonts/noto-emoji\nPinned commit: ${COMMIT}\nUpstream directory: 2D/png/${SIZE}/\nLicense: Apache License, Version 2.0 (see LICENSE-APACHE-2.0.txt).\nThe upstream image copyright/license notice is retained in UPSTREAM-NOTICE.txt.\n\nSommoMemory selects and orders the images into ${Object.values(collections).map(c=>c.title).join(', ')}.\nNo Noto font files, flags or Noto 3D artwork are included.\n`;
 await writeFile(resolve(directory,'NOTICE.txt'),notice);
-await writeFile(resolve(directory,'manifest.json'),JSON.stringify({source:'Google Noto Emoji 2D',repository:'https://github.com/googlefonts/noto-emoji',commit:COMMIT,license:'Apache-2.0',imageSize:SIZE,collections:Object.fromEntries(Object.entries(collections).map(([key,value])=>[key,{title:value.title,count:value.cards.length}])),assets},null,2)+'\n');
+await writeFile(resolve(directory,'manifest.json'),JSON.stringify({source:'Google Noto Emoji 2D',repository:'https://github.com/googlefonts/noto-emoji',commit:COMMIT,license:'Apache-2.0',imageSize:SIZE,collections:{...Object.fromEntries(Object.entries(collections).map(([key,value])=>[key,{title:value.title,count:value.cards.length}])),paola:{title:'Paola',count:syllables.length,kind:'syllables',labels:syllables}},assets},null,2)+'\n');
 const lines=["import 'package:flutter/foundation.dart';","import 'package:flutter/services.dart';",'', '// IDs and ordering are part of the multiplayer card-value mapping. Do not reorder.', 'const Map<String, String> deckNames = {'];
-for(const [key,value] of Object.entries(collections)) lines.push(`  '${key}': '${value.title}',`);
+for(const [key,value] of Object.entries(catalog)) lines.push(`  '${key}': '${value.title}',`);
+lines.push('};','','const Map<String, int> deckPrices = {');
+for(const [key,value] of Object.entries(catalog)) lines.push(`  '${key}': ${value.price ?? 0},`);
 lines.push('};','','const Map<String, List<String>> deckAssets = {');
 for(const theme of Object.keys(collections)) {
   lines.push(`  '${theme}': [`);
@@ -80,6 +108,7 @@ for(const theme of Object.keys(collections)) {
   for(const asset of assets.filter(a=>a.theme===theme))lines.push(`    '${asset.label}',`);
   lines.push('  ],');
 }
+lines.push("  'paola': [", ...syllables.map(value=>`    '${value}',`), '  ],');
 lines.push('};','',`String? deckAsset(String theme, int value) {\n  final assets = deckAssets[theme];\n  return assets != null && value >= 0 && value < assets.length ? assets[value] : null;\n}`,`\nString? deckCover(String theme) => deckAsset(theme, 0);`,`\nString? deckLabel(String theme, int value) {\n  final labels = deckLabels[theme];\n  return labels != null && value >= 0 && value < labels.length ? labels[value] : null;\n}`,`\nbool _licensesRegistered = false;\nFuture<void> registerDeckLicenses() async {\n  if (_licensesRegistered) return;\n  final notice = await rootBundle.loadString('assets/decks/NOTICE.txt');\n  final upstream = await rootBundle.loadString('assets/decks/UPSTREAM-NOTICE.txt');\n  final license = await rootBundle.loadString('assets/decks/LICENSE-APACHE-2.0.txt');\n  LicenseRegistry.addLicense(() => Stream.value(\n    LicenseEntryWithLineBreaks(const ['Noto Emoji 2D — deck illustrations'], '$notice\\n$upstream\\n$license'),\n  ));\n  _licensesRegistered = true;\n}`);
 const dart=lines.join('\n')+'\n';
 await writeFile(resolve(ROOT,'app/lib/decks.dart'),dart);

@@ -13,7 +13,7 @@
 	<key>provisioningProfiles</key>
 	<dict>
 		<key>cc.sommomi.mymemory</key>
-		<string>MyMemory App Store</string>
+		<string>SommoMemory App Store Links</string>
 	</dict>
 	<key>uploadSymbols</key>
 	<true/>

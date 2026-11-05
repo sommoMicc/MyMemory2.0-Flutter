@@ -1,6 +1,6 @@
-# MyMemory game service
+# SommoMemory game service
 
-Requires Node.js 22 or newer. Install locked dependencies with `npm ci --omit=dev`;
+Requires Node.js >=22.13 or Node24 (`node:sqlite`). Install locked dependencies with `npm ci --omit=dev`;
 run `npm start`. Run `npm test` for game rules, privacy boundaries, persistence and
 real WebSocket integration checks.
 
@@ -8,7 +8,7 @@ real WebSocket integration checks.
 | --- | --- | --- |
 | `HOST` | `127.0.0.1` | Use `0.0.0.0` inside an isolated container. |
 | `PORT` | `8787` | HTTP and WebSocket listener. |
-| `DATA_DIR` | `server/data` | Durable private room snapshots; mount a persistent volume. |
+| `DATA_DIR` | `server/data` | Private rooms, transactional economy database and capability key; mount a persistent volume. |
 | `WEB_DIR` | `app/build/web` | Absolute path to the compiled Flutter web app. |
 | `ALLOWED_ORIGINS` | production domain and localhost:8080 | Comma-separated browser origins. Native clients omit Origin. |
 | `TRUST_PROXY` | off | Set `1` only when the listener is reachable exclusively by the trusted reverse proxy. |
@@ -24,6 +24,16 @@ manual repair. `SIGTERM` / `SIGINT` close connections and mark persisted players
 disconnected; reconnect grace is 90 seconds. Normal restarts must finish within
 that interval to preserve active games. Idle rooms expire after 24 hours.
 
-The API has no login, global player registry, chat, ads or analytics. Pair identities
-are server-authoritative and concealed until revealed. See [PROTOCOL.md](PROTOCOL.md)
-for the client contract.
+Optional profiles use opaque device tokens and a user-exported recovery code for
+cross-device sync. No email/password, third-party authentication, chat, ads,
+analytics, real money or purchases are involved. Wallet changes use SQLite
+transactions and unique ledger sources; tokens/recovery/capabilities are hashed.
+Restore never merges balances. See [the economy contract](../docs/ECONOMY_PROTOCOL.md)
+for routes, offline reward limits, quotas and deletion semantics.
+
+Back up `economy.sqlite` using SQLite backup or while the process is stopped,
+together with `economy-capability.key`; copying only the live database omits its
+WAL. Do not print these files or commit them. One server process owns the database.
+Pair identities online remain authoritative and concealed until revealed. See
+[PROTOCOL.md](PROTOCOL.md) for room sessions. Domain association JSON is served
+publicly from `server/public/.well-known/`, including the root iOS AASA alias.

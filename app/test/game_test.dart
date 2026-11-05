@@ -3,6 +3,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mymemory/game.dart';
 
 void main() {
+  test('a ticket board is validated and copied without reshuffling', () {
+    final board = [
+      for (var i = 0; i < 6; i++) ...[i, i],
+    ];
+    final game = LocalGame(pairs: 6, twoPlayers: false, board: board);
+    expect(game.deck, board);
+    board[0] = 99;
+    expect(game.deck.first, 0);
+    expect(
+      () => LocalGame(pairs: 6, twoPlayers: false, board: List.filled(12, 0)),
+      throwsArgumentError,
+    );
+    game.dispose();
+  });
   test('deck has exactly two of each symbol at every difficulty', () {
     for (final pairs in [6, 8, 12, 18]) {
       final g = LocalGame(pairs: pairs, twoPlayers: false, random: Random(4));

@@ -10,10 +10,13 @@ export class GameError extends Error {
 const fail = (code, message) => { throw new GameError(code, message); };
 const tokenHash = token => createHash('sha256').update(token).digest('hex');
 const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const themes = ['garden', 'cosmos', 'ocean', 'paola', 'food', 'sports', 'travel'];
+const legacyThemes = ['garden', 'cosmos', 'ocean'];
 
 export class GameEngine extends EventEmitter {
   constructor({ dataDir, now = Date.now, mismatchMs = 900, graceMs = 90_000,
-    ttlMs = 86_400_000, maxRooms = 500 } = {}) {
+    ttlMs = 86_400_000, maxRooms = 500, ownsDeck = (_id, theme) => ['garden', 'cosmos', 'ocean', 'paola'].includes(theme),
+    onCompleted } = {}) {
     super();
     this.rooms = new Map();
     this.now = now;
@@ -21,6 +24,9 @@ export class GameEngine extends EventEmitter {
     this.graceMs = graceMs;
     this.ttlMs = ttlMs;
     this.maxRooms = maxRooms;
+    this.ownsDeck = ownsDeck;
+    this.onCompleted = onCompleted;
+    this.pendingRewards = new Map();
     if (dataDir) {
       mkdirSync(dataDir, { recursive: true, mode: 0o700 });
       this.file = join(dataDir, 'rooms.json');
@@ -28,7 +34,13 @@ export class GameEngine extends EventEmitter {
         const stored = JSON.parse(readFileSync(this.file, 'utf8'));
         if (stored.version !== 1 || !Array.isArray(stored.rooms)) throw new Error('Unsupported room store');
         for (const room of stored.rooms) {
-          if (this.now() - room.updatedAt >= ttlMs) continue;
+          // Recover an unpaid completed round even if its room TTL elapsed offline.
+          // Do not persist through settleRewards until every stored room is loaded.
+          if (room.phase === 'finished' && room.finishReason === 'completed' && this.onCompleted) {
+            try { room.rewards = this.onCompleted(room); }
+            catch { this.pendingRewards.set(room.code, this.now() + 5000); }
+          }
+          if (this.now() - room.updatedAt >= ttlMs && !this.pendingRewards.has(room.code)) continue;
           for (const player of room.players) {
             // Preserve an existing deadline so repeated restarts cannot extend it.
             if (player.connected) player.disconnectedAt = this.now();
@@ -53,7 +65,25 @@ export class GameEngine extends EventEmitter {
     room.revision++;
     room.updatedAt = this.now();
     this.persist();
+    this.settleRewards(room);
     this.emit('change', room.code);
+  }
+
+  settleRewards(room) {
+    if (room.phase !== 'finished' || room.finishReason !== 'completed' || !this.onCompleted) return false;
+    try {
+      const rewards = this.onCompleted(room);
+      const changed = JSON.stringify(rewards) !== JSON.stringify(room.rewards ?? {});
+      room.rewards = rewards;
+      this.persist();
+      this.pendingRewards.delete(room.code);
+      return changed;
+    } catch (error) {
+      // A wallet outage must not conceal an already committed final game state.
+      this.pendingRewards.set(room.code, this.now() + 5000);
+      this.emit('rewardError', error);
+      return false;
+    }
   }
 
   name(input) {
@@ -84,13 +114,26 @@ export class GameEngine extends EventEmitter {
       score: 0, connected: true, disconnectedAt: null, left: false, tokenHash: tokenHash(token) } };
   }
 
-  create({ name, pairs = 8, theme = 'garden' }) {
+  assertSupported(theme, supportedDecks) {
+    const supported = supportedDecks === undefined ? legacyThemes : supportedDecks;
+    if (!Array.isArray(supported) || supported.length > 10 ||
+        supported.some(id => typeof id !== 'string' || !themes.includes(id)) ||
+        new Set(supported).size !== supported.length) {
+      fail('INVALID_CAPABILITIES', 'Invia un elenco valido delle collezioni supportate.');
+    }
+    if (!supported.includes(theme)) fail('UPDATE_REQUIRED', 'Aggiorna SommoMemory per giocare con questa collezione.');
+  }
+
+  create({ name, pairs = 8, theme = 'garden', profileId, supportedDecks }) {
     this.tick();
-    if (![6, 8, 12, 18].includes(pairs) || !['garden', 'cosmos', 'ocean'].includes(theme)) {
+    if (![6, 8, 12, 18].includes(pairs) || !themes.includes(theme)) {
       fail('INVALID_OPTIONS', 'Scegli un tema e una difficoltà validi.');
     }
+    this.assertSupported(theme, supportedDecks);
+    if (!this.ownsDeck(profileId, theme)) fail('DECK_LOCKED', 'Sblocca questa collezione prima di ospitare la partita.');
     if (this.rooms.size >= this.maxRooms) fail('SERVER_FULL', 'Il servizio è occupato. Riprova tra poco.');
     const { player, token } = this.newPlayer(name);
+    if (profileId) player.profileId = profileId;
     let code;
     do { code = Array.from({ length: 6 }, () => alphabet[randomInt(alphabet.length)]).join(''); }
     while (this.rooms.has(code));
@@ -102,11 +145,13 @@ export class GameEngine extends EventEmitter {
     return { code, token, playerId: player.id };
   }
 
-  join({ code, name }) {
+  join({ code, name, profileId, supportedDecks }) {
     this.tick();
     const room = this.room(code);
+    this.assertSupported(room.theme, supportedDecks);
     if (room.phase !== 'waiting' || room.players.length !== 1) fail('ROOM_FULL', 'La stanza è già al completo.');
     const { player, token } = this.newPlayer(name);
+    if (profileId) player.profileId = profileId;
     room.players.push(player);
     this.start(room);
     this.change(room);
@@ -114,6 +159,8 @@ export class GameEngine extends EventEmitter {
   }
 
   start(room) {
+    room.roundId = randomBytes(24).toString('base64url');
+    room.rewards = {};
     room.board = Array.from({ length: room.pairs * 2 }, (_, i) => String(i % room.pairs));
     for (let i = room.board.length - 1; i > 0; i--) {
       const j = randomInt(i + 1);
@@ -130,9 +177,10 @@ export class GameEngine extends EventEmitter {
     room.finishReason = null;
   }
 
-  resume({ code, token }) {
+  resume({ code, token, supportedDecks }) {
     this.tick();
     const room = this.room(code);
+    this.assertSupported(room.theme, supportedDecks);
     if (typeof token !== 'string' || token.length > 128) fail('INVALID_SESSION', 'Sessione non valida.');
     const hash = Buffer.from(tokenHash(token), 'hex');
     const player = room.players.find(p => !p.left && timingSafeEqual(Buffer.from(p.tokenHash, 'hex'), hash));
@@ -194,6 +242,8 @@ export class GameEngine extends EventEmitter {
     const room = this.room(code);
     this.player(room, id);
     if (room.phase !== 'finished') fail('NOT_FINISHED', 'Completa prima questa partita.');
+    if (this.pendingRewards.has(room.code)) fail('REWARD_PENDING', 'Il premio è in elaborazione. Riprova tra poco.');
+    if (!this.ownsDeck(room.players[0].profileId, room.theme)) fail('DECK_LOCKED', 'Il profilo dell’host deve possedere questa collezione.');
     if (room.players.some(p => !p.connected || p.left)) fail('OPPONENT_OFFLINE', 'L’altro giocatore deve essere nella stanza.');
     if (!room.rematch.includes(id)) room.rematch.push(id);
     if (room.rematch.length === 2) {
@@ -211,7 +261,7 @@ export class GameEngine extends EventEmitter {
     player.connected = false;
     player.disconnectedAt = this.now();
     player.tokenHash = tokenHash(randomBytes(32));
-    if (room.phase === 'waiting' || room.players.every(p => p.left)) {
+    if (room.phase === 'waiting' || (room.players.every(p => p.left) && !this.pendingRewards.has(room.code))) {
       this.remove(room.code);
     } else {
       if (room.phase === 'playing') this.finish(room, 'forfeit', room.players.find(p => p.id !== id).id);
@@ -222,6 +272,7 @@ export class GameEngine extends EventEmitter {
 
   remove(code) {
     this.rooms.delete(code);
+    this.pendingRewards.delete(code);
     this.persist();
     this.emit('removed', code);
   }
@@ -229,6 +280,14 @@ export class GameEngine extends EventEmitter {
   tick() {
     const now = this.now();
     for (const room of [...this.rooms.values()]) {
+      if (this.pendingRewards.has(room.code)) {
+        if (now >= this.pendingRewards.get(room.code) && this.settleRewards(room)) {
+          room.revision++;
+          this.persist();
+          this.emit('change', room.code);
+        }
+        if (this.pendingRewards.has(room.code)) continue;
+      }
       if (now - room.updatedAt >= this.ttlMs) { this.remove(room.code); continue; }
       if (room.phase !== 'finished') {
         const expired = room.players.filter(p => !p.connected && now - p.disconnectedAt >= this.graceMs);
@@ -254,6 +313,8 @@ export class GameEngine extends EventEmitter {
   state(code) {
     const room = this.room(code);
     return { type: 'state', code: room.code, pairs: room.pairs, theme: room.theme,
+      roundId: room.roundId ?? null,
+      rewards: room.rewards ?? {},
       phase: room.phase, turn: room.turn,
       cards: Array.from({ length: room.pairs * 2 }, (_, i) =>
         room.matched.includes(i) || room.selected.includes(i) ? room.board[i] : null),

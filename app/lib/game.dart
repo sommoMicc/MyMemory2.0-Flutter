@@ -5,10 +5,26 @@ import 'package:flutter/foundation.dart';
 enum PlayMode { solo, local, online, bluetooth }
 
 class LocalGame extends ChangeNotifier {
-  LocalGame({required this.pairs, required this.twoPlayers, Random? random}) {
-    deck = [
-      for (var i = 0; i < pairs; i++) ...[i, i],
-    ]..shuffle(random ?? Random.secure());
+  LocalGame({
+    required this.pairs,
+    required this.twoPlayers,
+    Random? random,
+    List<int>? board,
+  }) {
+    if (board != null &&
+        (board.length != pairs * 2 ||
+            board.any((v) => v < 0 || v >= pairs) ||
+            List.generate(
+              pairs,
+              (v) => board.where((card) => card == v).length,
+            ).any((count) => count != 2))) {
+      throw ArgumentError('Mazzo non valido');
+    }
+    deck = board != null
+        ? List.of(board)
+        : ([
+            for (var i = 0; i < pairs; i++) ...[i, i],
+          ]..shuffle(random ?? Random.secure()));
     _clock = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!finished) {
         seconds++;

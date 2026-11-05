@@ -16,9 +16,16 @@ void main() {
           jsonDecode(await rootBundle.loadString('assets/decks/manifest.json'))
               as Map<String, dynamic>;
       final records = (manifest['assets'] as List).cast<Map<String, dynamic>>();
-      expect(deckAssets.keys.toSet(), {'garden', 'cosmos', 'ocean'});
-      expect(records.length, 54);
-      expect(records.map((record) => record['sha256']).toSet().length, 54);
+      expect(deckAssets.keys.toSet(), {
+        'garden',
+        'cosmos',
+        'ocean',
+        'food',
+        'sports',
+        'travel',
+      });
+      expect(records.length, 108);
+      expect(records.map((record) => record['sha256']).toSet().length, 108);
       for (final theme in deckAssets.keys) {
         expect(deckAssets[theme]!.length, 18);
         expect(deckAssets[theme]!.toSet().length, 18);

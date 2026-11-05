@@ -4,6 +4,8 @@ import { dirname, extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocket, WebSocketServer } from 'ws';
 import { GameEngine, GameError } from './game.mjs';
+import { EconomyStore, EconomyError } from './economy.mjs';
+import { economyApi } from './economy-http.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript',
@@ -14,33 +16,56 @@ const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.
 export function startServer({ port = Number(process.env.PORT || 8787), host = process.env.HOST || '127.0.0.1',
   dataDir = process.env.DATA_DIR || resolve(here, '../data'),
   webDir = process.env.WEB_DIR || resolve(here, '../../app/build/web'),
-  allowedOrigins = process.env.ALLOWED_ORIGINS || 'https://sommomemory.sommomi.cc,https://mymemory.sommomi.cc,http://localhost:8080,http://127.0.0.1:8080',
-  trustProxy = process.env.TRUST_PROXY === '1', engine: providedEngine } = {}) {
-  const engine = providedEngine || new GameEngine({ dataDir });
+  allowedOrigins = process.env.ALLOWED_ORIGINS || 'https://sommomemory.sommomi.cc,http://localhost:8080,http://127.0.0.1:8080',
+  trustProxy = process.env.TRUST_PROXY === '1', engine: providedEngine, economy: providedEconomy } = {}) {
+  const economy = providedEconomy || new EconomyStore({ dataDir });
+  const engine = providedEngine || new GameEngine({ dataDir,
+    ownsDeck: (id, theme) => economy.ownsDeck(id, theme), onCompleted: room => economy.rewardOnline(room) });
+  if (providedEngine) {
+    engine.ownsDeck = (id, theme) => economy.ownsDeck(id, theme);
+    engine.onCompleted = room => economy.rewardOnline(room);
+    for (const room of engine.rooms.values()) economy.rewardOnline(room);
+  }
+  engine.on('rewardError', error => console.error('Completion reward pending:', error.message));
   const sockets = new Map();
   const byAddress = new Map();
   const origins = new Set(allowedOrigins.split(',').map(s => s.trim()));
+  const addressOf = req => trustProxy && req.headers['x-forwarded-for'] ?
+    String(req.headers['x-forwarded-for']).split(',')[0].trim() : req.socket.remoteAddress;
+  const api = economyApi({ store: economy, origins, addressOf });
   const send = (ws, value) => {
     if (ws.readyState === WebSocket.OPEN && ws.bufferedAmount < 256 * 1024) ws.send(JSON.stringify(value));
     else if (ws.bufferedAmount >= 256 * 1024) ws.terminate();
   };
   const sessionsFor = code => [...sockets.values()].filter(s => s.code === code);
 
-  const http = createServer((req, res) => {
+  const http = createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-    if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405); res.end(); return; }
     let pathname;
     try { pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname); }
     catch { res.writeHead(400); res.end(); return; }
+    if (pathname === '/api/v1' || pathname.startsWith('/api/v1/')) { await api(req, res, pathname); return; }
+    if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405); res.end(); return; }
     if (pathname === '/healthz') {
       res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
       res.end(JSON.stringify({ ok: true, service: 'mymemory', protocol: 1, rooms: engine.rooms.size }));
       return;
     }
     let path;
-    if (['/privacy', '/privacy/', '/support', '/support/'].includes(pathname)) {
+    const associations = {
+      '/.well-known/apple-app-site-association': 'apple-app-site-association',
+      '/apple-app-site-association': 'apple-app-site-association',
+      '/.well-known/assetlinks.json': 'assetlinks.json',
+    };
+    if (Object.hasOwn(associations, pathname)) {
+      path = resolve(here, '../public/.well-known', associations[pathname]);
+      if (!existsSync(path)) { res.writeHead(404); res.end('Not found'); return; }
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600' });
+      if (req.method === 'HEAD') res.end(); else createReadStream(path).on('error', () => res.destroy()).pipe(res);
+      return;
+    } else if (['/privacy', '/privacy/', '/support', '/support/'].includes(pathname)) {
       path = resolve(here, '../public', pathname.includes('privacy') ? 'privacy.html' : 'support.html');
     } else {
       path = resolve(webDir, `.${pathname}`);
@@ -61,8 +86,7 @@ export function startServer({ port = Number(process.env.PORT || 8787), host = pr
     if (path !== '/ws' || (origin && !origins.has(origin))) {
       socket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n'); return;
     }
-    const address = trustProxy && req.headers['x-forwarded-for'] ?
-      String(req.headers['x-forwarded-for']).split(',')[0].trim() : req.socket.remoteAddress;
+    const address = addressOf(req);
     if ((byAddress.get(address) || 0) >= 32) {
       socket.end('HTTP/1.1 429 Too Many Requests\r\nConnection: close\r\n\r\n'); return;
     }
@@ -100,7 +124,10 @@ export function startServer({ port = Number(process.env.PORT || 8787), host = pr
         const current = sockets.get(ws);
         if (['create', 'join', 'resume'].includes(message.type)) {
           if (current) throw new GameError('ALREADY_JOINED', 'Esci prima dalla partita attuale.');
-          const session = engine[message.type](message);
+          // Never accept a client-supplied profile ID or relay account tokens.
+          const profileId = message.type !== 'resume' && message.profileToken !== undefined ?
+            economy.authenticate(message.profileToken) : undefined;
+          const session = engine[message.type]({ ...message, profileId });
           const previous = [...sockets.values()].find(s => s.code === session.code && s.playerId === session.playerId);
           if (previous) {
             sockets.delete(previous.ws);
@@ -124,9 +151,10 @@ export function startServer({ port = Number(process.env.PORT || 8787), host = pr
           }
         }
       } catch (error) {
-        if (!(error instanceof GameError)) console.error('Request failed:', error.message);
-        send(ws, { type: 'error', code: error instanceof GameError ? error.code : 'SERVER_ERROR',
-          message: error instanceof GameError ? error.message : 'Errore del servizio. Riprova tra poco.' });
+        const safe = error instanceof GameError || error instanceof EconomyError;
+        if (!safe) console.error('Request failed:', error.message);
+        send(ws, { type: 'error', code: safe ? error.code : 'SERVER_ERROR',
+          message: safe ? error.message : 'Errore del servizio. Riprova tra poco.' });
       }
     });
     ws.on('close', () => {
@@ -142,6 +170,10 @@ export function startServer({ port = Number(process.env.PORT || 8787), host = pr
     try { engine.tick(); } catch (error) { console.error('Room maintenance failed:', error.message); }
   }, 100);
   tick.unref();
+  const cleanup = setInterval(() => {
+    try { economy.cleanup(); } catch (error) { console.error('Economy maintenance failed:', error.message); }
+  }, 300_000);
+  cleanup.unref();
   const heartbeat = setInterval(() => {
     for (const ws of wss.clients) {
       if (!ws.alive) { ws.terminate(); continue; }
@@ -151,11 +183,12 @@ export function startServer({ port = Number(process.env.PORT || 8787), host = pr
   }, 20_000);
   heartbeat.unref();
   http.listen(port, host);
-  return { http, wss, engine, close: async () => {
-    clearInterval(tick); clearInterval(heartbeat);
+  return { http, wss, engine, economy, close: async () => {
+    clearInterval(tick); clearInterval(heartbeat); clearInterval(cleanup);
     for (const ws of wss.clients) ws.terminate();
     await new Promise(resolveClose => wss.close(resolveClose));
     await new Promise(resolveClose => http.close(resolveClose));
+    if (!providedEconomy) economy.close();
   } };
 }
 

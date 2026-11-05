@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'decks.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class OnlineGame extends ChangeNotifier {
@@ -38,7 +39,7 @@ class OnlineGame extends ChangeNotifier {
     _connecting = true;
     final generation = ++_generation;
     if (action != null) {
-      _pendingAction = Map<String, dynamic>.from(action);
+      _pendingAction = {...action, 'supportedDecks': deckNames.keys.toList()};
       // A new game must never fall back to an older saved seat on reconnect.
       await _clearSession();
       if (!_current(generation)) return;
@@ -110,6 +111,7 @@ class OnlineGame extends ChangeNotifier {
                       'ROOM_EXPIRED',
                       'INVALID_SESSION',
                       'NO_SESSION',
+                      'UPDATE_REQUIRED',
                     ].contains(msg['code']) ||
                     !hasSession) {
                   _endSession(error!);
@@ -155,7 +157,15 @@ class OnlineGame extends ChangeNotifier {
           send({'type': 'ping'});
         }
       });
-      send(_pendingAction ?? {'type': 'resume', 'code': code, 'token': _token});
+      send(
+        _pendingAction ??
+            {
+              'type': 'resume',
+              'code': code,
+              'token': _token,
+              'supportedDecks': deckNames.keys.toList(),
+            },
+      );
       _changed();
     } catch (_) {
       _lost(generation);

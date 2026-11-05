@@ -3,13 +3,13 @@
 Verified 2026-11-05. This file records internal test distribution and remaining
 production release readiness. No production release has been made.
 
-The current signed release is **3.0.0 (30008)**. Final native artifacts are
-`artifacts/SommoMemory-3.0.0-30008.{aab,apk,ipa}`; hashes, certificate and
-source verification are recorded in `artifacts/native-builds-30008.json`.
+The current signed release is **3.0.0 (30009)**. Final native artifacts are
+`artifacts/SommoMemory-3.0.0-30009.{aab,apk,ipa}`; hashes, certificate and
+source verification are recorded in `artifacts/native-builds-30009.json`.
 The IPA SHA-256 is
-`87e4639cf8395d6cf422c0ae3b1350819c2618b5d8f6b1caf1bf772a0e1e2f75`.
+`2f644873011d066ca03d1774f39d21f8ee660174dbfc88876cf03f295f0af828`.
 
-Apple upload **25bc7373-20a5-4106-a8e1-5ff3e0560280** completed and the build is
+Apple upload **4f5f9066-a6d9-4973-87ab-d205849d5772** completed and the build is
 **VALID / IN_BETA_TESTING**, attached to **SommoMemory Internal** for the two
 existing testers explicitly authorized by the user. No tester was added, removed
 or invited during this distribution. The account-holder tester has app access
@@ -19,27 +19,60 @@ and exact two-tester group membership were reread through the API.
 `artifacts/testflight-upload.json` is the current API receipt.
 
 The new Android app **cc.sommomi.mymemory** is live on its internal track with
-versionCode **30008**, tester list restricted to the owner. The opt-in link is
+versionCode **30009**, tester list restricted to the owner. The opt-in link is
 https://play.google.com/apps/internaltest/4700857721365894827 . No production
 release was made. See `ANDROID.md` for Console evidence and old-app deletion.
 
 The UI was implemented with the explicitly requested Astra subagent. Full-viewport animated collection worlds extend behind safe areas, with original code-drawn scenery and bundled Noto characters. Motion stops in background and with reduced motion; reference research is documented in `DESIGN_REFERENCES.md` and `MEMORY_UI_REFERENCES.md`.
-**37 Flutter tests** and analysis pass, including four viewports with realistic
+**71 Flutter tests** and analysis pass, including four viewports with realistic
 iOS safe areas, all 36 cards visible and hit-testable, completion/rematch,
-keyboard entry, settings, waiting rooms and Bluetooth lobby. The illustrated revision adds 320 ms 3D flips, reduced-motion behavior, persistent collection/difficulty, exact equal-length rows at all difficulties, and all 54 offline PNGs with bundled licenses. See `DECKS.md` for primary sources and pinned provenance. The game screens
+keyboard entry, settings, waiting rooms and Bluetooth lobby. The illustrated revision adds 320 ms 3D flips, reduced-motion behavior, persistent collection/difficulty, exact equal-length rows at all difficulties, and all 108 offline PNGs with bundled licenses, plus 18 text syllables in Paola. See `DECKS.md` for primary sources and pinned provenance. The game screens
 do not scroll; Flutter's standard legal-license viewer retains its text scrolling.
-**11 Node tests** pass, including the observed stale-browser-cache regression.
-Native AAB/APK/IPA signatures and release identities were verified. The presentation layer captures immutable authority snapshots: card faces animate first, then scores, matched styling and results appear. Turn changes wait for both mismatch closing flips. Input remains locked during any flip and still checks the latest authority before sending a move. Early remote card changes queue in order; duplicate heartbeats are ignored. Reduced motion settles immediately. Regression tests cover the final pair, early reveal/hide, rotation during reveal and stale callbacks after a new round. Independent review reproduced and verified the rotation fix. Core engine timing and protocol remain unchanged.
+**28 Node tests** pass, including the observed stale-browser-cache regression.
+Native AAB/APK/IPA signatures and release identities were verified. The presentation layer captures immutable authority snapshots: card faces animate first, then scores, matched styling and results appear. Turn changes wait for both mismatch closing flips. Input remains locked during any flip and still checks the latest authority before sending a move. Early remote card changes queue in order; duplicate heartbeats are ignored. Reduced motion settles immediately. Regression tests cover the final pair, early reveal/hide, rotation during reveal and stale callbacks after a new round. Independent review reproduced and verified the rotation fix. The reveal and close presentation rules remain intact.
+
+## 30009 features and validation
+
+Build **3.0.0 (30009)** was rebuilt after removing the old domain from the
+iOS Associated Domains entitlement and Android link filters. Only
+`sommomemory.sommomi.cc` is associated with the apps. The verified IPA SHA-256 is
+`2f644873011d066ca03d1774f39d21f8ee660174dbfc88876cf03f295f0af828`;
+`artifacts/native-builds-30009.json` records 203 frozen source hashes, signatures,
+108 bundled PNGs, licenses and the native link/keychain settings. Public API and
+HTTPS association files on the new host were verified before upload.
+Apple upload `4f5f9066-a6d9-4973-87ab-d205849d5772` completed binary delivery
+and processing. Build 30009 is VALID / IN_BETA_TESTING in the existing internal
+group for exactly the two existing testers authorized by the user.
+The verified Italian beta notes cover seven collections (four free, including
+Paola syllables), 100 initial gems, 20 gems for each service-validated completion,
+permanent collection unlocks at 200/300/400 gems, offline reward submission,
+optional profile recovery/synchronization and invitation links. Gems have no
+cash value and cannot be bought with money. Physical iOS/Android Bluetooth and
+Universal Link handoff still require device testing; automated checks do not
+establish radio or operating-system link behavior.
+
+The Italian beta description has been updated and reread through the API,
+retaining `https://sommomemory.sommomi.cc` and `/privacy`. It explains anonymous
+profiles, optional personal recovery codes and the absence of money purchases,
+without requiring registration. The privacy page describes the
+profile/wallet ledger, recovery credentials, validated game transcripts and
+profile deletion. No App Store production privacy declaration or App Review submission was made.
 
 ## iOS
 
 Bundle identifier: `cc.sommomi.mymemory`. Apple team: `L6CS7PYA4B`.
 The bundle was registered through the configured App Store Connect API key
-(resource `M5DK5NJ6KP`). An App Store distribution profile was generated and
-installed locally through the API: `MyMemory App Store`, UUID
-`10fd734b-e131-42ba-a75c-e62ff73105f2`, resource `AC9UG6997P`.
-Its certificate `86762T444Q` matches a private-key-bearing identity already in the
-local keychain and expires 2027-10-09. No new signing private key was created.
+(resource `M5DK5NJ6KP`). Associated Domains is now enabled on that same bundle.
+The App Store distribution profile used by the verified 30009 archive is
+`SommoMemory App Store Links`, UUID `f4f89090-799a-486e-b289-1e0546b0df6f`,
+resource `66Z2SB723S`: API verified ACTIVE / IOS_APP_STORE, expiring
+2027-10-09. Enabling the capability automatically invalidated the historical
+`MyMemory App Store` profile (`AC9UG6997P`, UUID
+`10fd734b-e131-42ba-a75c-e62ff73105f2`); the API now reports INVALID for it.
+The already-uploaded 30008 artifact used that historical profile before this
+change. Certificate `86762T444Q` matches a private-key-bearing identity already
+in the local keychain and expires 2027-10-09. No new signing private key was
+created.
 
 Runner Release/Profile use manual distribution signing. Debug keeps development
 signing for simulator/device development. `app/ios/ExportOptions.plist` exports
@@ -71,9 +104,10 @@ the API to **SommoMemory** and the Italian beta description was updated. The app
 ID, SKU `mymemory-ios` and bundle identifier `cc.sommomi.mymemory` are unchanged.
 The existing internal group was renamed **SommoMemory Internal**; its ID and
 existing access were preserved. No new app record or tester was created.
-The signed 30008 IPA has both native display name and bundle name **SommoMemory**;
-its bundle identifier and historical signing profile **MyMemory App Store**
-remain unchanged.
+The signed 30009 IPA has native display name and bundle name **SommoMemory**
+and the same bundle identifier. It uses **SommoMemory App Store Links** for the
+Associated Domains entitlement, with only `applinks:sommomemory.sommomi.cc`;
+its keychain group is limited to `L6CS7PYA4B.cc.sommomi.mymemory`.
 Beta and App Store metadata now point to `https://sommomemory.sommomi.cc`,
 with `/privacy` and `/support` for their respective URLs. The updates were
 verified through the API after public DNS and strict TLS validation of the new
@@ -91,12 +125,12 @@ node scripts/testflight-upload.mjs app/build/ios/ipa/SommoMemory.ipa
 
 Finalize an uploaded build using the existing internal group. The default guard
 requires exactly the account-holder tester. The user explicitly authorized the
-two existing testers for 30008; the additional ID must already belong to that
+two existing testers for 30008 and 30009; the additional ID must already belong to that
 group, and the finalizer verifies exactly those two members before and after
 build assignment. It never creates, removes or invites testers:
 
 ```sh
-node scripts/testflight-finalize.mjs --finalize --build=30008 --additional-tester=8f73fef5-1c02-4500-92e6-b8e31f908f11 --wait=1200
+node scripts/testflight-finalize.mjs --finalize --build=30009 --additional-tester=8f73fef5-1c02-4500-92e6-b8e31f908f11 --wait=1200
 ```
 
 For a later authorized release, replace only the build number if the same two
@@ -125,7 +159,7 @@ The app has ordinary HTTPS and BLE networking; it declares no nonexempt encrypti
 ## Android
 
 The user's requested replacement is a **new** app, **cc.sommomi.mymemory**,
-Console app ID **4972469070574777722**. Release **3.0.0 (30008)** is available to
+Console app ID **4972469070574777722**. Release **3.0.0 (30009)** is available to
 internal testers; Google Play App Signing is active. A new dedicated upload key
 is stored outside source control. There is no dependency on recovering the old
 app's signing key for this new package.

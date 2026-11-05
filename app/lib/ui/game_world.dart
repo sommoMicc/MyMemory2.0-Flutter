@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../decks.dart';
+import 'deck_art.dart';
 
 /// A decorative, non-interactive world underneath the complete app viewport.
 class GameWorld extends StatefulWidget {
@@ -95,10 +95,13 @@ class _GameWorldState extends State<GameWorld>
                                 angle: -.17 + math.sin(t) * .025,
                                 child: Opacity(
                                   opacity: .72,
-                                  child: Image.asset(
-                                    deckAsset(widget.collection, 0)!,
+                                  child: SizedBox(
                                     width: artSize,
                                     height: artSize,
+                                    child: DeckArtwork(
+                                      collection: widget.collection,
+                                      value: 0,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -113,10 +116,13 @@ class _GameWorldState extends State<GameWorld>
                                 angle: .18,
                                 child: Opacity(
                                   opacity: .65,
-                                  child: Image.asset(
-                                    deckAsset(widget.collection, 2)!,
+                                  child: SizedBox(
                                     width: artSize * 1.2,
                                     height: artSize * 1.2,
+                                    child: DeckArtwork(
+                                      collection: widget.collection,
+                                      value: 2,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -129,10 +135,13 @@ class _GameWorldState extends State<GameWorld>
                               angle: .2,
                               child: Opacity(
                                 opacity: .50,
-                                child: Image.asset(
-                                  deckAsset(widget.collection, 5)!,
+                                child: SizedBox(
                                   width: artSize * .47,
                                   height: artSize * .47,
+                                  child: DeckArtwork(
+                                    collection: widget.collection,
+                                    value: 5,
+                                  ),
                                 ),
                               ),
                             ),
@@ -268,9 +277,9 @@ class _CollectionSceneState extends State<CollectionScene>
                                     ),
                                   ],
                                 ),
-                                child: Image.asset(
-                                  deckAsset(widget.collection, i)!,
-                                  fit: BoxFit.contain,
+                                child: DeckArtwork(
+                                  collection: widget.collection,
+                                  value: i,
                                 ),
                               ),
                             ),
@@ -305,11 +314,39 @@ class _WorldPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final space = collection == 'cosmos';
     final ocean = collection == 'ocean';
-    final colors = space
-        ? const [Color(0xFFA994DE), Color(0xFFB2A4DF), Color(0xFF708BC4)]
-        : ocean
-        ? const [Color(0xFF86D4E0), Color(0xFF73C4D8), Color(0xFF3E99BD)]
-        : const [Color(0xFFB5D991), Color(0xFF9CCCA0), Color(0xFF68AB8E)];
+    final paola = collection == 'paola';
+    final food = collection == 'food';
+    final sports = collection == 'sports';
+    final travel = collection == 'travel';
+    final colors = switch (collection) {
+      'cosmos' => const [
+        Color(0xFFA994DE),
+        Color(0xFFB2A4DF),
+        Color(0xFF708BC4),
+      ],
+      'ocean' => const [
+        Color(0xFF86D4E0),
+        Color(0xFF73C4D8),
+        Color(0xFF3E99BD),
+      ],
+      'paola' => const [
+        Color(0xFFFFE3DF),
+        Color(0xFFF0C6DF),
+        Color(0xFFB9A7D8),
+      ],
+      'food' => const [Color(0xFFFFDFC2), Color(0xFFF5C7AC), Color(0xFFE7A19A)],
+      'sports' => const [
+        Color(0xFFA8D7BD),
+        Color(0xFF7CC5B4),
+        Color(0xFF4A9C9E),
+      ],
+      'travel' => const [
+        Color(0xFFBDDDF1),
+        Color(0xFFB5DBE2),
+        Color(0xFF81B3C4),
+      ],
+      _ => const [Color(0xFFB5D991), Color(0xFF9CCCA0), Color(0xFF68AB8E)],
+    };
     final rect = Offset.zero & size;
     canvas.drawRect(
       rect,
@@ -370,6 +407,152 @@ class _WorldPainter extends CustomPainter {
             ][band].withValues(alpha: .30),
         );
       }
+    } else if (paola) {
+      final notebook = RRect.fromRectAndRadius(
+        Rect.fromLTWH(w * .07, h * .64, w * .86, h * .40),
+        const Radius.circular(26),
+      );
+      canvas.drawRRect(
+        notebook,
+        Paint()..color = Colors.white.withValues(alpha: .20),
+      );
+      final line = Paint()
+        ..color = const Color(0xFF8B78AF).withValues(alpha: .20)
+        ..strokeWidth = 1.5;
+      for (var row = 0; row < 7; row++) {
+        final y = h * (.69 + row * .05);
+        canvas.drawLine(Offset(w * .12, y), Offset(w * .88, y), line);
+      }
+      canvas.drawCircle(
+        Offset(w * .86, h * .13),
+        w * .18,
+        Paint()..color = const Color(0xFFFFDCA4).withValues(alpha: .52),
+      );
+    } else if (food) {
+      final table = Rect.fromLTWH(0, h * .77, w, h * .23);
+      canvas.drawRect(
+        table,
+        Paint()..color = const Color(0xFFD8877C).withValues(alpha: .24),
+      );
+      const square = 34.0;
+      for (var row = 0; row < table.height / square; row++) {
+        for (var column = 0; column < w / square; column++) {
+          if ((row + column).isEven) {
+            canvas.drawRect(
+              Rect.fromLTWH(
+                column * square,
+                table.top + row * square,
+                square,
+                math.min(square, h - table.top - row * square),
+              ),
+              Paint()..color = const Color(0xFFFFF4DC).withValues(alpha: .22),
+            );
+          }
+        }
+      }
+      canvas.drawCircle(
+        Offset(w * .88, h * .12),
+        w * .21,
+        Paint()..color = const Color(0xFFFFE9B0).withValues(alpha: .65),
+      );
+      for (var i = 0; i < 4; i++) {
+        final x = w * (.14 + i * .24);
+        canvas.drawLine(
+          Offset(x, 0),
+          Offset(x, h * .055),
+          Paint()
+            ..color = const Color(0xFFAD6E66).withValues(alpha: .22)
+            ..strokeWidth = 2,
+        );
+        canvas.drawArc(
+          Rect.fromCenter(center: Offset(x, h * .068), width: 38, height: 26),
+          math.pi,
+          math.pi,
+          true,
+          Paint()..color = const Color(0xFFDA9274).withValues(alpha: .32),
+        );
+      }
+    } else if (sports) {
+      final court = RRect.fromRectAndRadius(
+        Rect.fromLTWH(w * .08, h * .69, w * .84, h * .36),
+        const Radius.circular(24),
+      );
+      canvas.drawRRect(
+        court,
+        Paint()..color = const Color(0xFF306E70).withValues(alpha: .20),
+      );
+      final markings = Paint()
+        ..color = Colors.white.withValues(alpha: .38)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
+      canvas.drawRRect(court.deflate(11), markings);
+      canvas.drawLine(
+        Offset(w * .08, h * .86),
+        Offset(w * .92, h * .86),
+        markings,
+      );
+      canvas.drawCircle(Offset(w * .5, h * .86), w * .16, markings);
+      for (var i = 0; i < 5; i++) {
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: Offset(w * .5, -h * .12),
+            width: w * (1.1 + i * .13),
+            height: h * (.5 + i * .08),
+          ),
+          Paint()
+            ..color = Colors.white.withValues(alpha: .12)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 6,
+        );
+      }
+    } else if (travel) {
+      final land = Paint()
+        ..color = const Color(0xFF8CB79C).withValues(alpha: .38);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(-w * .14, h * .06, w * .53, h * .30),
+          const Radius.circular(80),
+        ),
+        land,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(w * .58, h * .67, w * .62, h * .29),
+          const Radius.circular(68),
+        ),
+        land,
+      );
+      final route = Path()
+        ..moveTo(-w * .08, h * .87)
+        ..cubicTo(w * .8, h * .92, -w * .22, h * .40, w * 1.08, h * .18);
+      final routePaint = Paint()
+        ..color = const Color(0xFFFFE1AA).withValues(alpha: .70)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4
+        ..strokeCap = StrokeCap.round;
+      for (final metric in route.computeMetrics()) {
+        for (var at = 0.0; at < metric.length; at += 21) {
+          canvas.drawPath(
+            metric.extractPath(at, math.min(at + 9, metric.length)),
+            routePaint,
+          );
+        }
+      }
+      final center = Offset(w * .86, h * .11);
+      canvas.drawCircle(
+        center,
+        30,
+        Paint()..color = Colors.white.withValues(alpha: .26),
+      );
+      final needle = Path()
+        ..moveTo(center.dx, center.dy - 22)
+        ..lineTo(center.dx + 8, center.dy + 9)
+        ..lineTo(center.dx - 8, center.dy + 9)
+        ..close();
+      canvas.drawPath(
+        needle,
+        Paint()..color = const Color(0xFF5C8EAF).withValues(alpha: .55),
+      );
     } else {
       canvas.drawCircle(
         Offset(w * .89, h * .13),
@@ -420,7 +603,7 @@ class _WorldPainter extends CustomPainter {
         canvas.drawCircle(Offset(x, y), radius, paint);
       }
     }
-    if (!space && !ocean) {
+    if (!space && !ocean && !paola && !food && !sports && !travel) {
       for (var side in [-1.0, 1.0]) {
         canvas.save();
         canvas.translate(side < 0 ? 0 : w, h * .60);

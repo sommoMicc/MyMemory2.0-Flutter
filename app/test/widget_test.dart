@@ -1,9 +1,14 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mymemory/main.dart';
 import 'package:mymemory/game.dart';
+import 'package:mymemory/economy.dart';
+import 'package:mymemory/decks.dart';
+import 'package:mymemory/invite_links.dart';
+import 'package:mymemory/ui/collection_shop.dart';
 import 'package:mymemory/bluetooth/bluetooth_controller.dart';
 import 'package:mymemory/online.dart';
 import 'package:mymemory/ui/game_world.dart';
@@ -912,6 +917,375 @@ void main() {
     },
   );
 
+  for (final viewport in viewports) {
+    testWidgets(
+      'Wallet, paginated collections and profile fit ${viewport.$1}',
+      (tester) async {
+        configureView(tester, viewport.$1, viewport.$2);
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final economy = _UiEconomy(prefs);
+        await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byType(GemBalance));
+        await tester.pumpAndSettle();
+        expect(find.text('Animali'), findsOneWidget);
+        expect(find.byType(Scrollable), findsNothing);
+        await tester.tap(find.byTooltip('Altre collezioni'));
+        await tester.pumpAndSettle();
+        expect(find.text('Cibo'), findsOneWidget);
+        expect(find.text('Sport'), findsOneWidget);
+        expect(find.text('Viaggi'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await tester.tap(find.widgetWithText(FilledButton, 'Sblocca').first);
+        await tester.pumpAndSettle();
+        expect(economy.gems, 300);
+        expect(economy.ownsDeck('food'), isTrue);
+        await tester.tap(find.byTooltip('Profilo'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Collega'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Salva il profilo'));
+        await tester.pumpAndSettle();
+        expect(find.text('Codice di recupero'), findsOneWidget);
+        expect(find.text('Copia codice').hitTestable(), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await tester.tap(find.text('Fatto'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Mostra codice'));
+        await tester.pumpAndSettle();
+        expect(economy.rotateCalls, 0);
+        expect(economy.activateCalls, 2);
+        await tester.tap(find.text('Fatto'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Gestisci'));
+        await tester.pumpAndSettle();
+        expect(find.text('Elimina profilo').hitTestable(), findsOneWidget);
+        expect(find.byType(Scrollable), findsNothing);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+        economy.dispose();
+        debugDefaultTargetPlatformOverride = null;
+      },
+    );
+  }
+
+  testWidgets(
+    'Recovery previews before replacement and deletion requires confirmation',
+    (tester) async {
+      configureView(
+        tester,
+        const Size(320, 568),
+        const FakeViewPadding(top: 20),
+      );
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final economy = _UiEconomy(prefs);
+      await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
+      await tester.tap(find.byTooltip('Profilo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Collega'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ho già un codice'));
+      await tester.pumpAndSettle();
+      tester.view.viewInsets = const FakeViewPadding(bottom: 270);
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byType(TextField),
+        'recovery-code-entered-by-user',
+      );
+      expect(find.text('Verifica').hitTestable(), findsOneWidget);
+      await tester.tap(find.text('Verifica'));
+      tester.view.resetViewInsets();
+      await tester.pumpAndSettle();
+      expect(economy.restoreCalls, 0);
+      expect(economy.profile!.id, 'guest');
+      expect(find.text('Collega questo profilo?'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, 'Collega'));
+      await tester.pumpAndSettle();
+      expect(economy.restoreCalls, 1);
+      expect(economy.profile!.id, 'restored');
+      await tester.tap(find.text('Gestisci'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Elimina profilo'));
+      await tester.pumpAndSettle();
+      expect(economy.deleteCalls, 0);
+      await tester.tap(find.text('Annulla'));
+      await tester.pumpAndSettle();
+      expect(economy.deleteCalls, 0);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      economy.dispose();
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
+
+  testWidgets(
+    'A validated ticket is claimed once only after the completed final flip',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final economy = _UiEconomy(prefs)
+        ..holdReward = Completer<RewardResult?>();
+      final ticket = await economy.takeTicket(
+        mode: 'solo',
+        pairs: 6,
+        theme: 'garden',
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(fontFamily: 'Outfit'),
+          home: GameScreen(
+            prefs: prefs,
+            pairs: 6,
+            theme: 'garden',
+            mode: PlayMode.solo,
+            economy: economy,
+            ticket: ticket,
+          ),
+        ),
+      );
+      tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: false);
+      await tester.pump();
+      for (var i = 0; i < 12; i++) {
+        await tester.tap(find.byKey(ValueKey('card-$i')));
+        await tester.pump();
+        if (i == 11) expect(economy.claimCalls, 0);
+        await tester.pump(const Duration(milliseconds: 320));
+        await tester.pump();
+      }
+      expect(economy.claimCalls, 1);
+      expect(economy.claimedMoves, List.generate(12, (i) => i));
+      expect(find.text('+20 gemme'), findsNothing);
+      economy.holdReward!.complete(const RewardResult(gems: 20, granted: true));
+      await tester.pump();
+      expect(find.text('+20 gemme'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+      expect(economy.claimCalls, 1);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      economy.dispose();
+    },
+  );
+
+  testWidgets(
+    'Cold and warm invitations keep the profile and confirm leaving an active game',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final economy = _UiEconomy(prefs);
+      final incoming = StreamController<Uri>();
+      final invites = InviteLinks(
+        incomingUris: incoming.stream,
+        initialUri: Uri.parse('https://sommomemory.sommomi.cc/invite/ABC234'),
+      );
+      await invites.start();
+      await tester.pumpWidget(
+        MyMemory(prefs: prefs, economy: economy, invites: invites),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Entra in ABC234'), findsOneWidget);
+      await tester.tap(find.byTooltip('Scegli modalità'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Singolo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Inizia partita'));
+      await tester.pumpAndSettle();
+      incoming.add(Uri.parse('https://mymemory.sommomi.cc/?room=DEF567'));
+      await tester.pumpAndSettle();
+      expect(find.text('Aprire l’invito?'), findsOneWidget);
+      expect(find.byType(GameScreen), findsOneWidget);
+      await tester.tap(find.text('Resta'));
+      await tester.pumpAndSettle();
+      expect(find.byType(GameScreen), findsOneWidget);
+      incoming.add(Uri.parse('https://sommomemory.sommomi.cc/invite/GHJ789'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apri invito'));
+      await tester.pumpAndSettle();
+      expect(find.byType(GameScreen), findsNothing);
+      expect(find.text('Entra in GHJ789'), findsOneWidget);
+      expect(economy.profile!.id, 'guest');
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      await tester.runAsync(() async {
+        await invites.dispose();
+        await incoming.close();
+      });
+      economy.dispose();
+    },
+  );
+
+  testWidgets('Wallet refresh preserves an in-progress name edit', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final economy = _UiEconomy(prefs);
+    await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
+    await tester.tap(find.text('Online'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Nome'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Nome in modifica');
+    economy.replace(balance: 520);
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      'Nome in modifica',
+    );
+    await tester.tap(find.text('Salva'));
+    await tester.pumpAndSettle();
+    expect(economy.profile!.displayName, 'Nome in modifica');
+    await tester.pumpWidget(const SizedBox());
+    economy.dispose();
+  });
+
+  testWidgets('Opening profile cancels a pending ticket start', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final economy = _UiEconomy(prefs)..holdTicket = Completer<GameTicket?>();
+    await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
+    await tester.tap(find.text('Singolo'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Inizia partita'));
+    await tester.pump();
+    await tester.tap(find.byTooltip('Profilo'));
+    await tester.pumpAndSettle();
+    economy.holdTicket!.complete(
+      GameTicket(
+        id: 'late-ticket',
+        mode: 'solo',
+        theme: 'garden',
+        pairs: 8,
+        board: [
+          for (var i = 0; i < 8; i++) ...[i, i],
+        ],
+        expiresAt: DateTime.now().add(const Duration(hours: 1)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(GameScreen), findsNothing);
+    expect(find.text('Gestisci'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    economy.dispose();
+  });
+
+  testWidgets(
+    'Paola can be chosen before play and its 36 syllable cards fill complete rows',
+    (tester) async {
+      configureView(
+        tester,
+        const Size(320, 568),
+        const FakeViewPadding(top: 20),
+      );
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(MyMemory(prefs: prefs));
+      await tester.tap(find.text('Singolo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Collezione'));
+      await tester.pumpAndSettle();
+      while (find.text('Paola').evaluate().isEmpty) {
+        await tester.tap(find.byTooltip('Altre collezioni'));
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(find.widgetWithText(FilledButton, 'Usa').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Paola'), findsOneWidget);
+      await tester.tap(find.text('Coppie'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('18 coppie'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Inizia partita'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widgetList<MemoryCard>(find.byType(MemoryCard))
+            .every((card) => card.theme == 'paola'),
+        isTrue,
+      );
+      expect(find.byType(MemoryCard), findsNWidgets(36));
+      final online = _RecordingOnline(prefs);
+      online.publish({
+        ...presentationFrame([
+          for (var i = 0; i < 18; i++) ...[i, i],
+        ]),
+        'theme': 'paola',
+      });
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(fontFamily: 'Outfit'),
+          home: GameScreen(
+            prefs: prefs,
+            pairs: 18,
+            theme: 'paola',
+            mode: PlayMode.online,
+            online: online,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final rows = <int, int>{};
+      for (var i = 0; i < 36; i++) {
+        final card = find.byKey(ValueKey('card-$i'));
+        final rect = tester.getRect(card);
+        rows.update(rect.top.round(), (n) => n + 1, ifAbsent: () => 1);
+        expect(
+          find.descendant(
+            of: card,
+            matching: find.text(deckLabel('paola', i ~/ 2)!),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: card, matching: find.byType(Image)),
+          findsNothing,
+        );
+        expect(rect.bottom, lessThanOrEqualTo(568));
+      }
+      expect(rows.values.toSet().length, 1);
+      expect(find.byType(Scrollable), findsNothing);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      online.dispose();
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
+
+  testWidgets(
+    'An offline name remains local after reopening without claiming cloud sync',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final economy = _UiEconomy(prefs)..failNameSave = true;
+      await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
+      await tester.tap(find.text('Online'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Nome'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Nome locale');
+      await tester.tap(find.text('Salva'));
+      await tester.pumpAndSettle();
+      expect(economy.profile!.displayName, 'Michele');
+      expect(prefs.getString('name'), 'Nome locale');
+      expect(
+        find.text(
+          'Nome salvato su questo dispositivo. Il profilo online non è stato aggiornato.',
+        ),
+        findsOneWidget,
+      );
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
+      await tester.tap(find.text('Online'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nome locale'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+      economy.dispose();
+    },
+  );
+
   testWidgets('Collection and difficulty survive reopening the app', (
     tester,
   ) async {
@@ -1063,3 +1437,145 @@ Map<String, dynamic> presentationFrame(
     {'id': 'guest', 'name': 'Ospite', 'score': 0, 'connected': true},
   ],
 };
+
+class _UiEconomy extends EconomyController {
+  _UiEconomy(SharedPreferences prefs) : super(prefs: prefs);
+  ProfileData data = ProfileData(
+    id: 'guest',
+    displayName: 'Michele',
+    activated: false,
+    gems: 500,
+    ownedDecks: ProfileData.freeDecks,
+    revision: 1,
+  );
+  int restoreCalls = 0,
+      deleteCalls = 0,
+      claimCalls = 0,
+      activateCalls = 0,
+      rotateCalls = 0;
+  bool failNameSave = false;
+  List<int> claimedMoves = [];
+  Completer<RewardResult?>? holdReward;
+  Completer<GameTicket?>? holdTicket;
+  @override
+  ProfileData? get profile => data;
+  @override
+  int get gems => data.gems;
+  @override
+  Set<String> get ownedDecks => data.ownedDecks;
+  @override
+  bool get isSaved => data.activated;
+  @override
+  String? get profileToken => 'test-profile-token';
+  @override
+  Future<void> initialize() async {}
+  @override
+  Future<void> refresh() async {}
+  @override
+  Future<void> sync() async {}
+  @override
+  Future<void> prefetchTicket({
+    required String mode,
+    required int pairs,
+    required String theme,
+  }) async {}
+  @override
+  Future<GameTicket?> takeTicket({
+    required String mode,
+    required int pairs,
+    required String theme,
+  }) async => holdTicket != null
+      ? await holdTicket!.future
+      : GameTicket(
+          id: 'ticket-test',
+          mode: mode,
+          theme: theme,
+          pairs: pairs,
+          board: [
+            for (var i = 0; i < pairs; i++) ...[i, i],
+          ],
+          expiresAt: DateTime.now().add(const Duration(hours: 1)),
+        );
+  void replace({String? name, int? balance, Set<String>? decks, bool? saved}) {
+    data = ProfileData(
+      id: data.id,
+      displayName: name ?? data.displayName,
+      activated: saved ?? data.activated,
+      gems: balance ?? data.gems,
+      ownedDecks: decks ?? data.ownedDecks,
+      revision: data.revision + 1,
+    );
+    notifyListeners();
+  }
+
+  @override
+  Future<void> setDisplayName(String name) async {
+    if (failNameSave) throw const EconomyException('Offline');
+    replace(name: name);
+  }
+
+  @override
+  Future<UnlockResult> unlockDeck(String id) async {
+    replace(balance: gems - 200, decks: {...ownedDecks, id});
+    return const UnlockResult(unlocked: true, alreadyOwned: false);
+  }
+
+  @override
+  Future<String> activateRecovery({String? displayName}) async {
+    activateCalls++;
+    replace(saved: true);
+    return 'example-recovery-code-only-for-widget-tests';
+  }
+
+  @override
+  Future<String> rotateRecovery() async {
+    rotateCalls++;
+    return 'example-new-code-only-for-widget-tests';
+  }
+
+  @override
+  Future<ProfileData> previewRecovery(String code) async => ProfileData(
+    id: 'restored',
+    displayName: 'Altro profilo',
+    activated: true,
+    gems: 700,
+    ownedDecks: {...ProfileData.freeDecks, 'food'},
+    revision: 2,
+  );
+  @override
+  Future<void> restoreRecovery(String code) async {
+    restoreCalls++;
+    data = await previewRecovery(code);
+    notifyListeners();
+  }
+
+  @override
+  Future<void> logout() async {
+    data = ProfileData(
+      id: 'new-guest',
+      displayName: '',
+      activated: false,
+      gems: 100,
+      ownedDecks: ProfileData.freeDecks,
+      revision: 1,
+    );
+    notifyListeners();
+  }
+
+  @override
+  Future<void> deleteProfile() async {
+    deleteCalls++;
+    await logout();
+  }
+
+  @override
+  Future<RewardResult?> claimGame({
+    required GameTicket ticket,
+    required List<int> moves,
+  }) async {
+    claimCalls++;
+    claimedMoves = List.of(moves);
+    return holdReward?.future ??
+        Future.value(const RewardResult(gems: 20, granted: true));
+  }
+}

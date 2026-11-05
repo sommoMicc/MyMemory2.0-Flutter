@@ -5,22 +5,12 @@ sommomemory.sommomi.cc {
         max_size 16KB
     }
     header {
+        Strict-Transport-Security "max-age=15552000"
         X-Content-Type-Options nosniff
         Referrer-Policy strict-origin-when-cross-origin
     }
     reverse_proxy 127.0.0.1:8798 {
         header_up X-Forwarded-For {remote_host}
-    }
-}
-mymemory.sommomi.cc {
-    @legacySocket path /ws
-    handle @legacySocket {
-        reverse_proxy 127.0.0.1:8798 {
-            header_up X-Forwarded-For {remote_host}
-        }
-    }
-    handle {
-        redir https://sommomemory.sommomi.cc{uri} permanent
     }
 }
 # END mymemory

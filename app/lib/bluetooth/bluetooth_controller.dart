@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart' as ble;
 import 'package:flutter/foundation.dart';
 
+import '../economy.dart';
+import '../decks.dart';
 import 'ble_game.dart';
 import 'framing.dart';
 
@@ -18,6 +20,8 @@ class BluetoothPeer {
 
 /// Foreground, offline BLE transport. The advertising phone owns the game.
 class BluetoothController extends ChangeNotifier {
+  BluetoothController({this.ticketProvider});
+  final Future<GameTicket?> Function(int pairs, String theme)? ticketProvider;
   static bool get supported =>
       !kIsWeb &&
       [
@@ -53,6 +57,7 @@ class BluetoothController extends ChangeNotifier {
   DateTime? _lastSeen;
   bool _disposed = false;
   bool _lostConnection = false;
+  bool _preparingRound = false;
   int _generation = 0;
 
   void _changed() {
@@ -105,8 +110,11 @@ class BluetoothController extends ChangeNotifier {
       return;
     }
     try {
+      final generation = _generation;
       status = 'Preparazione Bluetooth…';
       _changed();
+      final ticket = await _takeRewardTicket(pairs, theme);
+      if (_disposed || generation != _generation) return;
       final manager = _peripheral = ble.PeripheralManager();
       await _ready(manager);
       if (_disposed || _peripheral != manager) return;
@@ -118,7 +126,15 @@ class BluetoothController extends ChangeNotifier {
         4,
         (_) => alphabet[random.nextInt(alphabet.length)],
       ).join();
-      _game = BleGame(name, pairs, theme, code);
+      _game = BleGame(
+        name,
+        pairs,
+        theme,
+        code,
+        board: ticket?.board,
+        ticketId: ticket?.id,
+        guestClaimToken: ticket?.guestClaimToken,
+      );
       _command = ble.GATTCharacteristic.mutable(
         uuid: _commandId,
         properties: [ble.GATTCharacteristicProperty.write],
@@ -307,6 +323,15 @@ class BluetoothController extends ChangeNotifier {
           try {
             final message = _incoming.add(event.value);
             if (message == null) return;
+            if (message['type'] == 'error' && message['message'] is String) {
+              _lost(
+                (message['message'] as String).substring(
+                  0,
+                  min(160, (message['message'] as String).length),
+                ),
+              );
+              return;
+            }
             if (message['type'] == 'state') {
               // Snapshots heal an interrupted packet sequence on the next heartbeat.
               final revision = message['revision'];
@@ -335,6 +360,7 @@ class BluetoothController extends ChangeNotifier {
         'type': 'hello',
         'version': 1,
         'name': BleGame.cleanName(name),
+        'supportedDecks': deckNames.keys.toList(),
       });
       _startHeartbeat();
     } catch (cause) {
@@ -349,6 +375,26 @@ class BluetoothController extends ChangeNotifier {
     switch (message['type']) {
       case 'hello':
         if (message['version'] != 1 || message['name'] is! String) return;
+        final supported = message['supportedDecks'];
+        final allowed = supported == null
+            ? const ['garden', 'cosmos', 'ocean']
+            : supported is List &&
+                  supported.length <= 10 &&
+                  supported.every((value) => value is String)
+            ? supported
+            : const [];
+        if (!allowed.contains(game.theme)) {
+          unawaited(
+            _send({
+              'type': 'error',
+              'message':
+                  'Aggiorna SommoMemory per giocare con questa collezione.',
+            }),
+          );
+          status = 'L’altro dispositivo deve aggiornare SommoMemory.';
+          _changed();
+          return;
+        }
         if (game.phase == 'waiting') {
           game.join(message['name'] as String);
           unawaited(_peripheral!.stopAdvertising().catchError((_) {}));
@@ -361,8 +407,7 @@ class BluetoothController extends ChangeNotifier {
           _publish();
         }
       case 'rematch':
-        game.rematch('guest');
-        _publish();
+        unawaited(_requestRematch('guest'));
       case 'ping':
         _publish();
       case 'leave':
@@ -382,10 +427,46 @@ class BluetoothController extends ChangeNotifier {
   Future<void> rematch() async {
     if (!connected) return;
     if (isHosting) {
-      _game?.rematch('host');
-      _publish();
+      await _requestRematch('host');
     } else {
       await _send({'type': 'rematch'});
+    }
+  }
+
+  Future<GameTicket?> _takeRewardTicket(int pairs, String theme) async {
+    try {
+      return await ticketProvider?.call(pairs, theme);
+    } catch (_) {
+      // Internet is optional for Bluetooth; an unavailable reward ticket
+      // must never prevent playing a normal offline match.
+      return null;
+    }
+  }
+
+  Future<void> _requestRematch(String player) async {
+    final game = _game;
+    if (game == null || _lostConnection) return;
+    game.rematch(player, defer: true);
+    _publish();
+    if (!game.rematchReady || _preparingRound) return;
+    _preparingRound = true;
+    final generation = _generation;
+    try {
+      final ticket = await _takeRewardTicket(game.pairs, game.theme);
+      if (_disposed ||
+          generation != _generation ||
+          _lostConnection ||
+          _game != game) {
+        return;
+      }
+      game.startRematch(
+        board: ticket?.board,
+        ticketId: ticket?.id,
+        guestClaimToken: ticket?.guestClaimToken,
+      );
+      _publish();
+    } finally {
+      if (generation == _generation) _preparingRound = false;
     }
   }
 
@@ -393,7 +474,7 @@ class BluetoothController extends ChangeNotifier {
     if (_game == null) return;
     state = _game!.snapshot();
     _changed();
-    if (_guest != null) unawaited(_send(state!));
+    if (_guest != null && _game!.players.length == 2) unawaited(_send(state!));
     _mismatch?.cancel();
     final until = _game!.lockedUntil;
     if (until != null) {
@@ -532,6 +613,7 @@ class BluetoothController extends ChangeNotifier {
     scanning = false;
     isHosting = false;
     _lostConnection = false;
+    _preparingRound = false;
     state = null;
     playerId = null;
     _game = null;

@@ -1,0 +1,36 @@
+{
+  "preparedForBuild": "3.0.0 (30009)",
+  "state": "single-domain native packages verified; HTTPS associations deployed before native uploads",
+  "verifiedAt": "2026-11-05T15:45:59.508627+00:00",
+  "bundleId": "cc.sommomi.mymemory",
+  "appleAppIdentifier": "L6CS7PYA4B.cc.sommomi.mymemory",
+  "domains": [
+    "sommomemory.sommomi.cc"
+  ],
+  "canonicalInvite": "https://sommomemory.sommomi.cc/invite/CODE",
+  "googlePlayAppSigningCertificateSha256": "CF:88:45:9A:49:8A:E9:C3:68:EE:97:B9:BF:DC:C7:4B:EA:BF:6C:1A:A7:31:40:CF:F3:93:1C:AD:85:A9:73:13",
+  "androidCertificateSource": "Google Play Console > App integrity > App signing > Digital Asset Links JSON",
+  "androidCertificateSourceUrl": "https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/keymanagement",
+  "uploadCertificateIncluded": false,
+  "profileReceipt": "artifacts/associated-domains-profile.json",
+  "focusedTests": {
+    "invitationParserAndLifecycle": 9,
+    "result": "PASS"
+  },
+  "physicalDevicesVerified": false,
+  "sourceSha256": {
+    "app/lib/invite_links.dart": "72bfbdadb6759fc8bab4b2d93db2fd56b0c7aae7435c1a5c7d816685a3810172",
+    "app/ios/Runner/Runner.entitlements": "0c2cb0651dec88ee785674f122d633f7aba3134384b4cbbbd0ffd17cf4b701d3",
+    "app/ios/Runner/Info.plist": "a6add4b4143171580817d081b945c2119272fc4fe6a6647c16e363b48c8ea621",
+    "app/ios/Runner.xcodeproj/project.pbxproj": "978daa81775e57d9d6bd3ab990ef47d411416b0ff672edad5dd6dd2312daf59f",
+    "app/ios/ExportOptions.plist": "d9215acd5773cae38afa4b89607bd6d6d0556dc391544d03db858ce85816e38b",
+    "app/android/app/src/main/AndroidManifest.xml": "0bc1586b79ac76a7793dce5d53c0cf76e31b6ae1899e7f5a74f6da235241669c",
+    "app/android/app/src/main/res/xml/backup_rules.xml": "0ad7e0643c57ea06751cfacb1d16f53b2010855cc9a627c0e51cdaefc90fc622",
+    "app/android/app/src/main/res/xml/data_extraction_rules.xml": "441931d2888e65ecf38f5ba9423c96f4f0059408f22508e0b3f61a7ab0590f08",
+    "server/public/.well-known/apple-app-site-association": "60bb93b62dcf49ab0aed621e6156168ec2594c97aa684a96b190a13505818f78",
+    "server/public/.well-known/assetlinks.json": "c961fb82cdb9438da95ac24311e1b61ec0618d56020dd75c4a82504f326dd8b3",
+    "deploy/Caddyfile": "5c0a9e137e273f9e8a46461c513701aad47b7dc9234c3edd5dbdf1f3826efb17"
+  },
+  "explicitAppFallback": "sommomemory://invite/CODE",
+  "webDeploymentReceipt": "artifacts/web-deploy-30009.json"
+}

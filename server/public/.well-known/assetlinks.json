@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "cc.sommomi.mymemory",
+      "sha256_cert_fingerprints": [
+        "CF:88:45:9A:49:8A:E9:C3:68:EE:97:B9:BF:DC:C7:4B:EA:BF:6C:1A:A7:31:40:CF:F3:93:1C:AD:85:A9:73:13"
+      ]
+    }
+  }
+]
