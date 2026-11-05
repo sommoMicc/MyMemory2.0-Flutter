@@ -7,6 +7,7 @@ import 'game.dart';
 import 'online.dart';
 import 'palette.dart';
 import 'decks.dart';
+import 'ui/game_world.dart';
 import 'bluetooth/bluetooth_controller.dart';
 
 Future<void> main() async {
@@ -316,188 +317,199 @@ class _HomeState extends State<Home> {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) setState(() => configuring = false);
       },
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 900),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        if (configuring)
+      child: GameWorld(
+        collection: theme,
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          resizeToAvoidBottomInset: false,
+          body: SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 900),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          if (configuring)
+                            IconButton(
+                              tooltip: 'Scegli modalità',
+                              onPressed: () =>
+                                  setState(() => configuring = false),
+                              icon: const Icon(Icons.arrow_back_rounded),
+                            )
+                          else ...[
+                            const BrandMark(),
+                            const SizedBox(width: 10),
+                          ],
+                          Expanded(
+                            child: Text(
+                              configuring ? modeTitle : 'my memory',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -.6,
+                              ),
+                            ),
+                          ),
                           IconButton(
-                            tooltip: 'Scegli modalità',
-                            onPressed: () =>
-                                setState(() => configuring = false),
-                            icon: const Icon(Icons.arrow_back_rounded),
-                          )
-                        else ...[
-                          const BrandMark(),
-                          const SizedBox(width: 10),
+                            tooltip: 'Come si gioca e impostazioni',
+                            onPressed: settings,
+                            icon: const Icon(Icons.tune_rounded),
+                          ),
                         ],
-                        Expanded(
+                      ),
+                      const SizedBox(height: 12),
+                      if (!configuring) ...[
+                        const Align(
+                          alignment: Alignment.centerLeft,
                           child: Text(
-                            configuring ? modeTitle : 'my memory',
-                            style: const TextStyle(
-                              fontSize: 24,
+                            'Modalità di gioco',
+                            style: TextStyle(
+                              fontSize: 18,
                               fontWeight: FontWeight.w600,
-                              letterSpacing: -.6,
                             ),
                           ),
                         ),
-                        IconButton(
-                          tooltip: 'Come si gioca e impostazioni',
-                          onPressed: settings,
-                          icon: const Icon(Icons.tune_rounded),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    if (!configuring) ...[
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Modalità di gioco',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: LayoutBuilder(
+                            builder: (context, c) {
+                              final wide = c.maxWidth > c.maxHeight * 1.5;
+                              final columns = wide ? modes.length : 2;
+                              final rows = (modes.length / columns).ceil();
+                              final tileWidth =
+                                  (c.maxWidth - (columns - 1) * 12) / columns;
+                              final tileHeight = math.min(
+                                180.0,
+                                (c.maxHeight - (rows - 1) * 12) / rows,
+                              );
+                              return Center(
+                                child: Wrap(
+                                  spacing: 12,
+                                  runSpacing: 12,
+                                  children: [
+                                    for (final m in modes)
+                                      SizedBox(
+                                        width: tileWidth,
+                                        height: tileHeight,
+                                        child: ModeTile(
+                                          icon: m.$2,
+                                          title: m.$3,
+                                          subtitle: m.$4,
+                                          selected: false,
+                                          onTap: () => setState(() {
+                                            mode = m.$1;
+                                            configuring = true;
+                                          }),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, c) {
-                            final wide = c.maxWidth > c.maxHeight * 1.5;
-                            final columns = wide ? modes.length : 2;
-                            final rows = (modes.length / columns).ceil();
-                            final tileWidth =
-                                (c.maxWidth - (columns - 1) * 12) / columns;
-                            final tileHeight = math.min(
-                              180.0,
-                              (c.maxHeight - (rows - 1) * 12) / rows,
-                            );
-                            return Center(
-                              child: Wrap(
-                                spacing: 12,
-                                runSpacing: 12,
+                      ] else
+                        Expanded(
+                          child: LayoutBuilder(
+                            builder: (context, c) {
+                              final options = Column(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  for (final m in modes)
-                                    SizedBox(
-                                      width: tileWidth,
-                                      height: tileHeight,
-                                      child: ModeTile(
-                                        icon: m.$2,
-                                        title: m.$3,
-                                        subtitle: m.$4,
-                                        selected: false,
-                                        onTap: () => setState(() {
-                                          mode = m.$1;
-                                          configuring = true;
-                                        }),
+                                  _OptionRow(
+                                    icon: Icons.grid_view_rounded,
+                                    label: 'Coppie',
+                                    value: '$pairs',
+                                    onTap: choosePairs,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _CollectionTile(
+                                    theme: theme,
+                                    onTap: chooseTheme,
+                                  ),
+                                  if (mode == PlayMode.online ||
+                                      mode == PlayMode.bluetooth) ...[
+                                    const SizedBox(height: 8),
+                                    _OptionRow(
+                                      icon: Icons.person_outline_rounded,
+                                      label: 'Nome',
+                                      value: name.text.trim().isEmpty
+                                          ? 'Giocatore'
+                                          : name.text.trim(),
+                                      onTap: editName,
+                                    ),
+                                  ],
+                                  if (mode == PlayMode.solo &&
+                                      widget.prefs.getInt('best.$pairs') !=
+                                          null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 12),
+                                      child: Text(
+                                        'Record: ${widget.prefs.getInt('best.$pairs')} tentativi',
+                                        style: const TextStyle(color: muted),
                                       ),
                                     ),
                                 ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ] else
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, c) {
-                            final options = Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _OptionRow(
-                                  icon: Icons.grid_view_rounded,
-                                  label: 'Coppie',
-                                  value: '$pairs',
-                                  onTap: choosePairs,
-                                ),
-                                const SizedBox(height: 8),
-                                _CollectionTile(
-                                  theme: theme,
-                                  onTap: chooseTheme,
-                                ),
-                                if (mode == PlayMode.online ||
-                                    mode == PlayMode.bluetooth) ...[
-                                  const SizedBox(height: 8),
-                                  _OptionRow(
-                                    icon: Icons.person_outline_rounded,
-                                    label: 'Nome',
-                                    value: name.text.trim().isEmpty
-                                        ? 'Giocatore'
-                                        : name.text.trim(),
-                                    onTap: editName,
-                                  ),
-                                ],
-                                if (mode == PlayMode.solo &&
-                                    widget.prefs.getInt('best.$pairs') != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 12),
-                                    child: Text(
-                                      'Record: ${widget.prefs.getInt('best.$pairs')} tentativi',
-                                      style: const TextStyle(color: muted),
-                                    ),
-                                  ),
-                              ],
-                            );
-                            final actions = Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                FilledButton.icon(
-                                  onPressed: () => start(),
-                                  icon: const Icon(Icons.play_arrow_rounded),
-                                  label: Text(switch (mode) {
-                                    PlayMode.online => 'Crea stanza',
-                                    PlayMode.bluetooth => 'Continua',
-                                    _ => 'Inizia partita',
-                                  }),
-                                ),
-                                if (mode == PlayMode.online) ...[
-                                  const SizedBox(height: 8),
-                                  OutlinedButton.icon(
-                                    onPressed: joinRoom,
-                                    icon: const Icon(Icons.login_rounded),
-                                    label: const Text('Entra con un codice'),
-                                  ),
-                                  if (widget.prefs.getString('room.token') !=
-                                      null)
-                                    TextButton.icon(
-                                      onPressed: () => start(resume: true),
-                                      icon: const Icon(Icons.restore_rounded),
-                                      label: const Text('Riprendi la stanza'),
-                                    ),
-                                ],
-                              ],
-                            );
-                            if (c.maxWidth > 540 && c.maxHeight < 430) {
-                              return Row(
+                              );
+                              final actions = Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  Expanded(child: Center(child: options)),
-                                  const SizedBox(width: 32),
-                                  Expanded(child: Center(child: actions)),
+                                  FilledButton.icon(
+                                    onPressed: () => start(),
+                                    icon: const Icon(Icons.play_arrow_rounded),
+                                    label: Text(switch (mode) {
+                                      PlayMode.online => 'Crea stanza',
+                                      PlayMode.bluetooth => 'Continua',
+                                      _ => 'Inizia partita',
+                                    }),
+                                  ),
+                                  if (mode == PlayMode.online) ...[
+                                    const SizedBox(height: 8),
+                                    OutlinedButton.icon(
+                                      onPressed: joinRoom,
+                                      icon: const Icon(Icons.login_rounded),
+                                      label: const Text('Entra con un codice'),
+                                    ),
+                                    if (widget.prefs.getString('room.token') !=
+                                        null)
+                                      TextButton.icon(
+                                        onPressed: () => start(resume: true),
+                                        icon: const Icon(Icons.restore_rounded),
+                                        label: const Text('Riprendi la stanza'),
+                                      ),
+                                  ],
                                 ],
                               );
-                            }
-                            return Column(
-                              children: [
-                                Expanded(child: Center(child: options)),
-                                const SizedBox(height: 16),
-                                actions,
-                              ],
-                            );
-                          },
+                              if (c.maxWidth > 540 && c.maxHeight < 430) {
+                                return Row(
+                                  children: [
+                                    Expanded(child: Center(child: options)),
+                                    const SizedBox(width: 32),
+                                    Expanded(child: Center(child: actions)),
+                                  ],
+                                );
+                              }
+                              return Column(
+                                children: [
+                                  if (c.maxHeight > 430)
+                                    Expanded(
+                                      child: CollectionScene(collection: theme),
+                                    )
+                                  else
+                                    const Spacer(),
+                                  options,
+                                  const SizedBox(height: 16),
+                                  actions,
+                                ],
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -944,12 +956,14 @@ class MemoryCard extends StatefulWidget {
     required this.theme,
     required this.matched,
     this.onTap,
+    this.onConcealingChanged,
   });
   final int index;
   final int? value;
   final String theme;
   final bool matched;
   final VoidCallback? onTap;
+  final ValueChanged<bool>? onConcealingChanged;
   @override
   State<MemoryCard> createState() => _MemoryCardState();
 }
@@ -959,6 +973,7 @@ class _MemoryCardState extends State<MemoryCard>
   late final AnimationController flip;
   int? faceValue;
   bool reduceMotion = false;
+  bool concealing = false;
   @override
   void initState() {
     super.initState();
@@ -967,7 +982,14 @@ class _MemoryCardState extends State<MemoryCard>
       vsync: this,
       duration: const Duration(milliseconds: 320),
       value: widget.value == null ? 0 : 1,
-    );
+    )..addListener(_checkConcealed);
+  }
+
+  void _checkConcealed() {
+    if (concealing && flip.value == 0) {
+      concealing = false;
+      widget.onConcealingChanged?.call(false);
+    }
   }
 
   @override
@@ -983,6 +1005,15 @@ class _MemoryCardState extends State<MemoryCard>
     if (widget.value != null) faceValue = widget.value;
     if ((oldWidget.value == null) != (widget.value == null)) {
       final target = widget.value == null ? 0.0 : 1.0;
+      if (target == 1 && concealing) {
+        // A newer remote reveal supersedes this card's unfinished conceal.
+        concealing = false;
+        widget.onConcealingChanged?.call(false);
+      }
+      if (target == 0 && flip.value > 0 && !concealing) {
+        concealing = true;
+        widget.onConcealingChanged?.call(true);
+      }
       if (reduceMotion) {
         flip.value = target;
       } else {
@@ -993,6 +1024,7 @@ class _MemoryCardState extends State<MemoryCard>
 
   @override
   void dispose() {
+    if (concealing) widget.onConcealingChanged?.call(false);
     flip.dispose();
     super.dispose();
   }
@@ -1317,6 +1349,26 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   LocalGame? local;
   bool recorded = false;
+  final Set<int> concealingCards = {};
+  bool concealRebuildScheduled = false;
+  bool get boardLocked =>
+      concealingCards.isNotEmpty ||
+      local?.locked == true ||
+      net?['lockedUntil'] != null;
+
+  void cardConcealingChanged(int index, bool concealing) {
+    // Update synchronously: a queued tap must be rejected even before rebuild.
+    final changed = concealing
+        ? concealingCards.add(index)
+        : concealingCards.remove(index);
+    if (!changed || concealRebuildScheduled || !mounted) return;
+    concealRebuildScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      concealRebuildScheduled = false;
+      if (mounted) setState(() {});
+    });
+  }
+
   Map<String, dynamic>? get net =>
       widget.online?.state ?? widget.bluetooth?.state;
   String? get playerId => widget.online?.playerId ?? widget.bluetooth?.playerId;
@@ -1334,6 +1386,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   void _startLocal() {
+    concealingCards.clear();
     local?.removeListener(update);
     local?.dispose();
     local = LocalGame(
@@ -1416,6 +1469,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   void flip(int i) {
+    if (boardLocked) return;
     if (widget.prefs.getBool('haptics') ?? true) {
       HapticFeedback.selectionClick();
     }
@@ -1540,282 +1594,301 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) exit();
       },
-      child: Scaffold(
-        body: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1100),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: exit,
-                          tooltip: 'Torna alla home',
-                          icon: const Icon(Icons.arrow_back_rounded),
-                        ),
-                        Container(
-                          width: 32,
-                          height: 32,
-                          padding: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            color: collectionColor(
-                              gameTheme,
-                            ).withValues(alpha: .12),
-                            borderRadius: BorderRadius.circular(10),
+      child: GameWorld(
+        collection: gameTheme,
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1100),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: exit,
+                            tooltip: 'Torna alla home',
+                            icon: const Icon(Icons.arrow_back_rounded),
                           ),
-                          child: _CollectionSymbol(
-                            theme: gameTheme,
-                            value: 0,
-                            size: 26,
+                          Container(
+                            width: 32,
+                            height: 32,
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              color: collectionColor(
+                                gameTheme,
+                              ).withValues(alpha: .12),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: _CollectionSymbol(
+                              theme: gameTheme,
+                              value: 0,
+                              size: 26,
+                            ),
                           ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              deckNames[gameTheme]!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          if (!network)
+                            Text(
+                              clockText(local!.seconds),
+                              style: const TextStyle(
+                                color: ink,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          if (network)
+                            Icon(
+                              widget.mode == PlayMode.bluetooth
+                                  ? Icons.bluetooth_rounded
+                                  : Icons.public_rounded,
+                              color: connected ? teal : coral,
+                              size: 20,
+                            ),
+                          if (code != null && widget.online != null)
+                            IconButton(
+                              tooltip: 'Copia invito · $code',
+                              onPressed: copyInvite,
+                              icon: const Icon(
+                                Icons.ios_share_rounded,
+                                size: 20,
+                              ),
+                            ),
+                        ],
+                      ),
+                      if (error != null || !connected && network)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                error ??
+                                    widget.online?.status ??
+                                    widget.bluetooth?.status ??
+                                    'Connessione…',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: coral,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                            if (widget.online != null && !connected)
+                              IconButton(
+                                tooltip: 'Riprova connessione',
+                                onPressed: () => widget.online!.open(null),
+                                icon: const Icon(Icons.refresh_rounded),
+                              ),
+                          ],
                         ),
-                        const SizedBox(width: 10),
+                      if (waiting)
                         Expanded(
+                          child: LayoutBuilder(
+                            builder: (context, c) => Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (c.maxHeight > 300) ...[
+                                    const Icon(
+                                      Icons.people_outline_rounded,
+                                      size: 56,
+                                      color: teal,
+                                    ),
+                                    const SizedBox(height: 20),
+                                  ],
+                                  Text(
+                                    s == null
+                                        ? 'Connessione alla partita…'
+                                        : 'In attesa del secondo giocatore',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 21,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    widget.mode == PlayMode.bluetooth
+                                        ? 'Sul secondo telefono scegli Bluetooth e cerca la partita.'
+                                        : 'Condividi il codice per entrare nella stanza.',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(color: muted),
+                                  ),
+                                  if (code != null) ...[
+                                    const SizedBox(height: 12),
+                                    SelectableText(
+                                      code,
+                                      style: const TextStyle(
+                                        fontSize: 34,
+                                        letterSpacing: 5,
+                                        fontWeight: FontWeight.w600,
+                                        color: teal,
+                                      ),
+                                    ),
+                                    if (widget.online != null)
+                                      TextButton.icon(
+                                        onPressed: copyInvite,
+                                        icon: const Icon(
+                                          Icons.copy_rounded,
+                                          size: 18,
+                                        ),
+                                        label: const Text('Copia invito'),
+                                      ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (!waiting) ...[
+                        const SizedBox(height: 4),
+                        scores,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
                           child: Text(
-                            deckNames[gameTheme]!,
+                            finished ? 'Partita terminata' : status,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontSize: 18,
+                              color: ink,
+                              fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                        if (!network)
-                          Text(
-                            clockText(local!.seconds),
-                            style: const TextStyle(color: muted),
-                          ),
-                        if (network)
-                          Icon(
-                            widget.mode == PlayMode.bluetooth
-                                ? Icons.bluetooth_rounded
-                                : Icons.public_rounded,
-                            color: connected ? teal : coral,
-                            size: 20,
-                          ),
-                        if (code != null && widget.online != null)
-                          IconButton(
-                            tooltip: 'Copia invito · $code',
-                            onPressed: copyInvite,
-                            icon: const Icon(Icons.ios_share_rounded, size: 20),
-                          ),
-                      ],
-                    ),
-                    if (error != null || !connected && network)
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              error ??
-                                  widget.online?.status ??
-                                  widget.bluetooth?.status ??
-                                  'Connessione…',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: coral,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                          if (widget.online != null && !connected)
-                            IconButton(
-                              tooltip: 'Riprova connessione',
-                              onPressed: () => widget.online!.open(null),
-                              icon: const Icon(Icons.refresh_rounded),
-                            ),
-                        ],
-                      ),
-                    if (waiting)
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, c) => Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (c.maxHeight > 300) ...[
-                                  const Icon(
-                                    Icons.people_outline_rounded,
-                                    size: 56,
-                                    color: teal,
-                                  ),
-                                  const SizedBox(height: 20),
-                                ],
-                                Text(
-                                  s == null
-                                      ? 'Connessione alla partita…'
-                                      : 'In attesa del secondo giocatore',
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 21,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                        Expanded(
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              _FittedBoard(
+                                count: cards.length,
+                                itemBuilder: (i) => MemoryCard(
+                                  key: ValueKey('card-$i'),
+                                  index: i,
+                                  value: cards[i],
+                                  theme: gameTheme,
+                                  matched: matched.contains(i),
+                                  onConcealingChanged: (closing) =>
+                                      cardConcealingChanged(i, closing),
+                                  onTap:
+                                      finished ||
+                                          boardLocked ||
+                                          matched.contains(i) ||
+                                          cards[i] != null ||
+                                          network &&
+                                              (!active ||
+                                                  !connected ||
+                                                  paused ||
+                                                  s?['lockedUntil'] != null)
+                                      ? null
+                                      : () => flip(i),
                                 ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  widget.mode == PlayMode.bluetooth
-                                      ? 'Sul secondo telefono scegli Bluetooth e cerca la partita.'
-                                      : 'Condividi il codice per entrare nella stanza.',
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(color: muted),
-                                ),
-                                if (code != null) ...[
-                                  const SizedBox(height: 12),
-                                  SelectableText(
-                                    code,
-                                    style: const TextStyle(
-                                      fontSize: 34,
-                                      letterSpacing: 5,
-                                      fontWeight: FontWeight.w600,
-                                      color: teal,
-                                    ),
-                                  ),
-                                  if (widget.online != null)
-                                    TextButton.icon(
-                                      onPressed: copyInvite,
-                                      icon: const Icon(
-                                        Icons.copy_rounded,
-                                        size: 18,
-                                      ),
-                                      label: const Text('Copia invito'),
-                                    ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    if (!waiting) ...[
-                      const SizedBox(height: 4),
-                      scores,
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Text(
-                          finished ? 'Partita terminata' : status,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: teal, fontSize: 13),
-                        ),
-                      ),
-                      Expanded(
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            _FittedBoard(
-                              count: cards.length,
-                              itemBuilder: (i) => MemoryCard(
-                                key: ValueKey('card-$i'),
-                                index: i,
-                                value: cards[i],
-                                theme: gameTheme,
-                                matched: matched.contains(i),
-                                onTap:
-                                    finished ||
-                                        matched.contains(i) ||
-                                        cards[i] != null ||
-                                        network &&
-                                            (!active ||
-                                                !connected ||
-                                                paused ||
-                                                s?['lockedUntil'] != null)
-                                    ? null
-                                    : () => flip(i),
                               ),
-                            ),
-                            if (finished)
-                              Center(
-                                child: Container(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: 380,
-                                  ),
-                                  padding: const EdgeInsets.all(18),
-                                  decoration: BoxDecoration(
-                                    color: paper,
-                                    borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(color: line),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: ink.withValues(alpha: .18),
-                                        blurRadius: 24,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.stars_rounded,
-                                            color: Color(0xFFDAA12D),
-                                            size: 32,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              result,
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                fontSize: 23,
-                                                fontWeight: FontWeight.w700,
+                              if (finished)
+                                Center(
+                                  child: Container(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 380,
+                                    ),
+                                    padding: const EdgeInsets.all(18),
+                                    decoration: BoxDecoration(
+                                      color: paper,
+                                      borderRadius: BorderRadius.circular(24),
+                                      border: Border.all(color: line),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: ink.withValues(alpha: .18),
+                                          blurRadius: 24,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.stars_rounded,
+                                              color: Color(0xFFDAA12D),
+                                              size: 32,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                result,
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                  fontSize: 23,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        local != null
-                                            ? '${clockText(local!.seconds)} · ${local!.moves} tentativi'
-                                            : s?['finishReason'] == 'forfeit'
-                                            ? 'L’altro giocatore ha lasciato.'
-                                            : 'Partita completata.',
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(color: muted),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      FilledButton.icon(
-                                        onPressed:
-                                            vote ||
-                                                network &&
-                                                    players.any(
-                                                      (p) =>
-                                                          p['connected'] !=
-                                                          true,
-                                                    )
-                                            ? null
-                                            : replay,
-                                        icon: const Icon(Icons.replay_rounded),
-                                        label: Text(
-                                          vote
-                                              ? 'In attesa…'
-                                              : 'Un’altra partita',
+                                          ],
                                         ),
-                                      ),
-                                      if (network &&
-                                          (s?['rematch'] as List? ?? [])
-                                              .isNotEmpty &&
-                                          !vote)
-                                        const Padding(
-                                          padding: EdgeInsets.only(top: 8),
-                                          child: Text(
-                                            'Rivincita richiesta',
-                                            style: TextStyle(color: teal),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          local != null
+                                              ? '${clockText(local!.seconds)} · ${local!.moves} tentativi'
+                                              : s?['finishReason'] == 'forfeit'
+                                              ? 'L’altro giocatore ha lasciato.'
+                                              : 'Partita completata.',
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(color: muted),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        FilledButton.icon(
+                                          onPressed:
+                                              vote ||
+                                                  network &&
+                                                      players.any(
+                                                        (p) =>
+                                                            p['connected'] !=
+                                                            true,
+                                                      )
+                                              ? null
+                                              : replay,
+                                          icon: const Icon(
+                                            Icons.replay_rounded,
+                                          ),
+                                          label: Text(
+                                            vote
+                                                ? 'In attesa…'
+                                                : 'Un’altra partita',
                                           ),
                                         ),
-                                    ],
+                                        if (network &&
+                                            (s?['rematch'] as List? ?? [])
+                                                .isNotEmpty &&
+                                            !vote)
+                                          const Padding(
+                                            padding: EdgeInsets.only(top: 8),
+                                            child: Text(
+                                              'Rivincita richiesta',
+                                              style: TextStyle(color: teal),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -1999,106 +2072,113 @@ class _BluetoothLobbyState extends State<BluetoothLobby> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Partita Bluetooth'),
-      actions: [
-        IconButton(
-          tooltip: 'Aiuto Bluetooth',
-          icon: const Icon(Icons.help_outline_rounded),
-          onPressed: () => showDialog<void>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Connessione Bluetooth'),
-              content: const Text(
-                'Attiva il Bluetooth e tieni le due app aperte. Un giocatore ospita, l’altro cerca.\n\nSe la partita non compare, scambiate i ruoli: alcuni Android non possono ospitare. Sui modelli meno recenti può servire il permesso di posizione.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Chiudi'),
+  Widget build(BuildContext context) => GameWorld(
+    collection: widget.theme,
+    child: Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        title: const Text('Partita Bluetooth'),
+        actions: [
+          IconButton(
+            tooltip: 'Aiuto Bluetooth',
+            icon: const Icon(Icons.help_outline_rounded),
+            onPressed: () => showDialog<void>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Connessione Bluetooth'),
+                content: const Text(
+                  'Attiva il Bluetooth e tieni le due app aperte. Un giocatore ospita, l’altro cerca.\n\nSe la partita non compare, scambiate i ruoli: alcuni Android non possono ospitare. Sui modelli meno recenti può servire il permesso di posizione.',
                 ),
-              ],
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Chiudi'),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
-    ),
-    body: SafeArea(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-            child: Column(
-              children: [
-                const Text(
-                  'Un telefono ospita, l’altro cerca la partita.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: muted),
-                ),
-                const SizedBox(height: 12),
-                LayoutBuilder(
-                  builder: (context, c) {
-                    final host = FilledButton.icon(
-                      onPressed: busy ? null : () => connect(),
-                      icon: const Icon(Icons.add_rounded),
-                      label: const Text('Ospita partita'),
-                    );
-                    final scan = OutlinedButton.icon(
-                      onPressed: busy ? null : () => ble.scan(),
-                      icon: const Icon(Icons.radar_rounded),
-                      label: Text(
-                        ble.scanning ? 'Aggiorna ricerca' : 'Cerca partita',
-                      ),
-                    );
-                    if (c.maxWidth > 500) {
-                      return Row(
-                        children: [
-                          Expanded(child: host),
-                          const SizedBox(width: 12),
-                          Expanded(child: scan),
-                        ],
-                      );
-                    }
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [host, const SizedBox(height: 8), scan],
-                    );
-                  },
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    if (ble.scanning)
-                      const Padding(
-                        padding: EdgeInsets.only(right: 10),
-                        child: SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                    Expanded(
-                      child: Text(
-                        ble.error ?? ble.status,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: ble.error == null ? teal : coral,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: _NearbyPeers(
-                    peers: ble.peers,
-                    onJoin: busy ? null : (peer) => connect(peer: peer),
+        ],
+      ),
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Column(
+                children: [
+                  const Text(
+                    'Un telefono ospita, l’altro cerca la partita.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: muted),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  LayoutBuilder(
+                    builder: (context, c) {
+                      final host = FilledButton.icon(
+                        onPressed: busy ? null : () => connect(),
+                        icon: const Icon(Icons.add_rounded),
+                        label: const Text('Ospita partita'),
+                      );
+                      final scan = OutlinedButton.icon(
+                        onPressed: busy ? null : () => ble.scan(),
+                        icon: const Icon(Icons.radar_rounded),
+                        label: Text(
+                          ble.scanning ? 'Aggiorna ricerca' : 'Cerca partita',
+                        ),
+                      );
+                      if (c.maxWidth > 500) {
+                        return Row(
+                          children: [
+                            Expanded(child: host),
+                            const SizedBox(width: 12),
+                            Expanded(child: scan),
+                          ],
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [host, const SizedBox(height: 8), scan],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      if (ble.scanning)
+                        const Padding(
+                          padding: EdgeInsets.only(right: 10),
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      Expanded(
+                        child: Text(
+                          ble.error ?? ble.status,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: ble.error == null ? teal : coral,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: _NearbyPeers(
+                      peers: ble.peers,
+                      onJoin: busy ? null : (peer) => connect(peer: peer),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

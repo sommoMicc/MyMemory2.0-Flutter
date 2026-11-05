@@ -51,7 +51,7 @@ Card values are string IDs `"0"` through `String(pairs-1)`, mapped to the shared
 `selected` contains exposed indices that have not yet matched. A mismatch remains
 visible for 900ms; `lockedUntil` is the server Unix time in milliseconds. After
 that time the server hides the pair, changes turn, and broadcasts a new state.
-A successful match retains the turn. `revision` increases on every mutation.
+The client also keeps its table input locked until both 320ms closing flips have actually completed; engine unlock alone does not release the visual lock. Reduced motion closes immediately, and remote reveals cancel only the interrupted card’s conceal flag. A successful match retains the turn. `revision` increases on every mutation.
 
 `phase` is `waiting`, `playing` or `finished`. `turn` is null outside active play.
 `winnerId` is null on draws and before completion. `finishReason` is `completed`,

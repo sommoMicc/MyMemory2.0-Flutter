@@ -1,7 +1,7 @@
 name: mymemory
 description: Gioco del memory per Android, iOS e web.
 publish_to: none
-version: 3.0.0+30004
+version: 3.0.0+30006
 environment:
   sdk: '>=3.9.2 <4.0.0'
 dependencies:

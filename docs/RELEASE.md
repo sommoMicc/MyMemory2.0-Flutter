@@ -3,30 +3,30 @@
 Verified 2026-11-05. This file records internal test distribution and remaining
 production release readiness. No production release has been made.
 
-The current signed release is **3.0.0 (30004)**. Final native artifacts are
-`artifacts/MyMemory-Together-3.0.0-30004.{aab,apk,ipa}`; hashes, certificate and
-source verification are recorded in `artifacts/native-builds-30004.json`.
+The current signed release is **3.0.0 (30006)**. Final native artifacts are
+`artifacts/MyMemory-Together-3.0.0-30006.{aab,apk,ipa}`; hashes, certificate and
+source verification are recorded in `artifacts/native-builds-30006.json`.
 The IPA SHA-256 is
-`0047c023f0098dbf019754f75349928ff2b5b1005435458c717b16b479ae039b`.
+`2f9a752b7103e75650b4f65eda769776b447d308e5ea2c034b2c955911fb52d9`.
 
-Apple upload **95af8eae-402a-4b59-93f5-5eab63b43ab6** completed and the build is
+Apple upload **fa57fa4f-fae5-4353-a2b5-a2425871ea73** completed and the build is
 **VALID / IN_BETA_TESTING**, attached to **MyMemory Internal** with exactly one
 account-holder tester. That tester's prior invitation is accepted (tester state
 INSTALLED); this confirms app access, not installation of every new build.
 `artifacts/testflight-upload.json` is the current API receipt.
 
 The new Android app **cc.sommomi.mymemory** is live on its internal track with
-versionCode **30004**, tester list restricted to the owner. The opt-in link is
+versionCode **30006**, tester list restricted to the owner. The opt-in link is
 https://play.google.com/apps/internaltest/4700857721365894827 . No production
 release was made. See `ANDROID.md` for Console evidence and old-app deletion.
 
-The compact UI was implemented with the explicitly requested Astra subagent.
-**27 Flutter tests** and analysis pass, including four viewports with realistic
+The UI was implemented with the explicitly requested Astra subagent. Full-viewport animated collection worlds extend behind safe areas, with original code-drawn scenery and bundled Noto characters. Motion stops in background and with reduced motion; reference research is documented in `DESIGN_REFERENCES.md` and `MEMORY_UI_REFERENCES.md`.
+**33 Flutter tests** and analysis pass, including four viewports with realistic
 iOS safe areas, all 36 cards visible and hit-testable, completion/rematch,
 keyboard entry, settings, waiting rooms and Bluetooth lobby. The illustrated revision adds 320 ms 3D flips, reduced-motion behavior, persistent collection/difficulty, exact equal-length rows at all difficulties, and all 54 offline PNGs with bundled licenses. See `DECKS.md` for primary sources and pinned provenance. The game screens
 do not scroll; Flutter's standard legal-license viewer retains its text scrolling.
 **11 Node tests** pass, including the observed stale-browser-cache regression.
-Native AAB/APK/IPA signatures and release identities were verified.
+Native AAB/APK/IPA signatures and release identities were verified. The input-lock regression covers local, online and Bluetooth tables: no third card or queued command is accepted until both mismatch closing flips finish. A remote reveal interrupting a close clears only that card’s conceal flag and cannot strand the board lock. Core engine mismatch guards were already correct and their tests were strengthened; no protocol change was required.
 
 ## iOS
 
@@ -74,6 +74,8 @@ Apps overview's Transporter-only upload statement. Use:
 node scripts/testflight-upload.mjs app/build/ios/ipa/MyMemory.ipa
 ```
 
+The uploader supports `--commit-only` to validate the existing receipt/native SHA-256 and resume only its checksum confirmation after completed binary transmission. It creates no new upload reservation and sends no binary parts in this mode; new uploads persist successful-part markers before confirming the checksum. Build 30006 used this recovery after an API connect timeout, and then completed VALID/internal testing.
+
 The uploader verifies the IPA bundle identifier, reads the actual version/build,
 creates the build-upload reservation and sends the binary in Apple's prescribed
 chunks. It commits the MD5 delivery checksum Apple accepts and records a SHA-256
@@ -94,7 +96,7 @@ The app has ordinary HTTPS and BLE networking; it declares no nonexempt encrypti
 ## Android
 
 The user's requested replacement is a **new** app, **cc.sommomi.mymemory**,
-Console app ID **4972469070574777722**. Release **3.0.0 (30004)** is available to
+Console app ID **4972469070574777722**. Release **3.0.0 (30006)** is available to
 internal testers; Google Play App Signing is active. A new dedicated upload key
 is stored outside source control. There is no dependency on recovering the old
 app's signing key for this new package.

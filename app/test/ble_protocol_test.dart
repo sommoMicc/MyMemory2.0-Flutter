@@ -81,7 +81,15 @@ void main() {
           .elementAt(guard % (cards.length - matched.length - 1));
       expect(game.flip(turn, second, now: now), isTrue);
       if (game.lockedUntil != null) {
-        expect(game.flip(turn, first, now: now), isFalse);
+        final lockedState = game.snapshot();
+        final third = List.generate(
+          cards.length,
+          (i) => i,
+        ).firstWhere((i) => i != first && i != second && !matched.contains(i));
+        expect(game.flip(turn, third, now: now), isFalse);
+        expect(game.snapshot(), lockedState);
+        expect(game.flip(turn, third, now: now + 899), isFalse);
+        expect(game.snapshot(), lockedState);
         expect(game.settle(now: now + 899), isFalse);
         expect(game.settle(now: now + 900), isTrue);
         expect(game.snapshot()['turn'], turn == 'host' ? 'guest' : 'host');

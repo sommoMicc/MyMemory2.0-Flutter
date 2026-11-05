@@ -31,13 +31,30 @@ void main() {
   ) async {
     final g = LocalGame(pairs: 6, twoPlayers: true, random: Random(4));
     final second = g.deck.indexWhere((v) => v != g.deck[0]);
+    final third = List.generate(
+      g.deck.length,
+      (i) => i,
+    ).firstWhere((i) => i != 0 && i != second);
     g.flip(0);
     g.flip(second);
     expect(g.locked, true);
-    expect(g.flip(4), false);
-    await tester.pump(const Duration(milliseconds: 901));
+    expect(g.flip(third), false);
+    expect(g.selected, [0, second]);
+    expect(g.moves, 1);
+    expect(g.scores, [0, 0]);
+    await tester.pump(const Duration(milliseconds: 899));
+    expect(g.locked, true);
+    expect(g.flip(third), false);
+    expect(g.selected, [0, second]);
+    expect(g.moves, 1);
+    expect(g.scores, [0, 0]);
+    expect(g.turn, 0);
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(g.locked, false);
     expect(g.selected, isEmpty);
     expect(g.turn, 1);
+    expect(g.flip(third), true);
+    expect(g.selected, [third]);
     g.dispose();
   });
   test('completing board finishes and blocks further moves', () {

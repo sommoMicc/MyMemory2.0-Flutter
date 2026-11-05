@@ -4,11 +4,25 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mymemory/main.dart';
 import 'package:mymemory/game.dart';
+import 'package:mymemory/bluetooth/bluetooth_controller.dart';
 import 'package:mymemory/online.dart';
+import 'package:mymemory/ui/game_world.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() {
+    TestWidgetsFlutterBinding
+        .instance
+        .platformDispatcher
+        .accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
+      disableAnimations: true,
+    );
+  });
+  tearDown(() {
+    TestWidgetsFlutterBinding.instance.platformDispatcher
+        .clearAccessibilityFeaturesTestValue();
+  });
   setUpAll(() async {
     final loader = FontLoader('Outfit')
       ..addFont(rootBundle.load('assets/fonts/Outfit.ttf'));
@@ -213,6 +227,8 @@ void main() {
   testWidgets(
     'Cards turn in 3D, keep their face while closing, and ignore repeat taps',
     (tester) async {
+      tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: false);
       int? value;
       var taps = 0;
       late StateSetter change;
@@ -303,6 +319,305 @@ void main() {
     );
     await tester.pumpWidget(const SizedBox());
   });
+
+  testWidgets(
+    'World fills the viewport and stops motion when paused or reduced',
+    (tester) async {
+      configureView(
+        tester,
+        const Size(390, 844),
+        const FakeViewPadding(top: 59, bottom: 34),
+      );
+      tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: false);
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: GameWorld(collection: 'ocean', child: SizedBox.expand()),
+        ),
+      );
+      final world = find.byType(GameWorld);
+      expect(tester.getRect(world), const Rect.fromLTWH(0, 0, 390, 844));
+      double floatOffset() => tester
+          .widget<Transform>(find.byKey(const ValueKey('world-float')))
+          .transform
+          .entry(1, 3);
+      final before = floatOffset();
+      await tester.pump(const Duration(seconds: 1));
+      expect(floatOffset(), isNot(before));
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      final paused = floatOffset();
+      await tester.pump(const Duration(seconds: 1));
+      expect(floatOffset(), paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(floatOffset(), isNot(paused));
+      tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      await tester.pump();
+      final reduced = floatOffset();
+      await tester.pump(const Duration(seconds: 1));
+      expect(floatOffset(), reduced);
+      await tester.pumpWidget(const SizedBox());
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
+
+  testWidgets(
+    'A local mismatch blocks the whole board through the closing flip',
+    (tester) async {
+      tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: false);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(fontFamily: 'Outfit'),
+          home: GameScreen(
+            prefs: prefs,
+            pairs: 6,
+            theme: 'garden',
+            mode: PlayMode.solo,
+          ),
+        ),
+      );
+      final dynamic screen = tester.state(find.byType(GameScreen));
+      final game = screen.local as LocalGame;
+      // Choose a deterministic mismatch from the shuffled deck; all input remains UI taps.
+      final second = game.deck.indexWhere((value) => value != game.deck[0]);
+      final third = List.generate(
+        12,
+        (i) => i,
+      ).firstWhere((i) => i != 0 && i != second);
+      final thirdCard = find.byKey(ValueKey('card-$third'));
+      final queuedTap = tester.widget<MemoryCard>(thirdCard).onTap!;
+      await tester.tap(find.byKey(const ValueKey('card-0')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 320));
+      await tester.tap(find.byKey(ValueKey('card-$second')));
+      await tester.pump();
+      await tester.tap(thirdCard);
+      queuedTap();
+      expect(game.moves, 1);
+      expect(game.selected, [0, second]);
+      expect(tester.widget<MemoryCard>(thirdCard).onTap, isNull);
+      await tester.pump(const Duration(milliseconds: 900));
+      expect(game.locked, isFalse);
+      expect(game.selected, isEmpty);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('card-0')),
+          matching: find.byType(Image),
+        ),
+        findsOneWidget,
+      );
+      queuedTap();
+      expect(
+        game.selected,
+        isEmpty,
+        reason: 'A queued callback must not bypass the closing animation gate',
+      );
+      await tester.pump(const Duration(milliseconds: 160));
+      await tester.tap(thirdCard);
+      queuedTap();
+      expect(game.selected, isEmpty);
+      expect(game.moves, 1);
+      await tester.pump(const Duration(milliseconds: 159));
+      queuedTap();
+      expect(game.selected, isEmpty);
+      await tester.pump(const Duration(milliseconds: 1));
+      await tester.pump();
+      expect(tester.widget<MemoryCard>(thirdCard).onTap, isNotNull);
+      await tester.tap(thirdCard);
+      await tester.pump();
+      expect(game.selected, [third]);
+      expect(tester.widget<MemoryCard>(thirdCard).value, isNotNull);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
+    'Reduced motion releases a mismatch as soon as its faces are hidden',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(fontFamily: 'Outfit'),
+          home: GameScreen(
+            prefs: prefs,
+            pairs: 6,
+            theme: 'garden',
+            mode: PlayMode.solo,
+          ),
+        ),
+      );
+      final dynamic screen = tester.state(find.byType(GameScreen));
+      final game = screen.local as LocalGame;
+      final second = game.deck.indexWhere((value) => value != game.deck[0]);
+      final third = List.generate(
+        12,
+        (i) => i,
+      ).firstWhere((i) => i != 0 && i != second);
+      await tester.tap(find.byKey(const ValueKey('card-0')));
+      await tester.pump();
+      await tester.tap(find.byKey(ValueKey('card-$second')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 900));
+      await tester.pump();
+      await tester.tap(find.byKey(ValueKey('card-$third')));
+      await tester.pump();
+      expect(game.selected, [third]);
+      expect(game.moves, 1);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  for (final bluetooth in [false, true]) {
+    testWidgets(
+      '${bluetooth ? 'Bluetooth' : 'Online'} sends no third flip until both cards finish closing',
+      (tester) async {
+        tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
+            const FakeAccessibilityFeatures(disableAnimations: false);
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final online = _RecordingOnline(prefs);
+        final ble = _RecordingBluetooth();
+        final attempts = bluetooth ? ble.attempts : online.attempts;
+        void publish(List<int?> cards, {bool locked = false}) {
+          final state = <String, dynamic>{
+            'phase': 'playing',
+            'theme': 'garden',
+            'cards': cards,
+            'matched': <int>[],
+            'turn': 'host',
+            'lockedUntil': locked ? 999999 : null,
+            'players': [
+              {'id': 'host', 'name': 'Tu', 'score': 0, 'connected': true},
+              {'id': 'guest', 'name': 'Ospite', 'score': 0, 'connected': true},
+            ],
+          };
+          if (bluetooth) {
+            ble.publish(state);
+          } else {
+            online.publish(state);
+          }
+        }
+
+        publish(List<int?>.filled(12, null));
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(fontFamily: 'Outfit'),
+            home: GameScreen(
+              prefs: prefs,
+              pairs: 6,
+              theme: 'garden',
+              mode: bluetooth ? PlayMode.bluetooth : PlayMode.online,
+              online: bluetooth ? null : online,
+              bluetooth: bluetooth ? ble : null,
+            ),
+          ),
+        );
+        final third = find.byKey(const ValueKey('card-2'));
+        final queuedTap = tester.widget<MemoryCard>(third).onTap!;
+        await tester.tap(find.byKey(const ValueKey('card-0')));
+        publish([0, ...List<int?>.filled(11, null)]);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 320));
+        await tester.tap(find.byKey(const ValueKey('card-1')));
+        publish([0, 1, ...List<int?>.filled(10, null)], locked: true);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 900));
+        await tester.tap(third);
+        queuedTap();
+        expect(attempts, [0, 1]);
+        publish(List<int?>.filled(12, null));
+        await tester.pump();
+        queuedTap();
+        expect(attempts, [0, 1]);
+        await tester.pump(const Duration(milliseconds: 160));
+        expect(tester.widget<MemoryCard>(third).onTap, isNull);
+        await tester.tap(third);
+        queuedTap();
+        expect(attempts, [0, 1]);
+        await tester.pump(const Duration(milliseconds: 159));
+        queuedTap();
+        expect(attempts, [0, 1]);
+        await tester.pump(const Duration(milliseconds: 1));
+        await tester.pump();
+        expect(tester.widget<MemoryCard>(third).onTap, isNotNull);
+        await tester.tap(third);
+        expect(attempts, [0, 1, 2]);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+        online.dispose();
+        ble.dispose();
+      },
+    );
+  }
+
+  testWidgets(
+    'A remote reveal interrupting one closing card does not strand the board lock',
+    (tester) async {
+      tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: false);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final online = _RecordingOnline(prefs);
+      void publish(List<int?> cards, {bool locked = false}) => online.publish({
+        'phase': 'playing',
+        'theme': 'garden',
+        'cards': cards,
+        'matched': <int>[],
+        'turn': 'host',
+        'lockedUntil': locked ? 999999 : null,
+        'players': [
+          {'id': 'host', 'name': 'Tu', 'score': 0, 'connected': true},
+          {'id': 'guest', 'name': 'Ospite', 'score': 0, 'connected': true},
+        ],
+      });
+      publish([0, 1, ...List<int?>.filled(10, null)], locked: true);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(fontFamily: 'Outfit'),
+          home: GameScreen(
+            prefs: prefs,
+            pairs: 6,
+            theme: 'garden',
+            mode: PlayMode.online,
+            online: online,
+          ),
+        ),
+      );
+      publish(List<int?>.filled(12, null));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      // The other device can already have reduced-motion cards hidden and act.
+      publish([0, ...List<int?>.filled(11, null)]);
+      await tester.pump();
+      await tester.pump();
+      final third = find.byKey(const ValueKey('card-2'));
+      expect(
+        tester.widget<MemoryCard>(third).onTap,
+        isNull,
+        reason: 'The second mismatch card is still closing',
+      );
+      await tester.tap(third);
+      expect(online.attempts, isEmpty);
+      await tester.pump(const Duration(milliseconds: 219));
+      expect(tester.widget<MemoryCard>(third).onTap, isNull);
+      await tester.pump(const Duration(milliseconds: 1));
+      await tester.pump();
+      expect(tester.widget<MemoryCard>(third).onTap, isNotNull);
+      await tester.tap(third);
+      expect(online.attempts, [2]);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      online.dispose();
+    },
+  );
 
   testWidgets('Collection and difficulty survive reopening the app', (
     tester,
@@ -396,4 +711,36 @@ void configureView(WidgetTester tester, Size size, FakeViewPadding padding) {
     tester.view.resetPadding();
     tester.view.resetViewInsets();
   });
+}
+
+class _RecordingOnline extends OnlineGame {
+  _RecordingOnline(super.prefs) {
+    playerId = 'host';
+    connected = true;
+  }
+  final attempts = <int>[];
+  @override
+  void flip(int index) => attempts.add(index);
+  void publish(Map<String, dynamic> value) {
+    state = value;
+    notifyListeners();
+  }
+}
+
+class _RecordingBluetooth extends BluetoothController {
+  _RecordingBluetooth() {
+    playerId = 'host';
+  }
+  final attempts = <int>[];
+  @override
+  bool get connected => true;
+  @override
+  Future<void> flip(int index) async {
+    attempts.add(index);
+  }
+
+  void publish(Map<String, dynamic> value) {
+    state = value;
+    notifyListeners();
+  }
 }

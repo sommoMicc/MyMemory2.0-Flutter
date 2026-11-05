@@ -16,6 +16,26 @@ ssh sommonas 'python3 /srv/mymemory/current/deploy/configure_proxy.py'
 ssh sommonas 'python3 /srv/mymemory/current/deploy/configure_proxy.py --apply'
 ```
 
+For deployment away from the home LAN, use the existing public SSH forwarding
+endpoint supplied by the owner. It reaches the same NAS with the same key:
+
+```sh
+MYMEMORY_TARGET=michele@sommomi.cc MYMEMORY_SSH_PORT=222 \
+  MYMEMORY_HOST_KEY_ALIAS=192.168.0.164 bash deploy/deploy.sh
+ssh -p 222 -o StrictHostKeyChecking=yes -o HostKeyAlias=192.168.0.164 \
+  -i "$HOME/.ssh/id_ed25519" michele@sommomi.cc \
+  'python3 /srv/mymemory/current/deploy/configure_proxy.py'
+```
+
+`192.168.0.164` is the NAS's existing trusted host-key name in `known_hosts`,
+also used by the LAN SSH configuration. Its ED25519 fingerprint is
+`SHA256:kpcyrq3ietsLUECU2VQQfA04WrQ1w+T/jnvzrNoQhF8`. Public access was
+verified against that existing key before authentication. Host-key checks remain
+strict; neither unknown nor changed host keys are automatically accepted.
+The script defaults to the `sommonas` LAN alias on port 22, with no alias override;
+`MYMEMORY_SSH_KEY` optionally selects a key file, defaulting to
+`$HOME/.ssh/id_ed25519`. These settings do not modify global SSH configuration.
+
 The first proxy command is a read-only check. The second appends or updates only
 the marked MyMemory block in the existing Caddyfile, checks for concurrent edits,
 keeps a private backup, and reloads Caddy. It uses the existing Docker access in

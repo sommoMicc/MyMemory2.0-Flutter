@@ -45,3 +45,33 @@ Live browser QA at 390×844: no slogans, mode/configuration/game fit the viewpor
 Release `20261105T075152Z`, web entrypoint `main.c98ced8a0357e79e.dart.js`. The existing browser updated normally to the illustrated interface. All 54 Noto 2D PNG assets at 512×512 and attribution/license files are bundled; native AAB/APK/IPA embedded bytes match the frozen catalog in `artifacts/native-builds-30004.json`.
 
 Public browser QA verifies new colored mode cards and deck previews, Animali/Spazio/Oceano selection, rendered animal artwork, live flip, and the 36-card Spazio board at 320×568 and 844×390. The last card is reachable and reveals its Italian semantic label. Rows are complete (6×6 portrait / 12×3 landscape). No main-page scrolling or slogans. Twenty-seven Flutter tests cover all supported card counts across four realistic iOS viewports, flip/reverse, reduced motion, asset decoding, licenses and persisted collection/difficulty. The 11 Node regression tests remain applicable; no gameplay/protocol code changed for image collections.
+
+## Animated scenery release — 5 November 2026
+
+Release `20261105T085506Z` publishes the final 30005 web build with entrypoint
+`main.768137f334f6f4a7.dart.js`. Its downloaded public JavaScript SHA-256 is
+`768137f334f6f4a7e389fb51af122a7350f9882ddad9629da984189df2c83c77`, matching
+the local build. The public bootstrap selects that entrypoint; representative
+Animali/Spazio/Oceano PNGs, the deck manifest and complete Apache license match
+their local checksums. Public requests use normal TLS certificate verification.
+
+Two independent public WSS clients created and joined a room, received identical
+revealed-card state, and left successfully. The test room was removed;
+`/healthz` reported healthy with zero rooms. The container and persisted Caddy
+route are healthy. All 71 native frozen source/asset hashes remain unchanged.
+
+Deployment used the owner's existing SSH endpoint `michele@sommomi.cc:222`,
+the existing local key and the NAS's previously trusted host-key alias
+`192.168.0.164`, with strict verification before authentication. The deployment
+script now accepts explicit port and host-key-alias settings, documented in
+`deploy/README.md`. Global SSH configuration, router forwarding, firewall, DNS,
+other Caddy sites and TLS trust settings were not changed. An earlier transient
+network/TLS anomaly was no longer present at final public verification.
+
+## Final mismatch-lock release — 5 November 2026
+
+Release `20261105T091658Z`, web entrypoint `main.efe34b0b22b04a97.dart.js`. This retains the full-screen animated collection worlds and adds global input gating through the actual completion of both mismatch closing flips. Source controller callbacks, rather than an additional fixed timer, release that visual lock. A remote reveal cancels only the interrupted close, avoiding a stranded lock.
+
+Thirty-three Flutter tests and static analysis pass: all viewport, image/license, no-scroll, full-row, flip, world-motion/lifecycle, keyboard and multiplayer tests remain; explicit local/online/Bluetooth regressions reject third-card input at mismatch display, conceal start, mid-conceal and 319ms, permitting it after full completion. Reduced motion and remote interruption are covered. Existing local/BLE engine tests were strengthened with a genuine third untouched card and 899ms checks. Eleven Node tests cover the unchanged authority/protocol.
+
+Final native packages are 30006; frozen source and 71 file/asset fingerprints in `artifacts/native-builds-30006.json`. Android internal release 4 is live; Apple receipt `fa57fa4f-fae5-4353-a2b5-a2425871ea73` is COMPLETE/VALID/IN_BETA_TESTING after checksum-only recovery, with no duplicate binary transfer.
