@@ -1,0 +1,22 @@
+name: mymemory
+description: Il memory da riscoprire, insieme. Android, iOS e web.
+publish_to: none
+version: 3.0.0+30001
+environment:
+  sdk: '>=3.9.2 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  web_socket_channel: ^3.0.3
+  shared_preferences: ^2.5.6
+  bluetooth_low_energy: ^6.2.1
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Outfit
+      fonts:
+        - asset: assets/fonts/Outfit.ttf

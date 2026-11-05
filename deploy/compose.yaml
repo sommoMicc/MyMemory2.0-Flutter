@@ -1,0 +1,47 @@
+name: mymemory
+services:
+  api:
+    image: mymemory:${MYMEMORY_RELEASE:-local}
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: mymemory-api
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 8798
+      DATA_DIR: /data
+      WEB_DIR: /app/web
+      ALLOWED_ORIGINS: https://mymemory.sommomi.cc
+      TRUST_PROXY: "1"
+    ports:
+      - "127.0.0.1:8798:8798"
+    volumes:
+      - data:/data
+      - ../app/build/web:/app/web:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    cpus: 1
+    pids_limit: 100
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8798/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+volumes:
+  data:
+    name: mymemory-data

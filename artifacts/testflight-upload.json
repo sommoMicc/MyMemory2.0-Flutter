@@ -1,0 +1,25 @@
+{
+  "appId": "6831015201",
+  "bundleId": "cc.sommomi.mymemory",
+  "version": "3.0.0",
+  "build": "30001",
+  "sha256": "60ba4eeecf5a0e511898520bdbe71b74938ee80767ffd012d70c41fd68f3dbeb",
+  "buildUploadId": "b8837758-5b6f-48a1-acb0-c508db210729",
+  "createdAt": "2026-11-05T06:24:49.955Z",
+  "buildUploadFileId": "3f7fe359-54f9-4983-97e5-e9355350acb7",
+  "committedAt": "2026-11-05T06:25:30.306Z",
+  "assetDeliveryState": {
+    "errors": [],
+    "warnings": [],
+    "state": "COMPLETE"
+  },
+  "processingState": "COMPLETE",
+  "lastCheckedAt": "2026-11-05T06:27:47.519Z",
+  "buildId": "b8837758-5b6f-48a1-acb0-c508db210729",
+  "buildProcessingState": "VALID",
+  "internalBuildState": "READY_FOR_BETA_TESTING",
+  "betaGroupId": "d811d09d-3800-4275-b5c3-8a9773439b1d",
+  "betaGroupName": "MyMemory Internal",
+  "internalTesterCount": 1,
+  "notesLocale": "it"
+}

@@ -1,0 +1,29 @@
+# MyMemory game service
+
+Requires Node.js 22 or newer. Install locked dependencies with `npm ci --omit=dev`;
+run `npm start`. Run `npm test` for game rules, privacy boundaries, persistence and
+real WebSocket integration checks.
+
+| Environment variable | Default | Purpose |
+| --- | --- | --- |
+| `HOST` | `127.0.0.1` | Use `0.0.0.0` inside an isolated container. |
+| `PORT` | `8787` | HTTP and WebSocket listener. |
+| `DATA_DIR` | `server/data` | Durable private room snapshots; mount a persistent volume. |
+| `WEB_DIR` | `app/build/web` | Absolute path to the compiled Flutter web app. |
+| `ALLOWED_ORIGINS` | production domain and localhost:8080 | Comma-separated browser origins. Native clients omit Origin. |
+| `TRUST_PROXY` | off | Set `1` only when the listener is reachable exclusively by the trusted reverse proxy. |
+
+Terminate HTTPS at the reverse proxy and forward WebSocket upgrades on `/ws`.
+Use an idle timeout greater than 20 seconds (heartbeat interval); 120 seconds is
+sufficient. Health checks use `/healthz`; public informational pages use `/privacy`
+and `/support`. Do not expose `DATA_DIR` through a static web server.
+
+The service runs as one instance. A malformed or incompatible room snapshot stops
+startup instead of silently deleting data. Preserve the snapshot before attempting
+manual repair. `SIGTERM` / `SIGINT` close connections and mark persisted players
+disconnected; reconnect grace is 90 seconds. Normal restarts must finish within
+that interval to preserve active games. Idle rooms expire after 24 hours.
+
+The API has no login, global player registry, chat, ads or analytics. Pair identities
+are server-authoritative and concealed until revealed. See [PROTOCOL.md](PROTOCOL.md)
+for the client contract.
