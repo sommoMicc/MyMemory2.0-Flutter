@@ -1,3 +1,4 @@
+import '../l10n/app_strings.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -57,13 +58,13 @@ class ArenaPicker extends StatelessWidget {
                   child: Row(
                     children: [
                       IconButton(
-                        tooltip: 'Indietro',
+                        tooltip: tr(context, 'Indietro'),
                         onPressed: () => Navigator.pop(context),
                         icon: const Icon(Icons.arrow_back_rounded),
                       ),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Il tuo viaggio',
+                          tr(context, 'Il tuo viaggio'),
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
@@ -107,7 +108,10 @@ class ArenaPicker extends StatelessWidget {
                             vertical: 8,
                           ),
                           child: Text(
-                            'Le arene raggiunte restano disponibili, anche se le corone scendono.',
+                            tr(
+                              context,
+                              'Le arene raggiunte restano disponibili, anche se le corone scendono.',
+                            ),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
@@ -144,9 +148,10 @@ class _JourneyPassport extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(
-      color: const Color(0xFFF0EEE3),
-      borderRadius: BorderRadius.circular(22),
-      border: Border.all(color: const Color(0xFFE4E0D0)),
+      color: popYellow,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: ink, width: 2),
+      boxShadow: const [BoxShadow(color: ink, offset: Offset(0, 4))],
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,7 +162,7 @@ class _JourneyPassport extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '$reached di $total arene raggiunte',
+                tr(context, '$reached di $total arene raggiunte'),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -172,7 +177,7 @@ class _JourneyPassport extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              '$crowns',
+              tr(context, '$crowns'),
               style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
@@ -200,14 +205,13 @@ class _JourneyPassport extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          next == null
-              ? 'Tutte le destinazioni sono sbloccate.'
-              : 'Prossima tappa: ${next!.name} · ${math.max(0, next!.minCrowns - crowns)} corone mancanti',
-          style: const TextStyle(
-            color: Color(0xFF606D61),
-            fontSize: 12,
-            height: 1.4,
+          tr(
+            context,
+            next == null
+                ? 'Tutte le destinazioni sono sbloccate.'
+                : 'Prossima tappa: ${tr(context, next!.name)} · ${math.max(0, next!.minCrowns - crowns)} corone mancanti',
           ),
+          style: const TextStyle(color: muted, fontSize: 12, height: 1.4),
         ),
       ],
     ),
@@ -272,10 +276,10 @@ class _JourneyStop extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: color,
                             shape: BoxShape.circle,
-                            border: Border.all(color: paper, width: 3),
+                            border: Border.all(color: ink, width: 2),
                           ),
                           child: Text(
-                            '${index + 1}'.padLeft(2, '0'),
+                            tr(context, '${index + 1}'.padLeft(2, '0')),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,
@@ -295,11 +299,9 @@ class _JourneyStop extends StatelessWidget {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: selected ? color : Colors.white,
+                              color: selected ? popYellow : paper,
                               borderRadius: BorderRadius.circular(30),
-                              border: Border.all(
-                                color: color.withValues(alpha: .2),
-                              ),
+                              border: Border.all(color: ink, width: 1.5),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -311,20 +313,23 @@ class _JourneyStop extends StatelessWidget {
                                       ? Icons.check_rounded
                                       : Icons.lock_outline_rounded,
                                   size: 14,
-                                  color: selected ? Colors.white : color,
+                                  color: ink,
                                 ),
                                 const SizedBox(width: 4),
                                 Flexible(
                                   child: Text(
-                                    selected
-                                        ? 'Sei qui'
-                                        : unlocked
-                                        ? 'Raggiunta'
-                                        : '${arena.minCrowns} corone',
+                                    tr(
+                                      context,
+                                      selected
+                                          ? 'Sei qui'
+                                          : unlocked
+                                          ? 'Raggiunta'
+                                          : '${arena.minCrowns} corone',
+                                    ),
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w800,
-                                      color: selected ? Colors.white : color,
+                                      color: ink,
                                     ),
                                   ),
                                 ),
@@ -343,12 +348,11 @@ class _JourneyStop extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
                 decoration: BoxDecoration(
                   color: paper,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: selected
-                        ? color.withValues(alpha: .35)
-                        : const Color(0xFFE8E5DA),
-                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: ink, width: selected ? 2.5 : 1.5),
+                  boxShadow: const [
+                    BoxShadow(color: ink, offset: Offset(0, 4)),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -358,7 +362,7 @@ class _JourneyStop extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            arena.name,
+                            tr(context, arena.name),
                             style: const TextStyle(
                               fontSize: 21,
                               height: 1.15,
@@ -389,21 +393,27 @@ class _JourneyStop extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      'CON GEMME  ·  ${premium.map((d) => '${d.name} (${d.price})').join(' · ')}',
+                      tr(
+                        context,
+                        'CON GEMME  ·  ${premium.map((d) => '${tr(context, d.name)} (${d.price})').join(' · ')}',
+                      ),
                       style: const TextStyle(
                         fontSize: 11,
                         height: 1.5,
-                        color: Color(0xFF69736A),
+                        color: muted,
                       ),
                     ),
                     if (!unlocked) ...[
                       const SizedBox(height: 9),
-                      const Text(
-                        'Arena bloccata: raggiungi la soglia con le corone.',
+                      Text(
+                        tr(
+                          context,
+                          'Arena bloccata: raggiungi la soglia con le corone.',
+                        ),
                         style: TextStyle(
                           fontSize: 12,
                           height: 1.4,
-                          color: Color(0xFF69736A),
+                          color: muted,
                         ),
                       ),
                     ],
@@ -427,7 +437,10 @@ class _JourneyStop extends StatelessWidget {
                             size: 18,
                           ),
                           label: Text(
-                            selected ? 'Selezionata' : 'Scegli arena',
+                            tr(
+                              context,
+                              selected ? 'Selezionata' : 'Scegli arena',
+                            ),
                             style: const TextStyle(fontWeight: FontWeight.w800),
                           ),
                         ),
@@ -465,7 +478,7 @@ class _DeckStamp extends StatelessWidget {
         ),
         const SizedBox(width: 4),
         Text(
-          deck.name,
+          tr(context, deck.name),
           style: const TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
@@ -500,7 +513,7 @@ class _TrailPainter extends CustomPainter {
     canvas.drawPath(
       path,
       Paint()
-        ..color = const Color(0xFFE7E2D2)
+        ..color = ink.withValues(alpha: .15)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 12
         ..strokeCap = StrokeCap.round,
@@ -510,9 +523,7 @@ class _TrailPainter extends CustomPainter {
         canvas.drawPath(
           metric.extractPath(distance, math.min(distance + 4, metric.length)),
           Paint()
-            ..color = unlocked
-                ? const Color(0xFF88A98B)
-                : const Color(0xFFC4BDA8)
+            ..color = unlocked ? popCobalt : muted
             ..style = PaintingStyle.stroke
             ..strokeWidth = 3
             ..strokeCap = StrokeCap.round,
@@ -548,10 +559,10 @@ class ArenaJourneyTile extends StatelessWidget {
     );
     final color = arenaColor(arena.id);
     return Material(
-      color: color.withValues(alpha: .065),
+      color: paper,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: color.withValues(alpha: .17)),
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: ink, width: 1.5),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -572,7 +583,7 @@ class ArenaJourneyTile extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      label,
+                      tr(context, label),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -581,7 +592,7 @@ class ArenaJourneyTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      arena.name,
+                      tr(context, arena.name),
                       style: const TextStyle(
                         fontSize: 17,
                         height: 1.15,
@@ -591,7 +602,7 @@ class ArenaJourneyTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 7),
                     Text(
-                      'Esplora le arene',
+                      tr(context, 'Esplora le arene'),
                       style: TextStyle(
                         fontSize: 11,
                         color: color,

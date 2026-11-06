@@ -1,0 +1,200 @@
+{
+  "verifiedAt": "2026-11-06T10:07:16.783Z",
+  "appId": "6831015201",
+  "versionId": "df818c27-8b5a-4244-9563-e92168e59552",
+  "state": "PREPARE_FOR_SUBMISSION",
+  "categories": {
+    "primaryCategory": "GAMES",
+    "primarySubcategoryOne": "GAMES_CARD",
+    "primarySubcategoryTwo": "GAMES_PUZZLE"
+  },
+  "copyright": "2026 Michele Tagliabue",
+  "reviewDetail": {
+    "id": "8a73bd51-883e-4ac9-a511-d4a11686d221",
+    "contactComplete": true,
+    "contactSource": "Existing same-owner App Review contact from SommoKube 1.0",
+    "demoAccountRequired": false,
+    "notesReadbackVerified": true,
+    "notes": "SommoMemory is a memory matching game with an English and Italian interface, selected automatically from the device language and changeable in Settings (Impostazioni). No registration or demo account is required: launch the app and choose Solo (Singolo in Italian) to play, including offline from the first launch. A guest profile is created automatically with in-game gems, which cannot be bought or exchanged for money. Optional Apple/Google sign-in and a recovery code synchronize the same profile. Online matches are private rooms entered by invitation code; there is no automatic matchmaking or chat. Ranked matches require two profiles in the same arena and compare attempts over three rounds. Bluetooth play needs two physical supported devices with both apps in the foreground. No advertising or real-money purchases. Profile deletion is available in Profile (Profilo) and https://sommomemory.sommomi.cc/en/delete-account."
+  },
+  "productionSubmitted": false,
+  "ageRating": {
+    "attributes": {
+      "advertising": false,
+      "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+      "contests": "FREQUENT_OR_INTENSE",
+      "gambling": false,
+      "gamblingSimulated": "NONE",
+      "gunsOrOtherWeapons": "INFREQUENT_OR_MILD",
+      "healthOrWellnessTopics": false,
+      "kidsAgeBand": null,
+      "lootBox": false,
+      "medicalOrTreatmentInformation": "NONE",
+      "messagingAndChat": false,
+      "parentalControls": false,
+      "profanityOrCrudeHumor": "NONE",
+      "ageAssurance": false,
+      "sexualContentGraphicAndNudity": "NONE",
+      "sexualContentOrNudity": "NONE",
+      "socialMedia": false,
+      "socialMediaAgeRestricted": false,
+      "horrorOrFearThemes": "NONE",
+      "matureOrSuggestiveThemes": "NONE",
+      "unrestrictedWebAccess": false,
+      "userGeneratedContent": false,
+      "violenceCartoonOrFantasy": "NONE",
+      "violenceRealisticProlongedGraphicOrSadistic": "NONE",
+      "violenceRealistic": "NONE",
+      "ageRatingOverride": "NONE",
+      "ageRatingOverrideV2": "NONE",
+      "koreaAgeRatingOverride": "NONE",
+      "gracRatingClassificationNumber": null,
+      "developerAgeRatingInfoUrl": null
+    },
+    "computed": {
+      "appStoreState": "PREPARE_FOR_SUBMISSION",
+      "state": "PREPARE_FOR_SUBMISSION",
+      "appStoreAgeRating": "TWELVE_PLUS",
+      "australiaAgeRating": null,
+      "brazilAgeRating": "TWELVE",
+      "brazilAgeRatingV2": "SELF_RATED_TWELVE",
+      "franceAgeRating": null,
+      "koreaAgeRating": "TWELVE"
+    },
+    "readbackVerified": true,
+    "rationale": {
+      "contests": "Ranked and local multiplayer matches repeatedly compare players for crowns, rewards and results; Apple contest definition includes skill based competitions.",
+      "gunsOrOtherWeapons": "Optional pirate collection contains illustrated cutlass and cannon; no depicted fighting or injury."
+    },
+    "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/age-ratings-values-and-definitions/",
+    "currentOSGlobal": "13+",
+    "currentOSSource": "App Store Connect distribution/info UI, 172 countries or regions; Vietnam/Korea and Brazil retain regional ratings"
+  },
+  "contentRightsDeclaration": "USES_THIRD_PARTY_CONTENT",
+  "pricing": {
+    "baseTerritory": "ITA",
+    "customerPrices": [
+      "0.0"
+    ],
+    "free": true,
+    "readbackVerified": true
+  },
+  "build": {
+    "id": "0123368d-62a7-4ba0-954c-e73fba74d0e2",
+    "version": "30017",
+    "processingState": "VALID",
+    "storeLinked": true,
+    "readbackVerified": true
+  },
+  "availability": {
+    "availableInNewTerritories": false,
+    "territories": [
+      "AUT",
+      "BEL",
+      "BGR",
+      "CYP",
+      "CZE",
+      "DEU",
+      "DNK",
+      "ESP",
+      "EST",
+      "FIN",
+      "FRA",
+      "GRC",
+      "HRV",
+      "HUN",
+      "IRL",
+      "ITA",
+      "LTU",
+      "LUX",
+      "LVA",
+      "MLT",
+      "NLD",
+      "POL",
+      "PRT",
+      "ROU",
+      "SVK",
+      "SVN",
+      "SWE",
+      "USA"
+    ],
+    "territoryCount": 28,
+    "scope": "27 European Union member states plus United States",
+    "source": "https://european-union.europa.eu/principles-countries-history/eu-countries_en",
+    "readbackVerified": true,
+    "currentPublicRelease": false
+  },
+  "releaseType": "AFTER_APPROVAL",
+  "privacy": {
+    "state": "PUBLISHED",
+    "types": 10,
+    "readFrom": "App Store Connect distribution/privacy",
+    "tracking": false,
+    "redesignChangesDataTypes": false,
+    "evidence": "apple-privacy-published.jpg"
+  },
+  "whatsNew": {
+    "saved": false,
+    "reason": "App Store Connect 409: STATE_ERROR: Attribute 'whatsNew' cannot be edited at this time"
+  },
+  "betaNotes": [
+    {
+      "locale": "en-US",
+      "id": "0c32c3a1-78e5-49d2-8b28-60dbf72722d2",
+      "whatsNew": "Check the English and Italian interface on phones and tablets, in portrait and landscape: readable labels, complete boards without scrolling and matched pairs highlighted in yellow. Test flips, sounds, haptics and Reduce Motion. Start a solo game without Internet and check synchronization after reconnecting. Check arenas, invite-only ranked matches across three rounds and Bluetooth on physical devices. Report your device, OS version and steps to reproduce problems.",
+      "readbackVerified": true
+    },
+    {
+      "locale": "en-GB",
+      "id": "717d09dc-6622-4d82-bf33-30239070de67",
+      "whatsNew": "Check the English and Italian interface on phones and tablets, in portrait and landscape: readable labels, complete boards without scrolling and matched pairs highlighted in yellow. Test flips, sounds, haptics and Reduce Motion. Start a solo game without Internet and check synchronisation after reconnecting. Check arenas, invite-only ranked matches across three rounds and Bluetooth on physical devices. Report your device, OS version and steps to reproduce problems.",
+      "readbackVerified": true
+    }
+  ],
+  "primaryLocale": "it",
+  "screenshots": {
+    "complete": 24,
+    "pending": 0,
+    "sets": 6,
+    "perSet": 4,
+    "locales": [
+      "it",
+      "en-US",
+      "en-GB"
+    ],
+    "orderVerified": true,
+    "localChecksumsVerified": true,
+    "legacyRemoved": 3,
+    "readbackVerified": true
+  },
+  "localizations": {
+    "it": {
+      "supportUrl": "https://sommomemory.sommomi.cc/support",
+      "privacyUrl": "https://sommomemory.sommomi.cc/privacy"
+    },
+    "en-US": {
+      "supportUrl": "https://sommomemory.sommomi.cc/en/support",
+      "privacyUrl": "https://sommomemory.sommomi.cc/en/privacy"
+    },
+    "en-GB": {
+      "supportUrl": "https://sommomemory.sommomi.cc/en/support",
+      "privacyUrl": "https://sommomemory.sommomi.cc/en/privacy"
+    }
+  },
+  "console": {
+    "verifiedAt": "2026-11-06T10:08:20.947Z",
+    "version": "3.1.0",
+    "build": "30017",
+    "reviewButton": "Aggiungi alla verifica",
+    "reviewButtonEnabled": true,
+    "reviewButtonClicked": false,
+    "requiredAlerts": [],
+    "mediumDisplayUsesExistingLargeScreenshots": true,
+    "scalingSource": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications",
+    "evidence": [
+      "apple-listing-it-ready.jpg",
+      "apple-listing-en-GB-ready.jpg"
+    ],
+    "knownPending": []
+  }
+}

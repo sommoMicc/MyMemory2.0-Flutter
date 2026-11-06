@@ -1,0 +1,61 @@
+{
+  "packageName": "cc.sommomi.mymemory",
+  "versionName": "3.1.0",
+  "versionCode": 30017,
+  "signing": {
+    "certificateSha256": "404D6F54025C024007E37F2A25352CB84471268A1C6C0D78C17A9565E12BED67",
+    "aab": "jarsigner verified",
+    "apk": "apksigner verified"
+  },
+  "bundleVerification": {
+    "bundletoolValidate": "passed",
+    "manifestPackage": "cc.sommomi.mymemory",
+    "manifestVersionCode": 30017,
+    "manifestVersionName": "3.1.0",
+    "minSdk": 24,
+    "targetSdk": 36
+  },
+  "runtimeDigest": "ffd650f7c6f0bc196d096557af45a9e16b3145cd4d35813c97058cdf90aec960",
+  "artifact": {
+    "path": "SommoMemory-3.1.0-30017.aab",
+    "bytes": 91393410,
+    "sha256": "958acdacdbdd8eb4c039098c425afd06195398016785df909e22f78a4503d80b"
+  },
+  "mapping": {
+    "path": "SommoMemory-3.1.0-30017-mapping.txt",
+    "bytes": 12168810,
+    "sha256": "34ce6d2328355b8e6f4f09aa6fa9a6598e34353bc3fe74bb0d7a466e05971c66"
+  },
+  "googlePlay": {
+    "appId": "4972469070574777722",
+    "internalTrackId": "4700857721365894827",
+    "releaseId": 15,
+    "status": "active",
+    "testers": {
+      "listName": "MyMemory test interno",
+      "usersObserved": 3,
+      "unchanged": true
+    },
+    "productionRelease": false,
+    "releaseTitle": "3.1.0 Sala giochi pop \u00b7 English",
+    "detailsUrl": "https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/15/details",
+    "publishedAt": "2026-11-06 10:46 Europe/Rome",
+    "verifiedVersionCode": 30017,
+    "reviewStatus": "Non esaminata",
+    "unsupportedDevicesAdded": 0,
+    "proofScreenshot": "play-internal-live-30017.jpg",
+    "observedAvailability": "Disponibile per i tester interni"
+  },
+  "apiAccess": {
+    "readOnlyGeneratedApks": "HTTP403 PERMISSION_DENIED confirmed earlier in this session",
+    "fallback": "signed-in Play Console"
+  },
+  "buildCommand": "Flutter3.47.9 release appbundle and APK; build-name3.1.0 build-number30017 in isolated copy after FREEZE30017",
+  "verifiedAt": "2026-11-06T09:46:43.057138+00:00",
+  "notes": "Release15 active on existing internal track with30017 supersedes30016. MyMemory test interno3user selected unchanged. No production submission/publication.",
+  "releaseNotes": {
+    "it-IT": "Nuovo stile Sala giochi pop: colori accesi, carte con bordi netti e coppie trovate in giallo. Interfaccia in italiano e inglese: segue la lingua del dispositivo oppure la scelta nelle impostazioni. Partite in solitaria offline con gemme, collezioni e record sincronizzati al ritorno online. Nessun acquisto con denaro.",
+    "en-US": "New pop arcade style: vivid colours, bold card outlines and matched pairs in yellow. English and Italian interface: follows your device language or your choice in Settings. Play solo offline, with gems, collections and records syncing when you reconnect. No real-money purchases.",
+    "en-GB": "New pop arcade style: vivid colours, bold card outlines and matched pairs in yellow. English and Italian interface: follows your device language or your choice in Settings. Play solo offline, with gems, collections and records syncing when you reconnect. No real-money purchases."
+  }
+}

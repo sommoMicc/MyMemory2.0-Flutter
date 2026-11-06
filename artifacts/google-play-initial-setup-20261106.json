@@ -1,0 +1,132 @@
+{
+  "appId": "4972469070574777722",
+  "packageName": "cc.sommomi.mymemory",
+  "savedChanges": {
+    "advertisingId": "No; release30016 manifest has no AD_ID permission",
+    "targetAgeGroups": [
+      "13-15",
+      "16-17",
+      "18+"
+    ],
+    "dataSafety": {
+      "accountCreation": [
+        "OAuth (optional Apple/Google)",
+        "Other (guest profile and recovery code)"
+      ],
+      "encryptedInTransit": true,
+      "accountDeletionUrl": "https://sommomemory.sommomi.cc/delete-account",
+      "partialDeletionWithoutAccountDeletion": false,
+      "dataShared": [],
+      "dataCollected": [
+        {
+          "type": "Name",
+          "example": "Optional player nickname",
+          "optional": true,
+          "ephemeral": false,
+          "purposes": [
+            "App functionality",
+            "Account management"
+          ]
+        },
+        {
+          "type": "User IDs",
+          "example": "Random profile identifier; optional Apple/Google verified subject",
+          "optional": false,
+          "ephemeral": false,
+          "purposes": [
+            "App functionality",
+            "Analytics",
+            "Fraud prevention, security, compliance",
+            "Account management"
+          ]
+        },
+        {
+          "type": "App interactions",
+          "example": "Last contact and per-day activity counts in private operational statistics",
+          "optional": false,
+          "ephemeral": false,
+          "purposes": [
+            "Analytics"
+          ]
+        },
+        {
+          "type": "Other actions",
+          "example": "Gameplay, personal records and match outcomes",
+          "optional": false,
+          "ephemeral": false,
+          "purposes": [
+            "App functionality",
+            "Analytics",
+            "Fraud prevention, security, compliance"
+          ]
+        },
+        {
+          "type": "Device or other IDs",
+          "example": "App installation/session random identifiers and token hashes",
+          "optional": false,
+          "ephemeral": false,
+          "purposes": [
+            "App functionality",
+            "Fraud prevention, security, compliance",
+            "Account management"
+          ]
+        }
+      ],
+      "storePreviewReadback": "Confirmed all five types and purposes after save",
+      "savedForReview": true,
+      "rationale": [
+        "Data shared excludes service providers and user-initiated expected multiplayer sharing under Google Play definitions.",
+        "No advertising, tracking, real-money purchases, GPS location collection, uploaded photos, contacts, or crash/analytics SDK found in app.",
+        "Provider token claims such as email are not used or stored by the application server; only verified provider subject is retained. Incidental data guidance applied.",
+        "Google Identity Services Android SDK Index verified play-services-auth21.6.0; no extra data-safety declaration published there. iOS SDK privacy manifest categories were not copied onto Android."
+      ]
+    }
+  },
+  "verifiedExisting": {
+    "ads": "No",
+    "appAccess": "No restrictions; no required account/payment",
+    "IARC": "Completed 2026-11-05; PEGI3 / ESRB Everyone / general ratings",
+    "privacyUrl": "https://sommomemory.sommomi.cc/privacy",
+    "accountDeletionUrl": "https://sommomemory.sommomi.cc/delete-account",
+    "category": "Game / Puzzle (Gioco / Rompicapi)",
+    "contact": "Existing owner email preserved; phone optional and empty; website correct",
+    "website": "https://sommomemory.sommomi.cc",
+    "price": "Free, confirmed in app pricing UI"
+  },
+  "pending": [],
+  "reviewSubmitted": false,
+  "productionPublished": false,
+  "contractsAccepted": false,
+  "status": "Complete: production30016 and store setup prepared, automatic checks passed,14changes ready for user to submit; no review submitted or public release",
+  "sources": [
+    "server/public/privacy.html",
+    "docs/ACCOUNTS_SETUP.md",
+    "server/src/auth.mjs",
+    "server/src/economy.mjs",
+    "https://support.google.com/googleplay/android-developer/answer/10787469?hl=en",
+    "https://developers.google.com/android/guides/play-data-disclosure",
+    "https://play.google.com/sdks/details/com-google-android-gms-play-services-auth"
+  ],
+  "publishingOverview": {
+    "reviewButton": "Enabled: Invia 14 modifiche per la revisione",
+    "reviewSent": false,
+    "automaticChecks": "Completed successfully after production release preparation",
+    "changes": "Production30016 and177countries plus rest-of-world added to existing11changes; all not yet submitted",
+    "checkedAfterFinalListingScreenshots": true
+  },
+  "dashboard": {
+    "reviewState": "Not submitted",
+    "production": "Production release30016 prepared and explicitly not yet sent for review; channel configuration shows Active",
+    "closedTestSetup": "1/5 complete (testers configured); countries and release binary remain unconfigured",
+    "note": "Closed testing is separate from requested internal release, which is active on30016."
+  },
+  "evidence": [
+    "google-play-data-safety-20261106.jpg",
+    "google-play-publishing-ready-20261106.jpg",
+    "store-30016/play-listing.json",
+    "play-internal-30016.json",
+    "google-play-production-ready-30016.jpg"
+  ],
+  "updatedAt": "2026-11-06T09:20:58.747555+00:00",
+  "productionPreparationReceipt": "play-production-prepared-30016.json"
+}

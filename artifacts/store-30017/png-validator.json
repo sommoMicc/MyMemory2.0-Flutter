@@ -1,0 +1,13 @@
+{
+  "verifiedAt": "2026-11-06T09:54:16.267Z",
+  "validRgbPngs": 16,
+  "validation": "Signature, IHDR dimensions, color type, chunk boundaries, CRC, matching sBIT channel count, final IEND",
+  "negativeCase": "RGB PNG with valid CRC but four sBIT entries rejected before API calls",
+  "apiCalled": false,
+  "validatedPaths": [
+    "it/iphone",
+    "it/ipad",
+    "en/iphone",
+    "en/ipad"
+  ]
+}

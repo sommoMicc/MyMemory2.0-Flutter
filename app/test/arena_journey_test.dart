@@ -1,3 +1,4 @@
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -30,7 +31,10 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
-        const MaterialApp(
+        MaterialApp(
+          locale: const Locale('it'),
+          supportedLocales: const [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           themeMode: ThemeMode.light,
           home: ArenaPicker(
             selectedArenaId: 'wild_valley',
@@ -70,6 +74,9 @@ void main() {
     String? selected;
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('it'),
+        supportedLocales: const [Locale('it'), Locale('en')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
         home: Builder(
           builder: (context) => Scaffold(
             body: TextButton(
@@ -108,6 +115,9 @@ void main() {
     final preview = Platform.environment['ARENA_JOURNEY_PREVIEW'];
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('it'),
+        supportedLocales: const [Locale('it'), Locale('en')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
         theme: ThemeData(
           fontFamily: 'Outfit',
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF207B73)),

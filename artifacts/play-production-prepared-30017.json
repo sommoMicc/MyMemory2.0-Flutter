@@ -1,0 +1,43 @@
+{
+  "appId": "4972469070574777722",
+  "packageName": "cc.sommomi.mymemory",
+  "versionName": "3.1.0",
+  "versionCode": 30017,
+  "trackId": "4697917574109626557",
+  "track": "production",
+  "releaseId": 2,
+  "releaseName": "3.1.0 Sala giochi pop \u00b7 English",
+  "status": "Prepared, not yet sent for review",
+  "observedReleaseStatus": "Non ancora inviato per la revisione",
+  "reviewSubmitted": false,
+  "productionPublished": false,
+  "contractsAccepted": false,
+  "previousRelease": {
+    "releaseId": 1,
+    "versionCode": 30016,
+    "observedStatus": "Sostituita da un'altra release"
+  },
+  "internalRelease30017": "Release15 active, MyMemory test interno audience3users unchanged",
+  "alphaTrack": "Preserved unchanged",
+  "countries": {
+    "count": 28,
+    "scope": "EU27 + United States",
+    "changedByThisReleaseTask": false,
+    "observedPublishingChange": "Aggiunta di28 paesi/regioni: Austria, Belgio e altri26"
+  },
+  "publishingOverview": {
+    "pendingChanges": 13,
+    "reviewButton": "Enabled",
+    "automaticChecks": "Completed successfully; Ora le modifiche possono essere inviate per la revisione",
+    "managedPublishing": "Disabled, pre-existing setting unchanged",
+    "productionAction": "Avvio dell\u2019implementazione completa (not yet submitted)",
+    "proofScreenshot": "google-play-final-ready-30017.jpg"
+  },
+  "notes": "Created release2 from existing library bundle30017 to supersede prepared release1. Saved preview to Publishing Overview only. No Send for review, publish/rollout action or contract acceptance. Notes available it-IT,en-US,en-GB. Listing agent still preparing English listings/screenshots separately; pending change count may increase.",
+  "releaseNotesReceipt": "play-release-notes-30017.json",
+  "detailsUrl": "https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4697917574109626557/releases/2/details",
+  "proofScreenshot": "play-production-prepared-30017.jpg",
+  "supersededProofScreenshot": "play-production-superseded-30016.jpg",
+  "updatedAt": "2026-11-06T10:01:33.772995+00:00",
+  "finalReadinessReceipt": "google-play-final-readiness-30017.json"
+}

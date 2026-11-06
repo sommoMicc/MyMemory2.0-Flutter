@@ -1,0 +1,90 @@
+{
+  "appId": "6831015201",
+  "bundleId": "cc.sommomi.mymemory",
+  "version": "3.1.0",
+  "build": "30016",
+  "sha256": "3169f416b210827358ebf1d1edabd7b830f5c8ca4f2164f7978c3e822d091866",
+  "buildUploadId": "dc503284-e587-490d-ad38-1dc860068d91",
+  "createdAt": "2026-11-06T09:05:23.261Z",
+  "reusedEmptyUpload": true,
+  "buildUploadFileId": "a15fb32b-2a64-4fa6-b0b4-621dea3ce27e",
+  "binaryPartsUploaded": [
+    {
+      "part": 1,
+      "offset": 41943040,
+      "length": 5242880
+    },
+    {
+      "part": 2,
+      "offset": 0,
+      "length": 5242880
+    },
+    {
+      "part": 3,
+      "offset": 20971520,
+      "length": 5242880
+    },
+    {
+      "part": 4,
+      "offset": 10485760,
+      "length": 5242880
+    },
+    {
+      "part": 5,
+      "offset": 36700160,
+      "length": 5242880
+    },
+    {
+      "part": 6,
+      "offset": 15728640,
+      "length": 5242880
+    },
+    {
+      "part": 7,
+      "offset": 26214400,
+      "length": 5242880
+    },
+    {
+      "part": 8,
+      "offset": 47185920,
+      "length": 5242880
+    },
+    {
+      "part": 9,
+      "offset": 52428800,
+      "length": 4724948
+    },
+    {
+      "part": 10,
+      "offset": 5242880,
+      "length": 5242880
+    },
+    {
+      "part": 11,
+      "offset": 31457280,
+      "length": 5242880
+    }
+  ],
+  "binaryUploadCompleteAt": "2026-11-06T09:05:32.731Z",
+  "committedAt": "2026-11-06T09:05:35.677Z",
+  "assetDeliveryState": {
+    "errors": [],
+    "warnings": [],
+    "state": "COMPLETE"
+  },
+  "processingState": "COMPLETE",
+  "buildProcessingState": "VALID",
+  "lastCheckedAt": "2026-11-06T09:08:19.638Z",
+  "buildId": "dc503284-e587-490d-ad38-1dc860068d91",
+  "readyForInternalTesting": true,
+  "internalBuildState": "IN_BETA_TESTING",
+  "betaGroupId": "d811d09d-3800-4275-b5c3-8a9773439b1d",
+  "betaGroupName": "SommoMemory Internal",
+  "internalTesterCount": 2,
+  "additionalTesterIds": [
+    "8f73fef5-1c02-4500-92e6-b8e31f908f11"
+  ],
+  "groupAssignmentPending": false,
+  "notesLocale": "it",
+  "finalizedAt": "2026-11-06T09:08:24.662Z"
+}

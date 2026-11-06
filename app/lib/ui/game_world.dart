@@ -60,9 +60,9 @@ class _GameWorldState extends State<GameWorld>
 
   @override
   Widget build(BuildContext context) => AnnotatedRegion<SystemUiOverlayStyle>(
-    value: SystemUiOverlayStyle.dark.copyWith(
+    value: SystemUiOverlayStyle.light.copyWith(
       statusBarColor: Colors.transparent,
-      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarColor: popCobalt,
     ),
     child: Stack(
       fit: StackFit.expand,
@@ -71,86 +71,31 @@ class _GameWorldState extends State<GameWorld>
           child: ExcludeSemantics(
             child: IgnorePointer(
               child: RepaintBoundary(
-                child: AnimatedBuilder(
-                  animation: drift,
-                  builder: (context, _) => LayoutBuilder(
-                    builder: (context, c) {
-                      final t = drift.value * math.pi * 2;
-                      final artSize = math.min(c.maxWidth * .31, 155.0);
-                      return Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          CustomPaint(
-                            painter: _WorldPainter(
-                              widget.collection,
-                              drift.value,
-                            ),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    const CustomPaint(painter: _PopWorldPainter()),
+                    Positioned(
+                      right: -18,
+                      bottom: 14,
+                      child: AnimatedBuilder(
+                        animation: drift,
+                        child: const SizedBox(
+                          width: 116,
+                          height: 100,
+                          child: CustomPaint(painter: _PairMarkPainter()),
+                        ),
+                        builder: (context, child) => Transform.translate(
+                          key: const ValueKey('world-float'),
+                          offset: Offset(
+                            0,
+                            math.sin(drift.value * math.pi * 2) * 3,
                           ),
-                          Positioned(
-                            left: -artSize * .14,
-                            top: c.maxHeight * .17,
-                            child: Transform.translate(
-                              key: const ValueKey('world-float'),
-                              offset: Offset(0, math.sin(t) * 9),
-                              child: Transform.rotate(
-                                angle: -.17 + math.sin(t) * .025,
-                                child: Opacity(
-                                  opacity: .72,
-                                  child: SizedBox(
-                                    width: artSize,
-                                    height: artSize,
-                                    child: DeckArtwork(
-                                      collection: widget.collection,
-                                      value: 0,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            right: -artSize * .18,
-                            bottom: c.maxHeight * .055,
-                            child: Transform.translate(
-                              offset: Offset(0, math.cos(t) * 8),
-                              child: Transform.rotate(
-                                angle: .18,
-                                child: Opacity(
-                                  opacity: .65,
-                                  child: SizedBox(
-                                    width: artSize * 1.2,
-                                    height: artSize * 1.2,
-                                    child: DeckArtwork(
-                                      collection: widget.collection,
-                                      value: 2,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            right: c.maxWidth * .13,
-                            top: c.maxHeight * .12,
-                            child: Transform.rotate(
-                              angle: .2,
-                              child: Opacity(
-                                opacity: .50,
-                                child: SizedBox(
-                                  width: artSize * .47,
-                                  height: artSize * .47,
-                                  child: DeckArtwork(
-                                    collection: widget.collection,
-                                    value: 5,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
+                          child: child,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -247,53 +192,38 @@ class _CollectionSceneState extends State<CollectionScene>
                             ),
                           ),
                         ),
-                        for (var i = 0; i < 3; i++)
+                        for (var i = 0; i < 2; i++)
                           Positioned(
-                            left: width * (.09 + i * .24),
+                            left: width * (.20 + i * .26),
                             top:
                                 height * (i == 1 ? .06 : .18) +
                                 (i == 1 ? -bob : bob * .4),
                             child: Transform.rotate(
-                              angle: (i - 1) * .22,
+                              angle: i == 0 ? -.15 : .13,
                               child: Container(
                                 width: width * .34,
                                 height: height * .70,
                                 padding: EdgeInsets.all(height * .06),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFFF8E8),
+                                  color: i == 1 ? popYellow : paper,
                                   borderRadius: BorderRadius.circular(
                                     height * .09,
                                   ),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: .9),
-                                    width: 3,
-                                  ),
+                                  border: Border.all(color: ink, width: 2.5),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(
-                                        0xFF26344E,
-                                      ).withValues(alpha: .18),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 7),
+                                      color: ink,
+                                      offset: const Offset(0, 5),
                                     ),
                                   ],
                                 ),
                                 child: DeckArtwork(
                                   collection: widget.collection,
-                                  value: i,
+                                  value: 0,
                                 ),
                               ),
                             ),
                           ),
-                        Positioned(
-                          right: width * .02,
-                          top: height * .04 + bob,
-                          child: Icon(
-                            Icons.auto_awesome_rounded,
-                            color: const Color(0xFFFFF2B6),
-                            size: height * .15,
-                          ),
-                        ),
                       ],
                     );
                   },
@@ -307,370 +237,51 @@ class _CollectionSceneState extends State<CollectionScene>
   );
 }
 
-class _WorldPainter extends CustomPainter {
-  const _WorldPainter(this.collection, this.progress);
-  final String collection;
-  final double progress;
-  String get world => deckWorldTheme(collection);
+/// A restrained paired-dot texture leaves the board and controls in focus.
+class _PopWorldPainter extends CustomPainter {
+  const _PopWorldPainter();
+
   @override
   void paint(Canvas canvas, Size size) {
-    final space = world == 'cosmos';
-    final ocean = world == 'ocean';
-    final paola = world == 'paola';
-    final food = collection == 'food';
-    final sports = collection == 'sports';
-    final travel = world == 'travel';
-    final city = const {
-      'vehicles',
-      'professions',
-      'instruments',
-    }.contains(collection);
-    final colors = switch (world) {
-      'cosmos' => const [
-        Color(0xFFA994DE),
-        Color(0xFFB2A4DF),
-        Color(0xFF708BC4),
-      ],
-      'ocean' => const [
-        Color(0xFF86D4E0),
-        Color(0xFF73C4D8),
-        Color(0xFF3E99BD),
-      ],
-      'paola' => const [
-        Color(0xFFFFE3DF),
-        Color(0xFFF0C6DF),
-        Color(0xFFB9A7D8),
-      ],
-      'food' => const [Color(0xFFFFDFC2), Color(0xFFF5C7AC), Color(0xFFE7A19A)],
-      'sports' => const [
-        Color(0xFFA8D7BD),
-        Color(0xFF7CC5B4),
-        Color(0xFF4A9C9E),
-      ],
-      'travel' => const [
-        Color(0xFFBDDDF1),
-        Color(0xFFB5DBE2),
-        Color(0xFF81B3C4),
-      ],
-      _ => const [Color(0xFFB5D991), Color(0xFF9CCCA0), Color(0xFF68AB8E)],
-    };
-    final rect = Offset.zero & size;
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: colors,
-        ).createShader(rect),
-    );
-    final t = progress * math.pi * 2;
-    final w = size.width;
-    final h = size.height;
-    if (space) {
-      final planet = Offset(w * .92, h * .13);
-      canvas.drawCircle(
-        planet,
-        w * .23,
-        Paint()..color = const Color(0xFF8066B5).withValues(alpha: .30),
-      );
-      canvas.save();
-      canvas.translate(planet.dx, planet.dy);
-      canvas.rotate(-.4);
-      canvas.drawOval(
-        Rect.fromCenter(center: Offset.zero, width: w * .65, height: w * .15),
-        Paint()
-          ..color = const Color(0xFFFFE6B2).withValues(alpha: .42)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 8,
-      );
-      canvas.restore();
-      canvas.drawCircle(
-        Offset(w * .03, h * .82),
-        w * .27,
-        Paint()..color = const Color(0xFF685DAB).withValues(alpha: .33),
-      );
-    } else if (ocean) {
-      for (var band = 0; band < 3; band++) {
-        final y = h * (.73 + band * .10);
-        final path = Path()..moveTo(0, y);
-        for (var x = 0.0; x <= w + 8; x += 8) {
-          path.lineTo(
-            x,
-            y + math.sin(x / w * math.pi * 2 + t + band) * (14 + band * 4),
-          );
-        }
-        path
-          ..lineTo(w, h)
-          ..lineTo(0, h)
-          ..close();
-        canvas.drawPath(
-          path,
-          Paint()
-            ..color = const [
-              Color(0xFF348EAF),
-              Color(0xFF277E9F),
-              Color(0xFF256C8C),
-            ][band].withValues(alpha: .30),
-        );
-      }
-    } else if (paola) {
-      final notebook = RRect.fromRectAndRadius(
-        Rect.fromLTWH(w * .07, h * .64, w * .86, h * .40),
-        const Radius.circular(26),
-      );
-      canvas.drawRRect(
-        notebook,
-        Paint()..color = Colors.white.withValues(alpha: .20),
-      );
-      final line = Paint()
-        ..color = const Color(0xFF8B78AF).withValues(alpha: .20)
-        ..strokeWidth = 1.5;
-      for (var row = 0; row < 7; row++) {
-        final y = h * (.69 + row * .05);
-        canvas.drawLine(Offset(w * .12, y), Offset(w * .88, y), line);
-      }
-      canvas.drawCircle(
-        Offset(w * .86, h * .13),
-        w * .18,
-        Paint()..color = const Color(0xFFFFDCA4).withValues(alpha: .52),
-      );
-    } else if (food) {
-      final table = Rect.fromLTWH(0, h * .77, w, h * .23);
-      canvas.drawRect(
-        table,
-        Paint()..color = const Color(0xFFD8877C).withValues(alpha: .24),
-      );
-      const square = 34.0;
-      for (var row = 0; row < table.height / square; row++) {
-        for (var column = 0; column < w / square; column++) {
-          if ((row + column).isEven) {
-            canvas.drawRect(
-              Rect.fromLTWH(
-                column * square,
-                table.top + row * square,
-                square,
-                math.min(square, h - table.top - row * square),
-              ),
-              Paint()..color = const Color(0xFFFFF4DC).withValues(alpha: .22),
-            );
-          }
-        }
-      }
-      canvas.drawCircle(
-        Offset(w * .88, h * .12),
-        w * .21,
-        Paint()..color = const Color(0xFFFFE9B0).withValues(alpha: .65),
-      );
-      for (var i = 0; i < 4; i++) {
-        final x = w * (.14 + i * .24);
-        canvas.drawLine(
-          Offset(x, 0),
-          Offset(x, h * .055),
-          Paint()
-            ..color = const Color(0xFFAD6E66).withValues(alpha: .22)
-            ..strokeWidth = 2,
-        );
-        canvas.drawArc(
-          Rect.fromCenter(center: Offset(x, h * .068), width: 38, height: 26),
-          math.pi,
-          math.pi,
-          true,
-          Paint()..color = const Color(0xFFDA9274).withValues(alpha: .32),
-        );
-      }
-    } else if (sports) {
-      final court = RRect.fromRectAndRadius(
-        Rect.fromLTWH(w * .08, h * .69, w * .84, h * .36),
-        const Radius.circular(24),
-      );
-      canvas.drawRRect(
-        court,
-        Paint()..color = const Color(0xFF306E70).withValues(alpha: .20),
-      );
-      final markings = Paint()
-        ..color = Colors.white.withValues(alpha: .38)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2;
-      canvas.drawRRect(court.deflate(11), markings);
-      canvas.drawLine(
-        Offset(w * .08, h * .86),
-        Offset(w * .92, h * .86),
-        markings,
-      );
-      canvas.drawCircle(Offset(w * .5, h * .86), w * .16, markings);
-      for (var i = 0; i < 5; i++) {
-        canvas.drawOval(
-          Rect.fromCenter(
-            center: Offset(w * .5, -h * .12),
-            width: w * (1.1 + i * .13),
-            height: h * (.5 + i * .08),
-          ),
-          Paint()
-            ..color = Colors.white.withValues(alpha: .12)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 6,
-        );
-      }
-    } else if (travel) {
-      if (city) {
-        final buildingPaint = Paint()
-          ..color = const Color(0xFF6688A3).withValues(alpha: .28);
-        for (var i = 0; i < 5; i++) {
-          final x = w * (i * .22 - .02);
-          final bh = h * (.22 + ((i * 37) % 5) * .045);
-          final building = Rect.fromLTWH(x, h * .70 - bh, w * .24, bh);
-          canvas.drawRect(building, buildingPaint);
-          final windowPaint = Paint()
-            ..color = const Color(0xFFFFE7A8).withValues(alpha: .24);
-          for (var row = 0; row < 3; row++) {
-            for (var col = 0; col < 2; col++) {
-              canvas.drawRect(
-                Rect.fromLTWH(
-                  x + w * (.035 + col * .10),
-                  h * .70 - bh + h * (.045 + row * .055),
-                  w * .035,
-                  h * .025,
-                ),
-                windowPaint,
-              );
-            }
-          }
-        }
-        canvas.drawRect(
-          Rect.fromLTWH(0, h * .70, w, h * .38),
-          Paint()..color = const Color(0xFF354C65).withValues(alpha: .25),
-        );
-        final road = Paint()
-          ..color = Colors.white.withValues(alpha: .33)
-          ..strokeWidth = 3;
-        for (var x = w * .08; x < w; x += w * .22) {
-          canvas.drawLine(
-            Offset(x, h * .87),
-            Offset(x + w * .11, h * .87),
-            road,
-          );
-        }
-        return;
-      }
-      final land = Paint()
-        ..color = const Color(0xFF8CB79C).withValues(alpha: .38);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(-w * .14, h * .06, w * .53, h * .30),
-          const Radius.circular(80),
-        ),
-        land,
-      );
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(w * .58, h * .67, w * .62, h * .29),
-          const Radius.circular(68),
-        ),
-        land,
-      );
-      final route = Path()
-        ..moveTo(-w * .08, h * .87)
-        ..cubicTo(w * .8, h * .92, -w * .22, h * .40, w * 1.08, h * .18);
-      final routePaint = Paint()
-        ..color = const Color(0xFFFFE1AA).withValues(alpha: .70)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4
-        ..strokeCap = StrokeCap.round;
-      for (final metric in route.computeMetrics()) {
-        for (var at = 0.0; at < metric.length; at += 21) {
-          canvas.drawPath(
-            metric.extractPath(at, math.min(at + 9, metric.length)),
-            routePaint,
-          );
-        }
-      }
-      final center = Offset(w * .86, h * .11);
-      canvas.drawCircle(
-        center,
-        30,
-        Paint()..color = Colors.white.withValues(alpha: .26),
-      );
-      final needle = Path()
-        ..moveTo(center.dx, center.dy - 22)
-        ..lineTo(center.dx + 8, center.dy + 9)
-        ..lineTo(center.dx - 8, center.dy + 9)
-        ..close();
-      canvas.drawPath(
-        needle,
-        Paint()..color = const Color(0xFF5C8EAF).withValues(alpha: .55),
-      );
-    } else {
-      canvas.drawCircle(
-        Offset(w * .89, h * .13),
-        math.min(w * .25, 155),
-        Paint()..color = const Color(0xFFFFD27D).withValues(alpha: .70),
-      );
-      for (var band = 0; band < 3; band++) {
-        final path = Path()
-          ..moveTo(-w * .1, h * (.81 + band * .06))
-          ..quadraticBezierTo(
-            w * .3,
-            h * (.66 + band * .09),
-            w * 1.1,
-            h * (.86 + band * .04),
-          )
-          ..lineTo(w * 1.1, h)
-          ..lineTo(-w * .1, h)
-          ..close();
-        canvas.drawPath(
-          path,
-          Paint()
-            ..color = const [
-              Color(0xFF72A55D),
-              Color(0xFF448C6E),
-              Color(0xFF327B68),
-            ][band].withValues(alpha: .60),
-        );
-      }
-    }
-    for (var i = 0; i < 32; i++) {
-      final x = ((i * 67 + 23) % 101) / 101 * w + math.sin(t + i) * 5;
-      final y = ((i * 43 + 11) % 97) / 97 * h + math.cos(t + i * .7) * 7;
-      final radius = 2.0 + (i % 4) * 1.7;
-      final paint = Paint()
-        ..color = Colors.white.withValues(alpha: space ? .55 : .24);
-      if (space && i % 3 == 0) {
-        paint
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5;
-        canvas.drawLine(Offset(x - radius, y), Offset(x + radius, y), paint);
-        canvas.drawLine(Offset(x, y - radius), Offset(x, y + radius), paint);
-      } else if (ocean) {
-        paint
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5;
-        canvas.drawCircle(Offset(x, y), radius * 2, paint);
-      } else {
-        canvas.drawCircle(Offset(x, y), radius, paint);
-      }
-    }
-    if (!space && !ocean && !paola && !food && !sports && !travel) {
-      for (var side in [-1.0, 1.0]) {
-        canvas.save();
-        canvas.translate(side < 0 ? 0 : w, h * .60);
-        canvas.scale(side < 0 ? 1 : -1, 1);
-        for (var leaf = 0; leaf < 4; leaf++) {
-          canvas.save();
-          canvas.translate(8, leaf * 24);
-          canvas.rotate(-.5 + leaf * .23 + math.sin(t) * .025);
-          canvas.drawOval(
-            Rect.fromLTWH(-25, -10, 70, 24),
-            Paint()..color = const Color(0xFF3B8C68).withValues(alpha: .30),
-          );
-          canvas.restore();
-        }
-        canvas.restore();
+    canvas.drawRect(Offset.zero & size, Paint()..color = popCobalt);
+    final dot = Paint()..color = paper.withValues(alpha: .18);
+    for (var y = 12.0; y < size.height; y += 24) {
+      for (var x = 12.0; x < size.width; x += 24) {
+        canvas.drawCircle(Offset(x, y), 1.05, dot);
       }
     }
   }
 
   @override
-  bool shouldRepaint(_WorldPainter oldDelegate) =>
-      collection != oldDelegate.collection || progress != oldDelegate.progress;
+  bool shouldRepaint(_PopWorldPainter oldDelegate) => false;
+}
+
+/// The repeated pair of cards is the decorative signature of the game.
+class _PairMarkPainter extends CustomPainter {
+  const _PairMarkPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final stroke = Paint()
+      ..color = paper.withValues(alpha: .10)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+    for (var i = 0; i < 2; i++) {
+      canvas.save();
+      canvas.translate(36.0 + i * 35, 48.0);
+      canvas.rotate(i == 0 ? -.20 : .15);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          const Rect.fromLTWH(-24, -34, 48, 68),
+          const Radius.circular(9),
+        ),
+        stroke,
+      );
+      canvas.drawCircle(Offset.zero, 10, stroke);
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_PairMarkPainter oldDelegate) => false;
 }

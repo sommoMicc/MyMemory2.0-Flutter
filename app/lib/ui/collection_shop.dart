@@ -1,3 +1,4 @@
+import '../l10n/app_strings.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../decks.dart';
@@ -13,12 +14,18 @@ class GemBalance extends StatelessWidget {
   final VoidCallback? onTap;
   @override
   Widget build(BuildContext context) => Semantics(
-    label: economy.profile == null
-        ? 'Saldo in caricamento'
-        : '${economy.gems} gemme',
+    label: tr(
+      context,
+      economy.profile == null
+          ? 'Saldo in caricamento'
+          : '${economy.gems} gemme',
+    ),
     child: Material(
-      color: const Color(0xFFFFF4D8),
-      borderRadius: BorderRadius.circular(16),
+      color: popYellow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: ink, width: 2),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -27,14 +34,10 @@ class GemBalance extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.diamond_rounded,
-                color: Color(0xFF7561B4),
-                size: 21,
-              ),
+              const Icon(Icons.diamond_rounded, color: ink, size: 21),
               const SizedBox(width: 6),
               Text(
-                economy.profile == null ? '…' : '${economy.gems}',
+                tr(context, economy.profile == null ? '…' : '${economy.gems}'),
                 style: const TextStyle(
                   color: ink,
                   fontSize: 16,
@@ -42,11 +45,13 @@ class GemBalance extends StatelessWidget {
                 ),
               ),
               if (economy.pendingChanges > 0)
-                const Padding(
-                  padding: EdgeInsets.only(left: 5),
+                Padding(
+                  padding: const EdgeInsets.only(left: 5),
                   child: Tooltip(
-                    message:
-                        'Progressi salvati sul dispositivo, da sincronizzare',
+                    message: tr(
+                      context,
+                      'Progressi salvati sul dispositivo, da sincronizzare',
+                    ),
                     child: Icon(
                       Icons.cloud_upload_outlined,
                       size: 14,
@@ -139,7 +144,10 @@ class _CollectionShopState extends State<CollectionShop> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            lockedReason(deck) ?? 'Sblocca prima l’arena con le corone.',
+            tr(
+              context,
+              lockedReason(deck) ?? 'Sblocca prima l’arena con le corone.',
+            ),
           ),
         ),
       );
@@ -147,9 +155,12 @@ class _CollectionShopState extends State<CollectionShop> {
     }
     if (!canUnlock(deck)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Raggiungi prima l’arena per sbloccare questa collezione.',
+            tr(
+              context,
+              'Raggiungi prima l’arena per sbloccare questa collezione.',
+            ),
           ),
         ),
       );
@@ -165,7 +176,10 @@ class _CollectionShopState extends State<CollectionShop> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              economy.lastError ?? 'Sblocco non completato. Riprova.',
+              tr(
+                context,
+                economy.lastError ?? 'Sblocco non completato. Riprova.',
+              ),
             ),
           ),
         );
@@ -175,8 +189,11 @@ class _CollectionShopState extends State<CollectionShop> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              economy.lastError ??
-                  'Impossibile sbloccare la collezione. Riprova.',
+              tr(
+                context,
+                economy.lastError ??
+                    'Impossibile sbloccare la collezione. Riprova.',
+              ),
             ),
           ),
         );
@@ -210,16 +227,17 @@ class _CollectionShopState extends State<CollectionShop> {
                     Row(
                       children: [
                         IconButton(
-                          tooltip: 'Chiudi collezioni',
+                          tooltip: tr(context, 'Chiudi collezioni'),
                           onPressed: () => Navigator.pop(context),
                           icon: const Icon(Icons.arrow_back_rounded),
                         ),
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'Collezioni',
+                            tr(context, 'Collezioni'),
                             style: TextStyle(
+                              color: paper,
                               fontSize: 24,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
@@ -248,16 +266,15 @@ class _CollectionShopState extends State<CollectionShop> {
                                       vertical: 8,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(
-                                        alpha: .94,
-                                      ),
+                                      color: paper,
                                       borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(color: ink, width: 2),
                                     ),
                                     child: Row(
                                       children: [
                                         Expanded(
                                           child: Text(
-                                            arena.name,
+                                            tr(context, arena.name),
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.w700,
@@ -265,7 +282,10 @@ class _CollectionShopState extends State<CollectionShop> {
                                           ),
                                         ),
                                         Text(
-                                          'Da ${arena.minCrowns} corone',
+                                          tr(
+                                            context,
+                                            'Da ${arena.minCrowns} corone',
+                                          ),
                                           style: const TextStyle(
                                             fontSize: 12,
                                             color: ink,
@@ -279,7 +299,10 @@ class _CollectionShopState extends State<CollectionShop> {
                                   Padding(
                                     padding: const EdgeInsets.only(bottom: 10),
                                     child: Text(
-                                      'Nessuna collezione pronta da mostrare.',
+                                      tr(
+                                        context,
+                                        'Nessuna collezione pronta da mostrare.',
+                                      ),
                                       style: TextStyle(color: muted),
                                     ),
                                   )
@@ -313,11 +336,12 @@ class _CollectionShopState extends State<CollectionShop> {
                                   ),
                               ],
                               if (deckNames.containsKey('paola')) ...[
-                                const Padding(
+                                Padding(
                                   padding: EdgeInsets.fromLTRB(2, 12, 2, 6),
                                   child: Text(
-                                    'Allenamento',
+                                    tr(context, 'Allenamento'),
                                     style: TextStyle(
+                                      color: paper,
                                       fontSize: 18,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -342,18 +366,21 @@ class _CollectionShopState extends State<CollectionShop> {
                     Row(
                       children: [
                         IconButton(
-                          tooltip: 'Come ottenere gemme',
+                          tooltip: tr(context, 'Come ottenere gemme'),
                           onPressed: () => showDialog<void>(
                             context: context,
                             builder: (context) => AlertDialog(
-                              title: const Text('Gemme'),
-                              content: const Text(
-                                '100 gemme iniziali e 20 per ogni partita completata e verificata. In individuale guadagni e sblocchi anche offline: i progressi vengono salvati sul dispositivo e sincronizzati automaticamente quando torna Internet. Le collezioni sbloccate restano tue.\n\nNon è possibile acquistare gemme con denaro.',
+                              title: Text(tr(context, 'Gemme')),
+                              content: Text(
+                                tr(
+                                  context,
+                                  '100 gemme iniziali e 20 per ogni partita completata e verificata. In individuale guadagni e sblocchi anche offline: i progressi vengono salvati sul dispositivo e sincronizzati automaticamente quando torna Internet. Le collezioni sbloccate restano tue.\n\nNon è possibile acquistare gemme con denaro.',
+                                ),
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(context),
-                                  child: const Text('Chiudi'),
+                                  child: Text(tr(context, 'Chiudi')),
                                 ),
                               ],
                             ),
@@ -365,10 +392,13 @@ class _CollectionShopState extends State<CollectionShop> {
                     ),
                     if (economy?.offline == true ||
                         (economy?.pendingChanges ?? 0) > 0)
-                      const Text(
-                        'Progressi salvati sul dispositivo · sincronizzazione automatica al ritorno della rete',
+                      Text(
+                        tr(
+                          context,
+                          'Progressi salvati sul dispositivo · sincronizzazione automatica al ritorno della rete',
+                        ),
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12, color: ink),
+                        style: TextStyle(fontSize: 12, color: paper),
                       ),
                   ],
                 ),
@@ -419,7 +449,6 @@ class _DeckOffer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = deckAccent(id);
-    final tint = Color.lerp(accent, Colors.white, .7)!;
     Widget illustration(
       int value,
       double size, {
@@ -438,7 +467,7 @@ class _DeckOffer extends StatelessWidget {
                   ? FittedBox(
                       fit: BoxFit.contain,
                       child: Text(
-                        deckLabel(id, value)!,
+                        tr(context, deckLabel(id, value)!),
                         style: const TextStyle(
                           fontFamily: 'Outfit',
                           fontSize: 64,
@@ -455,8 +484,8 @@ class _DeckOffer extends StatelessWidget {
     );
     final button = FilledButton(
       style: FilledButton.styleFrom(
-        backgroundColor: accent,
-        foregroundColor: Colors.white,
+        backgroundColor: popYellow,
+        foregroundColor: ink,
         disabledBackgroundColor: ink.withValues(alpha: .12),
         disabledForegroundColor: ink.withValues(alpha: .65),
         minimumSize: const Size(80, 42),
@@ -470,11 +499,14 @@ class _DeckOffer extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : Text(
-              owned
-                  ? 'Usa'
-                  : price == 0
-                  ? status ?? 'Bloccata'
-                  : 'Sblocca',
+              tr(
+                context,
+                owned
+                    ? 'Usa'
+                    : price == 0
+                    ? status ?? 'Bloccata'
+                    : 'Sblocca',
+              ),
             ),
     );
     return GestureDetector(
@@ -482,26 +514,10 @@ class _DeckOffer extends StatelessWidget {
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color.lerp(tint, Colors.white, .35)!,
-              tint,
-              Color.lerp(tint, accent, .12)!,
-            ],
-          ),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: selected ? accent : accent.withValues(alpha: .28),
-            width: selected ? 2 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: accent.withValues(alpha: .19),
-              offset: const Offset(0, 4),
-            ),
-          ],
+          color: selected ? popYellow : paper,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: ink, width: selected ? 3 : 2),
+          boxShadow: const [BoxShadow(color: ink, offset: Offset(0, 4))],
         ),
         child: LayoutBuilder(
           builder: (context, c) {
@@ -570,7 +586,7 @@ class _DeckOffer extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        deckNames[id]!,
+                        tr(context, deckNames[id]!),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -590,11 +606,14 @@ class _DeckOffer extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          owned
-                              ? (price == 0 ? 'Inclusa' : 'Sbloccata')
-                              : price == 0
-                              ? status ?? 'Gratis'
-                              : '$price gemme${status == null ? '' : ' · $status'}',
+                          tr(
+                            context,
+                            owned
+                                ? (price == 0 ? 'Inclusa' : 'Sbloccata')
+                                : price == 0
+                                ? status ?? 'Gratis'
+                                : '$price gemme${status == null ? '' : ' · ${tr(context, status!)}'}',
+                          ),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(

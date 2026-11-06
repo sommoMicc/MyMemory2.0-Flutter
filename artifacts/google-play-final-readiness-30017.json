@@ -1,0 +1,51 @@
+{
+  "verifiedAt": "2026-11-06T10:01:33.771984+00:00",
+  "packageName": "cc.sommomi.mymemory",
+  "appId": "4972469070574777722",
+  "versionName": "3.1.0",
+  "versionCode": 30017,
+  "internal": {
+    "releaseId": 15,
+    "status": "active",
+    "audience": "MyMemory test interno",
+    "users": 3,
+    "audienceChanged": false
+  },
+  "production": {
+    "releaseId": 2,
+    "status": "prepared, not submitted",
+    "onlyPendingVersion": 30017,
+    "supersededVersion": 30016,
+    "countries": 28,
+    "scope": "EU27 and United States",
+    "countryEvidence": "store-30017/play-markets.json"
+  },
+  "storeListings": {
+    "primary": "it-IT",
+    "locales": [
+      "it-IT",
+      "en-US",
+      "en-GB"
+    ],
+    "screenshotsPerLocale": 4,
+    "englishLinks": [
+      "https://sommomemory.sommomi.cc/en/privacy",
+      "https://sommomemory.sommomi.cc/en/support"
+    ],
+    "directReadback": "All3 locales checked again in Console, saved and ready for review",
+    "receipt": "store-30017/play-listing.json"
+  },
+  "publishing": {
+    "pendingChanges": 13,
+    "sendForReviewEnabled": true,
+    "automaticChecks": "passed",
+    "managedPublishing": "disabled (unchanged)",
+    "observedCheckResult": "Ora le modifiche possono essere inviate per la revisione. Potremmo rilevare ulteriori problemi durante la revisione dell\u2019app.",
+    "proofScreenshot": "google-play-final-ready-30017.jpg"
+  },
+  "reviewSubmitted": false,
+  "productionPublished": false,
+  "contractsAccepted": false,
+  "blockersObserved": [],
+  "scope": "Final read-only readiness check completed. User may submit13pending changes manually. No review submission/publication performed."
+}

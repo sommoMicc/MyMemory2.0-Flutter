@@ -3,11 +3,13 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game.dart';
 import 'game_feedback.dart';
 import 'online.dart';
 import 'palette.dart';
+import 'l10n/app_strings.dart';
 import 'decks.dart';
 import 'economy.dart';
 import 'arenas.dart';
@@ -22,6 +24,9 @@ import 'ui/deck_art.dart';
 import 'ui/game_world.dart';
 import 'bluetooth/bluetooth_controller.dart';
 
+const _systemFontFallback = ['Apple Color Emoji', 'Noto Color Emoji'];
+const _fallbackTextStyle = TextStyle(fontFamilyFallback: _systemFontFallback);
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final invites = InviteLinks();
@@ -34,52 +39,174 @@ Future<void> main() async {
   runApp(MyMemory(prefs: prefs, economy: economy, invites: invites));
 }
 
-class MyMemory extends StatelessWidget {
+class MyMemory extends StatefulWidget {
   const MyMemory({super.key, required this.prefs, this.economy, this.invites});
   final SharedPreferences prefs;
   final EconomyController? economy;
   final InviteLinks? invites;
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: 'SommoMemory',
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(
-      useMaterial3: true,
-      scaffoldBackgroundColor: paper,
-      fontFamily: 'Outfit',
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: teal,
-        surface: paper,
-        primary: teal,
-        onSurface: ink,
-      ),
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: ink),
-        bodyMedium: TextStyle(color: ink),
-      ),
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          minimumSize: const Size(48, 56),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+  State<MyMemory> createState() => _MyMemoryState();
+}
+
+class _MyMemoryState extends State<MyMemory> {
+  late String language;
+
+  @override
+  void initState() {
+    super.initState();
+    final saved = widget.prefs.getString('ui.language');
+    language = const {'it', 'en'}.contains(saved) ? saved! : 'auto';
+  }
+
+  void setLanguage(String value) {
+    if (!const {'auto', 'it', 'en'}.contains(value)) return;
+    setState(() => language = value);
+    unawaited(widget.prefs.setString('ui.language', value));
+  }
+
+  @override
+  Widget build(BuildContext context) => AppLanguageScope(
+    preference: language,
+    onChanged: setLanguage,
+    child: MaterialApp(
+      locale: appLocaleForPreference(language),
+      supportedLocales: supportedAppLocales,
+      localeResolutionCallback: (locale, _) => resolveAppLocale(locale),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      title: 'SommoMemory',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: paper,
+        fontFamily: 'Outfit',
+        colorScheme: const ColorScheme.light(
+          surface: paper,
+          primary: popCobalt,
+          onPrimary: paper,
+          secondary: coral,
+          onSecondary: ink,
+          tertiary: popYellow,
+          onTertiary: ink,
+          onSurface: ink,
+          outline: ink,
+          surfaceTint: Colors.transparent,
+        ),
+        textTheme: const TextTheme(
+          displayLarge: _fallbackTextStyle,
+          displayMedium: _fallbackTextStyle,
+          displaySmall: _fallbackTextStyle,
+          headlineLarge: _fallbackTextStyle,
+          headlineMedium: _fallbackTextStyle,
+          headlineSmall: _fallbackTextStyle,
+          titleLarge: _fallbackTextStyle,
+          titleMedium: _fallbackTextStyle,
+          titleSmall: _fallbackTextStyle,
+          bodyLarge: TextStyle(color: ink, fontFamilyFallback: _systemFontFallback),
+          bodyMedium: TextStyle(color: ink, fontFamilyFallback: _systemFontFallback),
+          bodySmall: _fallbackTextStyle,
+          labelLarge: _fallbackTextStyle,
+          labelMedium: _fallbackTextStyle,
+          labelSmall: _fallbackTextStyle,
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: popYellow,
+            foregroundColor: ink,
+            disabledBackgroundColor: paper,
+            disabledForegroundColor: muted,
+            minimumSize: const Size(48, 56),
+            side: const BorderSide(color: ink, width: 2),
+            textStyle: const TextStyle(
+              fontFamily: 'Outfit',
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            backgroundColor: paper,
+            foregroundColor: ink,
+            minimumSize: const Size(48, 44),
+            side: const BorderSide(color: ink, width: 2),
+            textStyle: const TextStyle(
+              fontFamily: 'Outfit',
+              fontWeight: FontWeight.w700,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            backgroundColor: paper,
+            foregroundColor: popCobalt,
+            textStyle: const TextStyle(
+              fontFamily: 'Outfit',
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        iconButtonTheme: IconButtonThemeData(
+          style: IconButton.styleFrom(
+            backgroundColor: paper,
+            foregroundColor: ink,
+            side: const BorderSide(color: ink, width: 1.5),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(13),
+            ),
+          ),
+        ),
+        segmentedButtonTheme: SegmentedButtonThemeData(
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.resolveWith(
+              (states) =>
+                  states.contains(WidgetState.selected) ? popYellow : paper,
+            ),
+            foregroundColor: const WidgetStatePropertyAll(ink),
+            side: const WidgetStatePropertyAll(
+              BorderSide(color: ink, width: 1.5),
+            ),
+            textStyle: const WidgetStatePropertyAll(
+              TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+        dialogTheme: DialogThemeData(
+          backgroundColor: paper,
+          surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: ink, width: 2),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: paper,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: ink, width: 2),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: ink, width: 2),
           ),
         ),
       ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: line),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: line),
-        ),
+      home: Home(
+        prefs: widget.prefs,
+        economy: widget.economy,
+        invites: widget.invites,
       ),
     ),
-    home: Home(prefs: prefs, economy: economy, invites: invites),
   );
 }
 
@@ -210,18 +337,22 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         final accept = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Aprire l’invito?'),
+            title: Text(tr(context, 'Aprire l’invito?')),
             content: Text(
-              'Stanza $code. La partita in corso verrà abbandonata.',
+              tr(
+                context,
+                'Stanza {code}. La partita in corso verrà abbandonata.',
+                {'code': code},
+              ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Resta'),
+                child: Text(tr(context, 'Resta')),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Apri invito'),
+                child: Text(tr(context, 'Apri invito')),
               ),
             ],
           ),
@@ -343,11 +474,14 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         widget.prefs.getString('room.token')?.isNotEmpty == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
-            'Riprendi o abbandona la classificata in corso prima di entrare in un’altra stanza.',
+          content: Text(
+            tr(
+              context,
+              'Riprendi o abbandona la classificata in corso prima di entrare in un’altra stanza.',
+            ),
           ),
           action: SnackBarAction(
-            label: 'Riprendi',
+            label: tr(context, 'Riprendi'),
             onPressed: () => start(resume: true),
           ),
         ),
@@ -357,9 +491,12 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     final rankedGame = mode == PlayMode.online && ranked && !join && !resume;
     if (rankedGame && !ArenaCatalog.instance.rankedEnabled) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'La classificata sarà disponibile con un aggiornamento.',
+            tr(
+              context,
+              'La classificata sarà disponibile con un aggiornamento.',
+            ),
           ),
         ),
       );
@@ -397,9 +534,12 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         if (!mounted || requestGeneration != navigationGeneration) return;
         if (widget.economy != null && ticket == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                'Puoi giocare; il premio non è disponibile per questa partita.',
+                tr(
+                  context,
+                  'Puoi giocare; il premio non è disponibile per questa partita.',
+                ),
               ),
             ),
           );
@@ -424,7 +564,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       } else if (playMode == PlayMode.online) {
         if (join && room.text.trim().isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Inserisci il codice della stanza')),
+            SnackBar(
+              content: Text(tr(context, 'Inserisci il codice della stanza')),
+            ),
           );
           return;
         }
@@ -441,7 +583,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                       'profileToken': widget.economy!.profileToken,
                     'code': room.text.trim().toUpperCase(),
                     'name': name.text.trim().isEmpty
-                        ? 'Ospite'
+                        ? tr(context, 'Ospite')
                         : name.text.trim(),
                   }
                 : {
@@ -450,7 +592,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     if (widget.economy?.profileToken != null)
                       'profileToken': widget.economy!.profileToken,
                     'name': name.text.trim().isEmpty
-                        ? 'Giocatore'
+                        ? tr(context, 'Giocatore')
                         : name.text.trim(),
                     'matchType': rankedGame ? 'ranked' : 'friendly',
                     'arenaId': rankedGame
@@ -493,7 +635,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     prefs: widget.prefs,
                     economy: widget.economy,
                     name: name.text.trim().isEmpty
-                        ? 'Giocatore'
+                        ? tr(context, 'Giocatore')
                         : name.text.trim(),
                   )
                 : BluetoothLobby.create(
@@ -501,7 +643,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     prefs: widget.prefs,
                     economy: widget.economy,
                     name: name.text.trim().isEmpty
-                        ? 'Giocatore'
+                        ? tr(context, 'Giocatore')
                         : name.text.trim(),
                     pairs: pairCount,
                     theme: collection,
@@ -514,8 +656,11 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              widget.economy?.lastError ??
-                  'Impossibile avviare la partita. Riprova.',
+              tr(
+                context,
+                widget.economy?.lastError ??
+                    'Impossibile avviare la partita. Riprova.',
+              ),
             ),
           ),
         );
@@ -555,9 +700,12 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         }
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                'Nome salvato su questo dispositivo. Il profilo online non è stato aggiornato.',
+                tr(
+                  context,
+                  'Nome salvato su questo dispositivo. Il profilo online non è stato aggiornato.',
+                ),
               ),
             ),
           );
@@ -585,7 +733,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   void choosePairs() => showDialog<void>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Numero di coppie'),
+      title: Text(tr(context, 'Numero di coppie')),
       content: SizedBox(
         width: 320,
         child: Wrap(
@@ -594,7 +742,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           children: [
             for (final p in [6, 8, 12, 18])
               ChoiceChip(
-                label: Text('$p coppie'),
+                label: Text(tr(context, '{count} coppie', {'count': p})),
                 selected: pairs == p,
                 onSelected: (_) {
                   setState(() => pairs = p);
@@ -619,9 +767,12 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       );
       if (!opened && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Puoi continuare nel browser con il codice della stanza.',
+              tr(
+                context,
+                'Puoi continuare nel browser con il codice della stanza.',
+              ),
             ),
           ),
         );
@@ -629,9 +780,12 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Puoi continuare nel browser con il codice della stanza.',
+              tr(
+                context,
+                'Puoi continuare nel browser con il codice della stanza.',
+              ),
             ),
           ),
         );
@@ -777,11 +931,13 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                         children: [
                           if (configuring)
                             IconButton(
-                              tooltip:
-                                  mode == PlayMode.bluetooth &&
-                                      creatingBluetoothGame
-                                  ? 'Scelta partita Bluetooth'
-                                  : 'Scegli modalità',
+                              tooltip: tr(
+                                context,
+                                mode == PlayMode.bluetooth &&
+                                        creatingBluetoothGame
+                                    ? 'Scelta partita Bluetooth'
+                                    : 'Scegli modalità',
+                              ),
                               onPressed: backFromSetup,
                               icon: const Icon(Icons.arrow_back_rounded),
                             )
@@ -791,19 +947,23 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                           ],
                           Expanded(
                             child: Text(
-                              configuring ? modeTitle : 'SommoMemory',
+                              tr(
+                                context,
+                                configuring ? modeTitle : 'SommoMemory',
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
+                                color: paper,
                                 fontSize: 21,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w800,
                                 letterSpacing: -.6,
                               ),
                             ),
                           ),
                           if (widget.economy != null)
                             IconButton(
-                              tooltip: 'Profilo',
+                              tooltip: tr(context, 'Profilo'),
                               onPressed: () => profile(),
                               icon: ProfileAvatar(
                                 avatarId:
@@ -815,7 +975,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                               ),
                             ),
                           IconButton(
-                            tooltip: 'Come si gioca e impostazioni',
+                            tooltip: tr(
+                              context,
+                              'Come si gioca e impostazioni',
+                            ),
                             onPressed: settings,
                             icon: const Icon(Icons.tune_rounded),
                           ),
@@ -825,12 +988,13 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                       if (!configuring) ...[
                         Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: Text(
-                                'Modalità di gioco',
+                                tr(context, 'Modalità di gioco'),
                                 style: TextStyle(
+                                  color: paper,
                                   fontSize: 18,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w800,
                                 ),
                               ),
                             ),
@@ -848,58 +1012,75 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                               final wide = c.maxWidth > c.maxHeight * 1.5;
                               final columns = wide ? modes.length : 2;
                               final rows = (modes.length / columns).ceil();
+                              final showScene = !wide && c.maxHeight > 500;
+                              final sceneHeight = showScene ? 120.0 : 0.0;
                               final tileWidth =
                                   (c.maxWidth - (columns - 1) * 12) / columns;
                               final tileHeight = math.min(
                                 180.0,
-                                (c.maxHeight - (rows - 1) * 12) / rows,
+                                (c.maxHeight - sceneHeight - (rows - 1) * 12) /
+                                    rows,
                               );
                               return Center(
-                                child: Wrap(
-                                  spacing: 12,
-                                  runSpacing: 12,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    for (final m in modes)
+                                    if (showScene)
                                       SizedBox(
-                                        width: tileWidth,
-                                        height: tileHeight,
-                                        child: ModeTile(
-                                          icon: m.$2,
-                                          title: m.$3,
-                                          subtitle: m.$4,
-                                          selected: false,
-                                          onTap: () => setState(() {
-                                            mode = m.$1;
-                                            ranked = false;
-                                            creatingBluetoothGame = false;
-                                            if (m.$1 == PlayMode.online) {
-                                              final legacyThemeArena =
-                                                  _arenaDeck(theme)?.arenaId ==
-                                                      arenaId &&
-                                                  widget.economy?.ownsDeck(
-                                                        theme,
-                                                      ) ==
-                                                      true;
-                                              final preferredArena =
-                                                  unlockedArenaIds.contains(
-                                                        arenaId,
-                                                      ) ||
-                                                      legacyThemeArena
-                                                  ? arenaId
-                                                  : widget
-                                                            .economy
-                                                            ?.profile
-                                                            ?.currentArenaId ??
-                                                        'wild_valley';
-                                              _selectFriendlyArena(
-                                                preferredArena,
-                                              );
-                                            }
-                                            configuring = true;
-                                            prefetch();
-                                          }),
+                                        height: sceneHeight,
+                                        child: CollectionScene(
+                                          collection: theme,
                                         ),
                                       ),
+                                    Wrap(
+                                      spacing: 12,
+                                      runSpacing: 12,
+                                      children: [
+                                        for (final m in modes)
+                                          SizedBox(
+                                            width: tileWidth,
+                                            height: tileHeight,
+                                            child: ModeTile(
+                                              icon: m.$2,
+                                              title: m.$3,
+                                              subtitle: m.$4,
+                                              selected: false,
+                                              onTap: () => setState(() {
+                                                mode = m.$1;
+                                                ranked = false;
+                                                creatingBluetoothGame = false;
+                                                if (m.$1 == PlayMode.online) {
+                                                  final legacyThemeArena =
+                                                      _arenaDeck(
+                                                            theme,
+                                                          )?.arenaId ==
+                                                          arenaId &&
+                                                      widget.economy?.ownsDeck(
+                                                            theme,
+                                                          ) ==
+                                                          true;
+                                                  final preferredArena =
+                                                      unlockedArenaIds.contains(
+                                                            arenaId,
+                                                          ) ||
+                                                          legacyThemeArena
+                                                      ? arenaId
+                                                      : widget
+                                                                .economy
+                                                                ?.profile
+                                                                ?.currentArenaId ??
+                                                            'wild_valley';
+                                                  _selectFriendlyArena(
+                                                    preferredArena,
+                                                  );
+                                                }
+                                                configuring = true;
+                                                prefetch();
+                                              }),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ],
                                 ),
                               );
@@ -923,14 +1104,17 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                           ? null
                                           : () => start(join: true),
                                       icon: const Icon(Icons.radar_rounded),
-                                      label: const Text('Cerca partita'),
+                                      label: Text(tr(context, 'Cerca partita')),
                                     ),
-                                    const Padding(
+                                    Padding(
                                       padding: EdgeInsets.fromLTRB(8, 8, 8, 20),
                                       child: Text(
-                                        'Entra in una partita vicina. Il mazzo e le coppie li sceglie chi crea.',
+                                        tr(
+                                          context,
+                                          'Entra in una partita vicina. Il mazzo e le coppie li sceglie chi crea.',
+                                        ),
                                         textAlign: TextAlign.center,
-                                        style: TextStyle(color: ink),
+                                        style: TextStyle(color: paper),
                                       ),
                                     ),
                                     OutlinedButton.icon(
@@ -941,21 +1125,24 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                                   creatingBluetoothGame = true,
                                             ),
                                       icon: const Icon(Icons.add_rounded),
-                                      label: const Text('Crea partita'),
+                                      label: Text(tr(context, 'Crea partita')),
                                     ),
-                                    const Padding(
+                                    Padding(
                                       padding: EdgeInsets.fromLTRB(8, 8, 8, 16),
                                       child: Text(
-                                        'Scegli il mazzo e le coppie, poi aspetta l’altro giocatore.',
+                                        tr(
+                                          context,
+                                          'Scegli il mazzo e le coppie, poi aspetta l’altro giocatore.',
+                                        ),
                                         textAlign: TextAlign.center,
-                                        style: TextStyle(color: ink),
+                                        style: TextStyle(color: paper),
                                       ),
                                     ),
                                     _OptionRow(
                                       icon: Icons.person_outline_rounded,
                                       label: 'Nome',
                                       value: name.text.trim().isEmpty
-                                          ? 'Giocatore'
+                                          ? tr(context, 'Giocatore')
                                           : name.text.trim(),
                                       onTap: editName,
                                     ),
@@ -969,252 +1156,313 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                         Expanded(
                           child: LayoutBuilder(
                             builder: (context, c) {
-                              final options = Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (mode == PlayMode.online) ...[
-                                    SegmentedButton<bool>(
-                                      segments: [
-                                        ButtonSegment(
-                                          value: false,
-                                          label: Text('Amichevole'),
-                                        ),
-                                        ButtonSegment(
-                                          value: true,
-                                          label: Text('Classificata'),
-                                          enabled: canStartRanked,
-                                        ),
-                                      ],
-                                      selected: {ranked},
-                                      onSelectionChanged: (value) {
-                                        if (value.first && !canStartRanked) {
-                                          return;
-                                        }
-                                        setState(() {
-                                          ranked = value.first;
-                                          if (ranked) {
-                                            arenaId =
-                                                widget
-                                                    .economy
-                                                    ?.profile
-                                                    ?.currentArenaId ??
-                                                arenaId;
-                                            pairs = 12;
-                                          } else {
-                                            final selectedDeck = _arenaDeck(
-                                              theme,
-                                            );
-                                            if (selectedDeck?.arenaId != null) {
-                                              arenaId = selectedDeck!.arenaId!;
-                                            }
-                                            _persistFriendlySelection();
-                                          }
-                                        });
-                                      },
-                                    ),
-                                    if (!ranked &&
-                                        !ArenaCatalog.instance.rankedEnabled)
-                                      const Text(
-                                        'La modalità classificata via invito non è ancora attiva.',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: muted,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    if (!ranked &&
-                                        ArenaCatalog.instance.rankedEnabled &&
-                                        widget.economy?.profileToken == null)
-                                      const Text(
-                                        'Accedi a un profilo per creare una sfida classificata.',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: muted,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    if (ranked &&
-                                        widget.economy?.profile != null)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 16),
-                                        child: Container(
-                                          padding: const EdgeInsets.fromLTRB(
-                                            12,
-                                            4,
-                                            12,
-                                            8,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: paper.withValues(alpha: .94),
-                                            borderRadius: BorderRadius.circular(
-                                              16,
+                              final options = Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: paper,
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(color: ink, width: 2),
+                                  boxShadow: const [
+                                    BoxShadow(color: ink, offset: Offset(0, 4)),
+                                  ],
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (mode == PlayMode.online) ...[
+                                      SegmentedButton<bool>(
+                                        segments: [
+                                          ButtonSegment(
+                                            value: false,
+                                            label: Text(
+                                              tr(context, 'Amichevole'),
                                             ),
-                                            border: Border.all(color: line),
                                           ),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              _OptionRow(
-                                                icon:
-                                                    Icons.emoji_events_rounded,
-                                                label: 'Arena attuale',
-                                                value: ArenaCatalog
-                                                    .instance
-                                                    .arenas
-                                                    .firstWhere(
-                                                      (a) =>
-                                                          a.id ==
-                                                          widget
-                                                              .economy!
-                                                              .profile!
-                                                              .currentArenaId,
-                                                    )
-                                                    .name,
-                                                onTap: null,
+                                          ButtonSegment(
+                                            value: true,
+                                            label: Text(
+                                              tr(context, 'Classificata'),
+                                            ),
+                                            enabled: canStartRanked,
+                                          ),
+                                        ],
+                                        selected: {ranked},
+                                        onSelectionChanged: (value) {
+                                          if (value.first && !canStartRanked) {
+                                            return;
+                                          }
+                                          setState(() {
+                                            ranked = value.first;
+                                            if (ranked) {
+                                              arenaId =
+                                                  widget
+                                                      .economy
+                                                      ?.profile
+                                                      ?.currentArenaId ??
+                                                  arenaId;
+                                              pairs = 12;
+                                            } else {
+                                              final selectedDeck = _arenaDeck(
+                                                theme,
+                                              );
+                                              if (selectedDeck?.arenaId !=
+                                                  null) {
+                                                arenaId =
+                                                    selectedDeck!.arenaId!;
+                                              }
+                                              _persistFriendlySelection();
+                                            }
+                                          });
+                                        },
+                                      ),
+                                      if (!ranked &&
+                                          !ArenaCatalog.instance.rankedEnabled)
+                                        Text(
+                                          tr(
+                                            context,
+                                            'La modalità classificata via invito non è ancora attiva.',
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: muted,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      if (!ranked &&
+                                          ArenaCatalog.instance.rankedEnabled &&
+                                          widget.economy?.profileToken == null)
+                                        Text(
+                                          tr(
+                                            context,
+                                            'Accedi a un profilo per creare una sfida classificata.',
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: muted,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      if (ranked &&
+                                          widget.economy?.profile != null)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 16,
+                                          ),
+                                          child: Container(
+                                            padding: const EdgeInsets.fromLTRB(
+                                              12,
+                                              4,
+                                              12,
+                                              8,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: paper.withValues(
+                                                alpha: .94,
                                               ),
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  bottom: 6,
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              border: Border.all(color: line),
+                                            ),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                _OptionRow(
+                                                  icon: Icons
+                                                      .emoji_events_rounded,
+                                                  label: 'Arena attuale',
+                                                  value: ArenaCatalog
+                                                      .instance
+                                                      .arenas
+                                                      .firstWhere(
+                                                        (a) =>
+                                                            a.id ==
+                                                            widget
+                                                                .economy!
+                                                                .profile!
+                                                                .currentArenaId,
+                                                      )
+                                                      .name,
+                                                  onTap: null,
                                                 ),
-                                                child: Text(
-                                                  '${widget.economy!.profile!.crowns} corone · Record ${widget.economy!.profile!.peakCrowns}',
-                                                  textAlign: TextAlign.center,
-                                                  style: const TextStyle(
-                                                    color: ink,
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        bottom: 6,
+                                                      ),
+                                                  child: Text(
+                                                    tr(
+                                                      context,
+                                                      '{crowns} corone · Record {record}',
+                                                      {
+                                                        'crowns': widget
+                                                            .economy!
+                                                            .profile!
+                                                            .crowns,
+                                                        'record': widget
+                                                            .economy!
+                                                            .profile!
+                                                            .peakCrowns,
+                                                      },
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                    style: const TextStyle(
+                                                      color: ink,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
                                                   ),
                                                 ),
+                                              ],
+                                            ),
+                                          ),
+                                        )
+                                      else if (ranked)
+                                        Text(
+                                          tr(
+                                            context,
+                                            'Accedi a un profilo per la classificata.',
+                                          ),
+                                          style: TextStyle(color: muted),
+                                        ),
+                                      if (!ranked) ...[
+                                        ArenaJourneyTile(
+                                          arenaId: arenaId,
+                                          label: 'Arena amichevole',
+                                          onTap: chooseArena,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        _CollectionTile(
+                                          theme: theme,
+                                          onTap: chooseTheme,
+                                        ),
+                                        _OptionRow(
+                                          icon: Icons.grid_view_rounded,
+                                          label: 'Coppie',
+                                          value: '$pairs',
+                                          onTap: choosePairs,
+                                        ),
+                                      ] else
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 14,
+                                          ),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 10,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: paper.withValues(
+                                                alpha: .94,
                                               ),
-                                            ],
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                              border: Border.all(color: line),
+                                            ),
+                                            child: Text(
+                                              tr(
+                                                context,
+                                                '3 round · 12 coppie. Tabelloni identici per i due giocatori: vince chi usa meno tentativi totali.',
+                                              ),
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                color: ink,
+                                                fontSize: 13,
+                                                height: 1.2,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
                                           ),
                                         ),
-                                      )
-                                    else if (ranked)
-                                      const Text(
-                                        'Accedi a un profilo per la classificata.',
-                                        style: TextStyle(color: muted),
-                                      ),
-                                    if (!ranked) ...[
+                                    ] else ...[
                                       ArenaJourneyTile(
                                         arenaId: arenaId,
-                                        label: 'Arena amichevole',
                                         onTap: chooseArena,
                                       ),
                                       const SizedBox(height: 8),
-                                      _CollectionTile(
-                                        theme: theme,
-                                        onTap: chooseTheme,
-                                      ),
                                       _OptionRow(
                                         icon: Icons.grid_view_rounded,
                                         label: 'Coppie',
                                         value: '$pairs',
                                         onTap: choosePairs,
                                       ),
-                                    ] else
+                                      const SizedBox(height: 8),
+                                      _CollectionTile(
+                                        theme: theme,
+                                        onTap: chooseTheme,
+                                      ),
+                                    ],
+                                    if (mode == PlayMode.online ||
+                                        mode == PlayMode.bluetooth) ...[
+                                      const SizedBox(height: 8),
+                                      _OptionRow(
+                                        icon: Icons.person_outline_rounded,
+                                        label: 'Nome',
+                                        value: name.text.trim().isEmpty
+                                            ? tr(context, 'Giocatore')
+                                            : name.text.trim(),
+                                        onTap: editName,
+                                      ),
+                                    ],
+                                    if (mode == PlayMode.solo &&
+                                        widget.prefs.getInt('best.$pairs') !=
+                                            null)
                                       Padding(
-                                        padding: const EdgeInsets.only(top: 14),
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 10,
+                                        padding: const EdgeInsets.only(top: 12),
+                                        child: Text(
+                                          tr(
+                                            context,
+                                            'Record sul dispositivo: {count} tentativi',
+                                            {
+                                              'count': widget.prefs.getInt(
+                                                'best.$pairs',
+                                              )!,
+                                            },
                                           ),
-                                          decoration: BoxDecoration(
-                                            color: paper.withValues(alpha: .94),
-                                            borderRadius: BorderRadius.circular(
-                                              14,
-                                            ),
-                                            border: Border.all(color: line),
-                                          ),
-                                          child: const Text(
-                                            '3 round · 12 coppie. Tabelloni identici per i due giocatori: vince chi usa meno tentativi totali.',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              color: ink,
-                                              fontSize: 13,
-                                              height: 1.2,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
+                                          style: const TextStyle(color: muted),
                                         ),
                                       ),
-                                  ] else ...[
-                                    ArenaJourneyTile(
-                                      arenaId: arenaId,
-                                      onTap: chooseArena,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    _OptionRow(
-                                      icon: Icons.grid_view_rounded,
-                                      label: 'Coppie',
-                                      value: '$pairs',
-                                      onTap: choosePairs,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    _CollectionTile(
-                                      theme: theme,
-                                      onTap: chooseTheme,
-                                    ),
-                                  ],
-                                  if (mode == PlayMode.online ||
-                                      mode == PlayMode.bluetooth) ...[
-                                    const SizedBox(height: 8),
-                                    _OptionRow(
-                                      icon: Icons.person_outline_rounded,
-                                      label: 'Nome',
-                                      value: name.text.trim().isEmpty
-                                          ? 'Giocatore'
-                                          : name.text.trim(),
-                                      onTap: editName,
-                                    ),
-                                  ],
-                                  if (mode == PlayMode.solo &&
-                                      widget.prefs.getInt('best.$pairs') !=
-                                          null)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 12),
-                                      child: Text(
-                                        'Record sul dispositivo: ${widget.prefs.getInt('best.$pairs')} tentativi',
-                                        style: const TextStyle(color: muted),
-                                      ),
-                                    ),
-                                  if (mode == PlayMode.solo &&
-                                      widget.economy != null)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 12),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            widget.economy!.offline
-                                                ? Icons.offline_pin_outlined
-                                                : Icons.cloud_done_outlined,
-                                            size: 16,
-                                            color: muted,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Flexible(
-                                            child: Text(
-                                              widget.economy!.offline ||
-                                                      widget
-                                                              .economy!
-                                                              .pendingChanges >
-                                                          0
-                                                  ? 'Progressi salvati sul dispositivo · sincronizzazione automatica'
-                                                  : 'Gemme e collezioni disponibili anche offline',
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                color: muted,
+                                    if (mode == PlayMode.solo &&
+                                        widget.economy != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 12),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              widget.economy!.offline
+                                                  ? Icons.offline_pin_outlined
+                                                  : Icons.cloud_done_outlined,
+                                              size: 16,
+                                              color: muted,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Flexible(
+                                              child: Text(
+                                                tr(
+                                                  context,
+                                                  widget.economy!.offline ||
+                                                          widget
+                                                                  .economy!
+                                                                  .pendingChanges >
+                                                              0
+                                                      ? 'Progressi salvati sul dispositivo · sincronizzazione automatica'
+                                                      : 'Gemme e collezioni disponibili anche offline',
+                                                ),
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: muted,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                ],
+                                  ],
+                                ),
                               );
                               final actions = Column(
                                 mainAxisSize: MainAxisSize.min,
@@ -1229,14 +1477,16 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                                 inviteCode != null,
                                           ),
                                     icon: const Icon(Icons.play_arrow_rounded),
-                                    label: Text(switch (mode) {
-                                      PlayMode.online =>
-                                        inviteCode == null
-                                            ? 'Crea stanza'
-                                            : 'Entra in $inviteCode',
-                                      PlayMode.bluetooth => 'Crea partita',
-                                      _ => 'Inizia partita',
-                                    }),
+                                    label: Text(
+                                      tr(context, switch (mode) {
+                                        PlayMode.online =>
+                                          inviteCode == null
+                                              ? 'Crea stanza'
+                                              : 'Entra in $inviteCode',
+                                        PlayMode.bluetooth => 'Crea partita',
+                                        _ => 'Inizia partita',
+                                      }),
+                                    ),
                                   ),
                                   if (mode == PlayMode.online) ...[
                                     const SizedBox(height: 8),
@@ -1246,7 +1496,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                           Expanded(
                                             child: TextButton(
                                               onPressed: joinRoom,
-                                              child: const Text('Altro codice'),
+                                              child: Text(
+                                                tr(context, 'Altro codice'),
+                                              ),
                                             ),
                                           ),
                                           Expanded(
@@ -1256,8 +1508,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                                 Icons.open_in_new_rounded,
                                                 size: 16,
                                               ),
-                                              label: const Text(
-                                                'Apri nell’app',
+                                              label: Text(
+                                                tr(context, 'Apri nell’app'),
                                               ),
                                             ),
                                           ),
@@ -1267,8 +1519,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                       OutlinedButton.icon(
                                         onPressed: joinRoom,
                                         icon: const Icon(Icons.login_rounded),
-                                        label: const Text(
-                                          'Entra con un codice',
+                                        label: Text(
+                                          tr(context, 'Entra con un codice'),
                                         ),
                                       ),
                                     if (widget.prefs.getString('room.token') !=
@@ -1276,7 +1528,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                       TextButton.icon(
                                         onPressed: () => start(resume: true),
                                         icon: const Icon(Icons.restore_rounded),
-                                        label: const Text('Riprendi la stanza'),
+                                        label: Text(
+                                          tr(context, 'Riprendi la stanza'),
+                                        ),
                                       ),
                                   ],
                                 ],
@@ -1299,16 +1553,19 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                 );
                               }
                               if (c.maxHeight <= 640) {
-                                return SingleChildScrollView(
-                                  padding: const EdgeInsets.only(bottom: 16),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      options,
-                                      const SizedBox(height: 16),
-                                      actions,
-                                    ],
-                                  ),
+                                return Column(
+                                  children: [
+                                    Expanded(
+                                      child: SingleChildScrollView(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 8,
+                                        ),
+                                        child: options,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    actions,
+                                  ],
                                 );
                               }
                               return Column(
@@ -1363,7 +1620,7 @@ class _TextEntryDialog extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    title,
+                    tr(context, title),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -1372,7 +1629,7 @@ class _TextEntryDialog extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Annulla'),
+                  child: Text(tr(context, 'Annulla')),
                 ),
               ],
             ),
@@ -1387,7 +1644,7 @@ class _TextEntryDialog extends StatelessWidget {
                     textCapitalization: capitalization,
                     decoration: InputDecoration(
                       counterText: '',
-                      hintText: hint,
+                      hintText: tr(context, hint),
                     ),
                     onSubmitted: (_) => Navigator.pop(context, true),
                   ),
@@ -1395,7 +1652,7 @@ class _TextEntryDialog extends StatelessWidget {
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: () => Navigator.pop(context, true),
-                  child: Text(action),
+                  child: Text(tr(context, action)),
                 ),
               ],
             ),
@@ -1418,15 +1675,18 @@ class _OptionRow extends StatelessWidget {
   final VoidCallback? onTap;
   @override
   Widget build(BuildContext context) => Material(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(18),
+    color: paper,
+    borderRadius: BorderRadius.circular(14),
     child: ListTile(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(color: line),
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: ink, width: 1.5),
       ),
       leading: Icon(icon, color: teal),
-      title: Text(label, style: const TextStyle(fontSize: 12, color: muted)),
+      title: Text(
+        tr(context, label),
+        style: const TextStyle(fontSize: 12, color: muted),
+      ),
       subtitle: Text(
         value,
         maxLines: 1,
@@ -1434,7 +1694,7 @@ class _OptionRow extends StatelessWidget {
         style: const TextStyle(
           fontSize: 17,
           color: ink,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w800,
         ),
       ),
       trailing: onTap == null
@@ -1466,24 +1726,24 @@ class _SettingsDialogState extends State<_SettingsDialog> {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Impostazioni',
+                    tr(context, 'Impostazioni'),
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Chiudi',
+                  tooltip: tr(context, 'Chiudi'),
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close_rounded),
                 ),
               ],
             ),
             SegmentedButton<int>(
-              segments: const [
-                ButtonSegment(value: 0, label: Text('Preferenze')),
-                ButtonSegment(value: 1, label: Text('Regole')),
-                ButtonSegment(value: 2, label: Text('Info')),
+              segments: [
+                ButtonSegment(value: 0, label: Text(tr(context, 'Preferenze'))),
+                ButtonSegment(value: 1, label: Text(tr(context, 'Regole'))),
+                ButtonSegment(value: 2, label: Text(tr(context, 'Info'))),
               ],
               selected: {section},
               showSelectedIcon: false,
@@ -1491,9 +1751,34 @@ class _SettingsDialogState extends State<_SettingsDialog> {
             ),
             const SizedBox(height: 16),
             if (section == 0) ...[
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(tr(context, 'Lingua')),
+                trailing: DropdownButton<String>(
+                  key: const ValueKey('app-language'),
+                  value:
+                      AppLanguageScope.maybeOf(context)?.preference ?? 'auto',
+                  items: [
+                    for (final (value, label) in [
+                      ('auto', 'Automatico'),
+                      ('it', 'Italiano'),
+                      ('en', 'Inglese'),
+                    ])
+                      DropdownMenuItem(
+                        value: value,
+                        child: Text(tr(context, label)),
+                      ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      AppLanguageScope.maybeOf(context)?.onChanged(value);
+                    }
+                  },
+                ),
+              ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Suoni'),
+                title: Text(tr(context, 'Suoni')),
                 value: widget.prefs.getBool('sound') ?? true,
                 onChanged: (v) {
                   widget.prefs.setBool('sound', v);
@@ -1502,7 +1787,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Vibrazioni'),
+                title: Text(tr(context, 'Vibrazioni')),
                 value: widget.prefs.getBool('haptics') ?? true,
                 onChanged: (v) {
                   widget.prefs.setBool('haptics', v);
@@ -1511,12 +1796,18 @@ class _SettingsDialogState extends State<_SettingsDialog> {
               ),
             ],
             if (section == 1)
-              const Text(
-                'Gira due carte e trova le coppie. Una coppia ti dà un altro turno; un errore passa il turno all’altro giocatore.\n\nOnline: condividi il codice stanza. Bluetooth: un telefono ospita, l’altro cerca la partita.',
+              Text(
+                tr(
+                  context,
+                  'Gira due carte e trova le coppie. Una coppia ti dà un altro turno; un errore passa il turno all’altro giocatore.\n\nOnline: condividi il codice stanza. Bluetooth: un telefono ospita, l’altro cerca la partita.',
+                ),
               ),
             if (section == 2) ...[
-              const Text(
-                'SommoMemory · Michele Tagliabue\nLe partite locali restano sul dispositivo. Online vengono condivisi nome, mosse e stato stanza. Nessuna pubblicità o analisi di utilizzo.',
+              Text(
+                tr(
+                  context,
+                  'SommoMemory · Michele Tagliabue\nLe partite locali restano sul dispositivo. Online vengono condivisi nome, mosse e stato stanza. Nessuna pubblicità o analisi di utilizzo.',
+                ),
                 style: TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 10),
@@ -1529,7 +1820,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
                   context: context,
                   applicationName: 'SommoMemory',
                 ),
-                child: const Text('Licenze'),
+                child: Text(tr(context, 'Licenze')),
               ),
             ],
           ],
@@ -1559,6 +1850,7 @@ class BrandMark extends StatelessWidget {
               decoration: BoxDecoration(
                 color: coral,
                 borderRadius: BorderRadius.circular(7),
+                border: Border.all(color: ink, width: 2),
               ),
             ),
           ),
@@ -1572,10 +1864,16 @@ class BrandMark extends StatelessWidget {
               width: size * .6,
               height: size * .8,
               decoration: BoxDecoration(
-                color: teal,
+                color: popYellow,
                 borderRadius: BorderRadius.circular(7),
+                border: Border.all(color: ink, width: 2),
+                boxShadow: const [BoxShadow(color: ink, offset: Offset(0, 2))],
               ),
-              child: Icon(Icons.spa_rounded, color: paper, size: size * .42),
+              child: Icon(
+                Icons.filter_none_rounded,
+                color: ink,
+                size: size * .34,
+              ),
             ),
           ),
         ),
@@ -1603,37 +1901,29 @@ class ModeTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = switch (title) {
       'In due' => coral,
-      'Online' => const Color(0xFF7661B5),
-      'Bluetooth' => const Color(0xFF2589B2),
-      _ => teal,
+      'Online' => popSky,
+      'Bluetooth' => paper,
+      _ => popYellow,
     };
     return Semantics(
       selected: selected,
       button: true,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: accent.withValues(alpha: .20),
-              offset: const Offset(0, 5),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [BoxShadow(color: ink, offset: Offset(0, 5))],
         ),
         child: Material(
-          color: Color.lerp(paper, accent, .10),
-          borderRadius: BorderRadius.circular(24),
+          color: accent,
+          borderRadius: BorderRadius.circular(16),
           child: InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(16),
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: accent.withValues(alpha: .25),
-                  width: 1.5,
-                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: ink, width: selected ? 3 : 2.5),
               ),
               child: LayoutBuilder(
                 builder: (context, c) => Column(
@@ -1654,23 +1944,24 @@ class ModeTile extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            title,
+                            tr(context, title),
                             style: const TextStyle(
                               fontSize: 18,
-                              fontWeight: FontWeight.w700,
+                              color: ink,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
-                        Icon(
-                          Icons.arrow_forward_rounded,
-                          color: accent,
-                          size: 18,
-                        ),
+                        Icon(Icons.arrow_forward_rounded, color: ink, size: 18),
                       ],
                     ),
                     Text(
-                      subtitle,
-                      style: const TextStyle(fontSize: 12, color: ink),
+                      tr(context, subtitle),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: ink,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -1693,83 +1984,38 @@ class _ModeEmblem extends StatelessWidget {
   final Color color;
   final bool compact;
   @override
-  Widget build(BuildContext context) => FittedBox(
-    fit: BoxFit.scaleDown,
-    child: SizedBox(
-      width: 110,
-      height: compact ? 48 : 88,
-      child: Stack(
+  Widget build(BuildContext context) {
+    final players = icon == Icons.person_outline_rounded
+        ? '1P'
+        : icon == Icons.people_outline_rounded
+        ? '2P'
+        : null;
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Container(
+        width: compact ? 46 : 64,
+        height: compact ? 42 : 60,
+        decoration: BoxDecoration(
+          color: paper,
+          borderRadius: BorderRadius.circular(13),
+          border: Border.all(color: ink, width: 2),
+          boxShadow: const [BoxShadow(color: ink, offset: Offset(0, 3))],
+        ),
         alignment: Alignment.center,
-        children: [
-          Positioned(
-            left: 12,
-            top: compact ? 1 : 9,
-            child: Transform.rotate(
-              angle: -.20,
-              child: Container(
-                width: compact ? 33 : 49,
-                height: compact ? 40 : 65,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: .28),
-                  borderRadius: BorderRadius.circular(12),
+        child: players != null
+            ? Text(
+                players,
+                style: TextStyle(
+                  color: ink,
+                  fontSize: compact ? 20 : 27,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -1,
                 ),
-              ),
-            ),
-          ),
-          Transform.rotate(
-            angle: .12,
-            child: Container(
-              width: compact ? 40 : 57,
-              height: compact ? 44 : 73,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: .7),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withValues(alpha: .25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(4),
-              child: _CollectionSymbol(
-                theme: icon == Icons.public_rounded
-                    ? 'cosmos'
-                    : icon == Icons.bluetooth_rounded
-                    ? 'ocean'
-                    : 'garden',
-                value: icon == Icons.people_outline_rounded ? 1 : 0,
-                size: compact ? 30 : 46,
-              ),
-            ),
-          ),
-          Positioned(
-            right: 5,
-            top: 1,
-            child: Icon(
-              Icons.star_rounded,
-              size: compact ? 15 : 20,
-              color: coral,
-            ),
-          ),
-          Positioned(
-            left: 4,
-            bottom: 6,
-            child: Container(
-              width: 7,
-              height: 7,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-          ),
-        ],
+              )
+            : Icon(icon, color: ink, size: compact ? 27 : 37),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class MemoryCard extends StatefulWidget {
@@ -1871,10 +2117,19 @@ class _MemoryCardState extends State<MemoryCard>
   @override
   Widget build(BuildContext context) => Semantics(
     label: widget.matched
-        ? 'Coppia trovata'
+        ? tr(context, 'Coppia trovata')
         : widget.value != null
-        ? 'Carta ${widget.index + 1}, ${deckLabel(widget.theme, widget.value!) ?? 'simbolo ${widget.value! + 1}'}'
-        : 'Carta ${widget.index + 1}, coperta',
+        ? tr(context, 'Carta {index}, {symbol}', {
+            'index': widget.index + 1,
+            'symbol': tr(
+              context,
+              deckLabel(widget.theme, widget.value!) ??
+                  tr(context, 'simbolo {number}', {
+                    'number': widget.value! + 1,
+                  }),
+            ),
+          })
+        : tr(context, 'Carta {index}, coperta', {'index': widget.index + 1}),
     button: widget.onTap != null,
     child: AnimatedBuilder(
       animation: flip,
@@ -1903,27 +2158,12 @@ class _MemoryCardState extends State<MemoryCard>
                       : const Duration(milliseconds: 220),
                   decoration: BoxDecoration(
                     color: front
-                        ? (widget.matched
-                              ? const Color(0xFFE5F3DC)
-                              : Colors.white)
-                        : collectionColor(widget.theme),
+                        ? (widget.matched ? popYellow : paper)
+                        : popCobalt,
                     borderRadius: BorderRadius.circular(13),
-                    border: Border.all(
-                      color: widget.matched
-                          ? const Color(0xFF83B66B)
-                          : front
-                          ? collectionColor(widget.theme).withValues(alpha: .25)
-                          : Colors.white.withValues(alpha: .5),
-                      width: widget.matched ? 2 : 1.5,
-                    ),
+                    border: Border.all(color: ink, width: 2.2),
                     boxShadow: [
-                      BoxShadow(
-                        color: collectionColor(
-                          widget.theme,
-                        ).withValues(alpha: widget.matched ? .06 : .19),
-                        offset: const Offset(0, 3),
-                        blurRadius: 1,
-                      ),
+                      BoxShadow(color: ink, offset: const Offset(0, 4)),
                     ],
                   ),
                   child: LayoutBuilder(
@@ -1947,7 +2187,7 @@ class _MemoryCardState extends State<MemoryCard>
                                 bottom: 2,
                                 child: Icon(
                                   Icons.check_circle_rounded,
-                                  color: const Color(0xFF65974E),
+                                  color: ink,
                                   size: math.max(11, side * .19),
                                 ),
                               ),
@@ -1963,16 +2203,14 @@ class _MemoryCardState extends State<MemoryCard>
                               width: side * .56,
                               height: side * .56,
                               decoration: BoxDecoration(
-                                color: paper.withValues(alpha: .13),
+                                color: Colors.transparent,
                                 shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: paper.withValues(alpha: .55),
-                                ),
+                                border: Border.all(color: popYellow, width: 2),
                               ),
                               child: ExcludeSemantics(
                                 child: Icon(
                                   deckBackIcon(widget.theme),
-                                  color: paper,
+                                  color: popYellow,
                                   size: side * .32,
                                 ),
                               ),
@@ -2036,20 +2274,17 @@ class _CollectionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = collectionColor(theme);
     return Material(
-      color: Color.lerp(paper, color, .09),
-      borderRadius: BorderRadius.circular(18),
+      color: paper,
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         child: Container(
           height: 76,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: color.withValues(alpha: selected ? .7 : .23),
-              width: selected ? 2 : 1,
-            ),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: ink, width: 1.5),
           ),
           child: Row(
             children: [
@@ -2058,12 +2293,12 @@ class _CollectionTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'Collezione',
+                    Text(
+                      tr(context, 'Collezione'),
                       style: TextStyle(fontSize: 11, color: muted),
                     ),
                     Text(
-                      deckNames[theme]!,
+                      tr(context, deckNames[theme]!),
                       style: const TextStyle(
                         fontSize: 19,
                         fontWeight: FontWeight.w700,
@@ -2089,14 +2324,12 @@ class _CollectionTile extends StatelessWidget {
                             height: 49,
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: paper,
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: color.withValues(alpha: .2),
-                              ),
+                              border: Border.all(color: ink, width: 1.5),
                               boxShadow: [
                                 BoxShadow(
-                                  color: color.withValues(alpha: .13),
+                                  color: ink,
                                   offset: const Offset(0, 2),
                                 ),
                               ],
@@ -2708,25 +2941,28 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final choice = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Una pausa?'),
+        title: Text(tr(context, 'Una pausa?')),
         content: Text(
           network
-              ? 'Se abbandoni, l’altro giocatore vince la partita. Online puoi anche chiudere e riconnetterti entro 90 secondi.'
-              : 'La partita in corso non verrà salvata.',
+              ? tr(
+                  context,
+                  'Se abbandoni, l’altro giocatore vince la partita. Online puoi anche chiudere e riconnetterti entro 90 secondi.',
+                )
+              : tr(context, 'La partita in corso non verrà salvata.'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Resta'),
+            child: Text(tr(context, 'Resta')),
           ),
           if (widget.online != null)
             TextButton(
               onPressed: () => Navigator.pop(context, 'pause'),
-              child: const Text('Pausa'),
+              child: Text(tr(context, 'Pausa')),
             ),
           TextButton(
             onPressed: () => Navigator.pop(context, 'leave'),
-            child: const Text('Abbandona'),
+            child: Text(tr(context, 'Abbandona')),
           ),
         ],
       ),
@@ -2920,42 +3156,61 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         s?['roundId'] == events.roundId &&
         s?['roundIndex'] == events.roundIndex &&
         s?['phase'] == 'roundFinished';
-    String result = 'Partita completata';
+    String result = tr(context, 'Partita completata');
     if (finished && network) {
       result = events.finishReason == 'cancelled'
-          ? 'Partita annullata'
+          ? tr(context, 'Partita annullata')
           : events.winnerId == null
-          ? 'Pareggio'
+          ? tr(context, 'Pareggio')
           : events.winnerId == playerId
-          ? 'Hai vinto!'
-          : 'Hai perso';
+          ? tr(context, 'Hai vinto!')
+          : tr(context, 'Hai perso');
     }
     if (finished && local?.twoPlayers == true) {
       result = events.scores[0] == events.scores[1]
-          ? 'Pareggio'
-          : 'Vince Giocatore ${events.scores[0] > events.scores[1] ? 1 : 2}!';
+          ? tr(context, 'Pareggio')
+          : tr(context, 'Vince Giocatore {number}!', {
+              'number': events.scores[0] > events.scores[1] ? 1 : 2,
+            });
     }
     final turnStatus = network
         ? paused
-              ? 'In attesa della riconnessione…'
+              ? tr(context, 'In attesa della riconnessione…')
               : rankedMatch && ownRoundComplete
-              ? 'Attesa avversario'
+              ? tr(context, 'Attesa avversario')
               : rankedMatch
-              ? 'Completa le 12 coppie'
+              ? tr(context, 'Completa le 12 coppie')
               : events.turn == playerId
-              ? 'Il tuo turno'
-              : 'Turno di ${players.where((p) => p['id'] == events.turn).firstOrNull?['name'] ?? 'un amico'}'
+              ? tr(context, 'Il tuo turno')
+              : tr(context, 'Turno di {name}', {
+                  'name':
+                      players
+                          .where((p) => p['id'] == events.turn)
+                          .firstOrNull?['name'] ??
+                      tr(context, 'un amico'),
+                })
         : widget.mode == PlayMode.local
-        ? 'Turno del Giocatore ${(events.turn as int) + 1}'
-        : '${matched.length ~/ 2} / ${widget.pairs} coppie';
+        ? tr(context, 'Turno del Giocatore {number}', {
+            'number': (events.turn as int) + 1,
+          })
+        : tr(context, '{found} / {total} coppie', {
+            'found': matched.length ~/ 2,
+            'total': widget.pairs,
+          });
     final status = rankedMatch
         ? betweenRounds
-              ? 'Round ${events.roundIndex} completato'
+              ? tr(context, 'Round {round} completato', {
+                  'round': events.roundIndex,
+                })
               : finished
               ? events.finishReason == 'completed'
-                    ? 'Risultato dei tre round'
-                    : 'Partita interrotta'
-              : 'Round ${events.roundIndex} di ${events.roundCount} · $turnStatus'
+                    ? tr(context, 'Risultato dei tre round')
+                    : tr(context, 'Partita interrotta')
+              : tr(context, 'Round {round} di {total} · {status}', {
+                  'round': events.roundIndex,
+                  'total': events.roundCount,
+                  'status': turnStatus,
+                })
         : turnStatus;
     Future<void> copyInvite() async {
       await Clipboard.setData(
@@ -2964,7 +3219,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Invito copiato')));
+        ).showSnackBar(SnackBar(content: Text(tr(context, 'Invito copiato'))));
       }
     }
 
@@ -2973,20 +3228,23 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         if (local != null && widget.mode == PlayMode.solo) ...[
           Expanded(
             child: StatBox(
-              label: 'COPPIE',
+              label: tr(context, 'COPPIE'),
               value: '${matched.length ~/ 2} / ${widget.pairs}',
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: StatBox(label: 'TENTATIVI', value: '${events.moves}'),
+            child: StatBox(
+              label: tr(context, 'TENTATIVI'),
+              value: '${events.moves}',
+            ),
           ),
         ] else if (local != null) ...[
           for (var p = 0; p < 2; p++) ...[
             if (p > 0) const SizedBox(width: 8),
             Expanded(
               child: StatBox(
-                label: 'GIOCATORE ${p + 1}',
+                label: tr(context, 'GIOCATORE {number}', {'number': p + 1}),
                 value: '${events.scores[p]}',
                 active: !finished && events.turn == p,
               ),
@@ -2998,12 +3256,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             Expanded(
               child: StatBox(
                 label:
-                    '${players[p]['name']}${players[p]['id'] == playerId ? ' · TU' : ''}',
+                    '${players[p]['name']}${players[p]['id'] == playerId ? tr(context, ' · TU') : ''}',
                 value: rankedMatch
                     ? '${(events.totalAttempts[players[p]['id']] as num?)?.toInt() ?? ((players[p]['attempts'] as num?)?.toInt() ?? 0)}'
                     : '${players[p]['score']}',
                 detail: rankedMatch
-                    ? '${players[p]['score']} ${players[p]['score'] == 1 ? 'coppia' : 'coppie'} · ${players[p]['attempts'] ?? 0} ${(players[p]['attempts'] ?? 0) == 1 ? 'tentativo' : 'tentativi'}'
+                    ? '${players[p]['score']} ${players[p]['score'] == 1 ? tr(context, 'coppia') : tr(context, 'coppie')} · ${players[p]['attempts'] ?? 0} ${(players[p]['attempts'] ?? 0) == 1 ? tr(context, 'tentativo') : tr(context, 'tentativi')}'
                     : null,
                 active: !finished && players[p]['id'] == events.turn,
               ),
@@ -3033,18 +3291,20 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                         children: [
                           IconButton(
                             onPressed: exit,
-                            tooltip: 'Torna alla home',
-                            icon: const Icon(Icons.arrow_back_rounded),
+                            tooltip: tr(context, 'Torna alla home'),
+                            icon: const Icon(
+                              Icons.arrow_back_rounded,
+                              color: ink,
+                            ),
                           ),
                           Container(
                             width: 32,
                             height: 32,
                             padding: const EdgeInsets.all(3),
                             decoration: BoxDecoration(
-                              color: collectionColor(
-                                gameTheme,
-                              ).withValues(alpha: .12),
+                              color: popYellow,
                               borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: ink, width: 2),
                             ),
                             child: widget.online?.roomPreview != null
                                 ? const Icon(
@@ -3061,13 +3321,16 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                           Expanded(
                             child: Text(
                               widget.online?.roomPreview != null
-                                  ? 'Stanza ${widget.online!.roomPreview!.code}'
-                                  : deckNames[gameTheme]!,
+                                  ? tr(context, 'Stanza {code}', {
+                                      'code': widget.online!.roomPreview!.code,
+                                    })
+                                  : tr(context, deckNames[gameTheme]!),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 18,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w800,
+                                color: paper,
                               ),
                             ),
                           ),
@@ -3075,8 +3338,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                             Text(
                               clockText(local!.seconds),
                               style: const TextStyle(
-                                color: ink,
-                                fontWeight: FontWeight.w600,
+                                color: paper,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                           if (network)
@@ -3084,15 +3347,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                               widget.mode == PlayMode.bluetooth
                                   ? Icons.bluetooth_rounded
                                   : Icons.public_rounded,
-                              color: connected ? teal : coral,
+                              color: connected ? popYellow : coral,
                               size: 20,
                             ),
                           if (code != null && widget.online != null)
                             IconButton(
-                              tooltip: 'Copia invito · $code',
+                              tooltip: tr(context, 'Copia invito · {code}', {
+                                'code': code,
+                              }),
                               onPressed: copyInvite,
                               icon: const Icon(
                                 Icons.ios_share_rounded,
+                                color: ink,
                                 size: 20,
                               ),
                             ),
@@ -3104,11 +3370,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                               error ??
                               widget.online?.status ??
                               widget.bluetooth?.status ??
-                              'Connessione…',
+                              tr(context, 'Connessione…'),
                           error: error != null,
                           action: widget.online?.canRetry == true
                               ? IconButton(
-                                  tooltip: 'Riprova connessione',
+                                  tooltip: tr(context, 'Riprova connessione'),
                                   onPressed: () => widget.online!.open(null),
                                   icon: const Icon(Icons.refresh_rounded),
                                 )
@@ -3134,8 +3400,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                              color: paper,
-                              borderRadius: BorderRadius.circular(10),
+                              color: popYellow,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: ink, width: 2),
                             ),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
@@ -3143,13 +3410,15 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                 vertical: 2,
                               ),
                               child: Text(
-                                finished ? 'Partita terminata' : status,
+                                finished
+                                    ? tr(context, 'Partita terminata')
+                                    : status,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   color: ink,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
                                 ),
                               ),
                             ),
@@ -3208,12 +3477,15 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                       padding: const EdgeInsets.all(18),
                                       decoration: BoxDecoration(
                                         color: paper,
-                                        borderRadius: BorderRadius.circular(24),
-                                        border: Border.all(color: line),
+                                        borderRadius: BorderRadius.circular(18),
+                                        border: Border.all(
+                                          color: ink,
+                                          width: 3,
+                                        ),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: ink.withValues(alpha: .18),
-                                            blurRadius: 24,
+                                            color: ink,
+                                            offset: const Offset(0, 6),
                                           ),
                                         ],
                                       ),
@@ -3224,7 +3496,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                             children: [
                                               const Icon(
                                                 Icons.stars_rounded,
-                                                color: Color(0xFFDAA12D),
+                                                color: coral,
                                                 size: 32,
                                               ),
                                               const SizedBox(width: 8),
@@ -3234,7 +3506,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                                   textAlign: TextAlign.center,
                                                   style: const TextStyle(
                                                     fontSize: 23,
-                                                    fontWeight: FontWeight.w700,
+                                                    fontWeight: FontWeight.w800,
                                                   ),
                                                 ),
                                               ),
@@ -3243,17 +3515,55 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                           const SizedBox(height: 8),
                                           Text(
                                             events.finishReason == 'cancelled'
-                                                ? 'Nessuna variazione di corone.'
+                                                ? tr(
+                                                    context,
+                                                    'Nessuna variazione di corone.',
+                                                  )
                                                 : events.finishReason ==
                                                       'forfeit'
                                                 ? events.winnerId == playerId
-                                                      ? 'Vittoria per abbandono dell’avversario.'
-                                                      : 'Sconfitta per abbandono.'
+                                                      ? tr(
+                                                          context,
+                                                          'Vittoria per abbandono dell’avversario.',
+                                                        )
+                                                      : tr(
+                                                          context,
+                                                          'Sconfitta per abbandono.',
+                                                        )
                                                 : rankedMatch
-                                                ? 'Tentativi totali: ${players.map((player) => (events.totalAttempts[player['id']] as num?)?.toInt() ?? 0).join(' – ')} · ${events.roundResults.length} round'
+                                                ? tr(
+                                                    context,
+                                                    'Tentativi totali: {attempts} · {count} round',
+                                                    {
+                                                      'attempts': players
+                                                          .map(
+                                                            (player) =>
+                                                                (events.totalAttempts[player['id']]
+                                                                        as num?)
+                                                                    ?.toInt() ??
+                                                                0,
+                                                          )
+                                                          .join(' – '),
+                                                      'count': events
+                                                          .roundResults
+                                                          .length,
+                                                    },
+                                                  )
                                                 : local != null
-                                                ? '${clockText(local!.seconds)} · ${events.moves} tentativi'
-                                                : 'Partita completata.',
+                                                ? tr(
+                                                    context,
+                                                    '{time} · {count} tentativi',
+                                                    {
+                                                      'time': clockText(
+                                                        local!.seconds,
+                                                      ),
+                                                      'count': events.moves,
+                                                    },
+                                                  )
+                                                : tr(
+                                                    context,
+                                                    'Partita completata.',
+                                                  ),
                                             textAlign: TextAlign.center,
                                             style: const TextStyle(
                                               color: muted,
@@ -3270,7 +3580,29 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                                   for (final round
                                                       in events.roundResults)
                                                     Text(
-                                                      'Round ${round['round']} · ${deckNames[round['theme']] ?? round['theme']} · ${players.map((player) => (round['attempts'] as Map?)?[player['id']] ?? 0).join(' – ')} tentativi',
+                                                      tr(
+                                                        context,
+                                                        'Round {round} · {deck} · {attempts} tentativi',
+                                                        {
+                                                          'round':
+                                                              round['round'] ??
+                                                              '',
+                                                          'deck': tr(
+                                                            context,
+                                                            deckNames[round['theme']] ??
+                                                                round['theme']
+                                                                    .toString(),
+                                                          ),
+                                                          'attempts': players
+                                                              .map(
+                                                                (player) =>
+                                                                    (round['attempts']
+                                                                        as Map?)?[player['id']] ??
+                                                                    0,
+                                                              )
+                                                              .join(' – '),
+                                                        },
+                                                      ),
                                                       textAlign:
                                                           TextAlign.center,
                                                       style: const TextStyle(
@@ -3287,7 +3619,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                                 top: 8,
                                               ),
                                               child: Text(
-                                                rewardMessage!,
+                                                _gameMessage(
+                                                  context,
+                                                  rewardMessage!,
+                                                ),
                                                 textAlign: TextAlign.center,
                                                 style: const TextStyle(
                                                   color: ink,
@@ -3313,18 +3648,26 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                             ),
                                             label: Text(
                                               vote
-                                                  ? 'In attesa…'
-                                                  : 'Un’altra partita',
+                                                  ? tr(context, 'In attesa…')
+                                                  : tr(
+                                                      context,
+                                                      'Un’altra partita',
+                                                    ),
                                             ),
                                           ),
                                           if (network &&
                                               (s?['rematch'] as List? ?? [])
                                                   .isNotEmpty &&
                                               !vote)
-                                            const Padding(
-                                              padding: EdgeInsets.only(top: 8),
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 8,
+                                              ),
                                               child: Text(
-                                                'Rivincita richiesta',
+                                                tr(
+                                                  context,
+                                                  'Rivincita richiesta',
+                                                ),
                                                 style: TextStyle(color: teal),
                                               ),
                                             ),
@@ -3345,12 +3688,15 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                       padding: const EdgeInsets.all(18),
                                       decoration: BoxDecoration(
                                         color: paper,
-                                        borderRadius: BorderRadius.circular(22),
-                                        border: Border.all(color: line),
+                                        borderRadius: BorderRadius.circular(18),
+                                        border: Border.all(
+                                          color: ink,
+                                          width: 3,
+                                        ),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: ink.withValues(alpha: .18),
-                                            blurRadius: 24,
+                                            color: ink,
+                                            offset: const Offset(0, 6),
                                           ),
                                         ],
                                       ),
@@ -3358,17 +3704,41 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
-                                            'Round ${events.roundIndex} completato',
+                                            tr(
+                                              context,
+                                              'Round {round} completato',
+                                              {'round': events.roundIndex},
+                                            ),
                                             style: const TextStyle(
                                               fontSize: 21,
-                                              fontWeight: FontWeight.w700,
+                                              fontWeight: FontWeight.w800,
                                             ),
                                           ),
                                           const SizedBox(height: 6),
                                           for (final round
                                               in events.roundResults)
                                             Text(
-                                              'Round ${round['round']} · ${deckNames[round['theme']] ?? round['theme']} · ${players.map((player) => (round['attempts'] as Map?)?[player['id']] ?? 0).join(' – ')} tentativi',
+                                              tr(
+                                                context,
+                                                'Round {round} · {deck} · {attempts} tentativi',
+                                                {
+                                                  'round': round['round'] ?? '',
+                                                  'deck': tr(
+                                                    context,
+                                                    deckNames[round['theme']] ??
+                                                        round['theme']
+                                                            .toString(),
+                                                  ),
+                                                  'attempts': players
+                                                      .map(
+                                                        (player) =>
+                                                            (round['attempts']
+                                                                as Map?)?[player['id']] ??
+                                                            0,
+                                                      )
+                                                      .join(' – '),
+                                                },
+                                              ),
                                               textAlign: TextAlign.center,
                                               style: const TextStyle(
                                                 fontSize: 13,
@@ -3377,9 +3747,23 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                             ),
                                           const SizedBox(height: 8),
                                           Text(
-                                            'Tentativi totali: ${players.map((player) => (events.totalAttempts[player['id']] as num?)?.toInt() ?? 0).join(' – ')}',
+                                            tr(
+                                              context,
+                                              'Tentativi totali: {attempts}',
+                                              {
+                                                'attempts': players
+                                                    .map(
+                                                      (player) =>
+                                                          (events.totalAttempts[player['id']]
+                                                                  as num?)
+                                                              ?.toInt() ??
+                                                          0,
+                                                    )
+                                                    .join(' – '),
+                                              },
+                                            ),
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.w700,
+                                              fontWeight: FontWeight.w800,
                                             ),
                                           ),
                                           const SizedBox(height: 12),
@@ -3405,8 +3789,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                               events.roundReady.contains(
                                                     playerId,
                                                   )
-                                                  ? 'In attesa…'
-                                                  : 'Prossimo round',
+                                                  ? tr(context, 'In attesa…')
+                                                  : tr(
+                                                      context,
+                                                      'Prossimo round',
+                                                    ),
                                             ),
                                           ),
                                         ],
@@ -3504,9 +3891,10 @@ class StatBox extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     decoration: BoxDecoration(
-      color: active ? teal.withValues(alpha: .08) : Colors.white,
-      border: Border.all(color: active ? teal : line),
+      color: active ? popYellow : paper,
+      border: Border.all(color: ink, width: 2),
       borderRadius: BorderRadius.circular(14),
+      boxShadow: const [BoxShadow(color: ink, offset: Offset(0, 3))],
     ),
     child: Row(
       children: [
@@ -3517,8 +3905,8 @@ class StatBox extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 11,
-              color: active ? teal : muted,
-              fontWeight: FontWeight.w600,
+              color: ink,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ),
@@ -3533,7 +3921,7 @@ class StatBox extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 22,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               if (detail != null)
@@ -3659,9 +4047,12 @@ class _BluetoothLobbyState extends State<BluetoothLobby> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Bluetooth non disponibile. Controlla permessi e connessione.',
+              tr(
+                context,
+                'Bluetooth non disponibile. Controlla permessi e connessione.',
+              ),
             ),
           ),
         );
@@ -3678,24 +4069,34 @@ class _BluetoothLobbyState extends State<BluetoothLobby> {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        foregroundColor: paper,
+        iconTheme: const IconThemeData(color: ink),
+        actionsIconTheme: const IconThemeData(color: ink),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        title: Text(widget.hosting ? 'Crea partita' : 'Cerca partita'),
+        title: Text(
+          widget.hosting
+              ? tr(context, 'Crea partita')
+              : tr(context, 'Cerca partita'),
+        ),
         actions: [
           IconButton(
-            tooltip: 'Aiuto Bluetooth',
+            tooltip: tr(context, 'Aiuto Bluetooth'),
             icon: const Icon(Icons.help_outline_rounded),
             onPressed: () => showDialog<void>(
               context: context,
               builder: (context) => AlertDialog(
-                title: const Text('Connessione Bluetooth'),
-                content: const Text(
-                  'Attiva il Bluetooth e tieni le due app aperte. Un giocatore ospita, l’altro cerca.\n\nSe la partita non compare, scambiate i ruoli: alcuni Android non possono ospitare. Sui modelli meno recenti può servire il permesso di posizione.',
+                title: Text(tr(context, 'Connessione Bluetooth')),
+                content: Text(
+                  tr(
+                    context,
+                    'Attiva il Bluetooth e tieni le due app aperte. Un giocatore ospita, l’altro cerca.\n\nSe la partita non compare, scambiate i ruoli: alcuni Android non possono ospitare. Sui modelli meno recenti può servire il permesso di posizione.',
+                  ),
                 ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Chiudi'),
+                    child: Text(tr(context, 'Chiudi')),
                   ),
                 ],
               ),
@@ -3713,10 +4114,16 @@ class _BluetoothLobbyState extends State<BluetoothLobby> {
                 children: [
                   Text(
                     widget.hosting
-                        ? '${deckNames[widget.theme]} · ${widget.pairs} coppie'
-                        : 'Scegli una partita vicina. Il mazzo e le coppie sono quelli di chi crea.',
+                        ? tr(context, '{deck} · {count} coppie', {
+                            'deck': tr(context, deckNames[widget.theme] ?? ''),
+                            'count': widget.pairs ?? 0,
+                          })
+                        : tr(
+                            context,
+                            'Scegli una partita vicina. Il mazzo e le coppie sono quelli di chi crea.',
+                          ),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: ink),
+                    style: const TextStyle(color: paper),
                   ),
                   const SizedBox(height: 12),
                   SizedBox(
@@ -3726,13 +4133,15 @@ class _BluetoothLobbyState extends State<BluetoothLobby> {
                             onPressed: busy ? null : () => connect(),
                             icon: const Icon(Icons.refresh_rounded),
                             label: Text(
-                              busy ? 'Creazione in corso…' : 'Riprova',
+                              busy
+                                  ? tr(context, 'Creazione in corso…')
+                                  : tr(context, 'Riprova'),
                             ),
                           )
                         : OutlinedButton.icon(
                             onPressed: busy ? null : scan,
                             icon: const Icon(Icons.radar_rounded),
-                            label: const Text('Aggiorna ricerca'),
+                            label: Text(tr(context, 'Aggiorna ricerca')),
                           ),
                   ),
                   const SizedBox(height: 8),
@@ -3782,8 +4191,8 @@ class _NearbyPeersState extends State<_NearbyPeers> {
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, c) {
       if (widget.peers.isEmpty) {
-        return const Center(
-          child: _WorldNotice(message: 'Nessuna partita trovata'),
+        return Center(
+          child: _WorldNotice(message: tr(context, 'Nessuna partita trovata')),
         );
       }
       final perPage = math.max(1, ((c.maxHeight - 48) / 64).floor());
@@ -3798,20 +4207,35 @@ class _NearbyPeersState extends State<_NearbyPeers> {
                 for (final peer in peers)
                   SizedBox(
                     height: 64,
-                    child: ListTile(
-                      leading: const Icon(
-                        Icons.smartphone_rounded,
-                        color: teal,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Material(
+                        color: paper,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: const BorderSide(color: ink, width: 1.5),
+                        ),
+                        child: ListTile(
+                          leading: const Icon(
+                            Icons.smartphone_rounded,
+                            color: teal,
+                          ),
+                          title: Text(
+                            peer.name == 'SommoMemory vicino'
+                                ? tr(context, peer.name)
+                                : peer.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: ink,
+                          ),
+                          onTap: widget.onJoin == null
+                              ? null
+                              : () => widget.onJoin!(peer),
+                        ),
                       ),
-                      title: Text(
-                        peer.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: const Icon(Icons.arrow_forward_rounded),
-                      onTap: widget.onJoin == null
-                          ? null
-                          : () => widget.onJoin!(peer),
                     ),
                   ),
               ],
@@ -3822,15 +4246,18 @@ class _NearbyPeersState extends State<_NearbyPeers> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  tooltip: 'Precedenti',
+                  tooltip: tr(context, 'Precedenti'),
                   onPressed: current == 0
                       ? null
                       : () => setState(() => page = current - 1),
                   icon: const Icon(Icons.chevron_left_rounded),
                 ),
-                Text('${current + 1} / $pages'),
+                Text(
+                  '${current + 1} / $pages',
+                  style: const TextStyle(color: paper),
+                ),
                 IconButton(
-                  tooltip: 'Successive',
+                  tooltip: tr(context, 'Successive'),
                   onPressed: current + 1 == pages
                       ? null
                       : () => setState(() => page = current + 1),
@@ -3867,7 +4294,7 @@ class _WorldNotice extends StatelessWidget {
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              message,
+              _gameMessage(context, message),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: ink, fontSize: 13),
@@ -3921,33 +4348,45 @@ class _RoomStatusPanel extends StatelessWidget {
         lobbyPlayers.length == 2 &&
         lobbyPlayers.every((player) => player['connected'] == true);
     final title = preview != null
-        ? 'Stanza completa'
+        ? tr(context, 'Stanza completa')
         : update
-        ? 'Aggiornamento necessario'
+        ? tr(context, 'Aggiornamento necessario')
         : failed || terminal
-        ? 'Partita non disponibile'
+        ? tr(context, 'Partita non disponibile')
         : reconnecting
-        ? 'Riconnessione…'
+        ? tr(context, 'Riconnessione…')
         : lobby
-        ? 'Lobby della stanza'
+        ? tr(context, 'Lobby della stanza')
         : waitingForPlayer
-        ? 'In attesa del secondo giocatore'
-        : 'Connessione alla partita…';
+        ? tr(context, 'In attesa del secondo giocatore')
+        : tr(context, 'Connessione alla partita…');
     final description = preview != null
-        ? 'I due posti sono occupati. Non sei entrato nella partita.'
+        ? tr(
+            context,
+            'I due posti sono occupati. Non sei entrato nella partita.',
+          )
         : failed || terminal
-        ? error ?? 'Questa stanza non è più disponibile.'
+        ? error ?? tr(context, 'Questa stanza non è più disponibile.')
         : reconnecting
         ? online!.status
         : lobby
         ? lobbyPlayers.length < 2
-              ? 'Condividi il codice: un amico può ancora entrare nella lobby.'
-              : 'Entrambi i giocatori devono scegliere Pronto per iniziare.'
+              ? tr(
+                  context,
+                  'Condividi il codice: un amico può ancora entrare nella lobby.',
+                )
+              : tr(
+                  context,
+                  'Entrambi i giocatori devono scegliere Pronto per iniziare.',
+                )
         : waitingForPlayer
         ? bluetooth
-              ? 'Sul secondo telefono scegli Bluetooth e cerca la partita.'
-              : 'Condividi il codice per entrare nella stanza.'
-        : online?.status ?? 'Prepariamo la partita…';
+              ? tr(
+                  context,
+                  'Sul secondo telefono scegli Bluetooth e cerca la partita.',
+                )
+              : tr(context, 'Condividi il codice per entrare nella stanza.')
+        : online?.status ?? tr(context, 'Prepariamo la partita…');
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxHeight < 330;
@@ -3979,7 +4418,7 @@ class _RoomStatusPanel extends StatelessWidget {
                       ),
                       SizedBox(height: compact ? 6 : 10),
                       Text(
-                        description,
+                        _gameMessage(context, description),
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: ink, fontSize: 14),
                       ),
@@ -4001,14 +4440,16 @@ class _RoomStatusPanel extends StatelessWidget {
                                     final playerReady =
                                         playerId is String &&
                                         lobbyReady.contains(playerId);
-                                    final role = index == 0 ? 'Host' : 'Ospite';
+                                    final role = index == 0
+                                        ? 'Host'
+                                        : tr(context, 'Ospite');
                                     final playerStatus = player == null
-                                        ? 'Posto libero'
+                                        ? tr(context, 'Posto libero')
                                         : !playerConnected
-                                        ? 'Disconnesso'
+                                        ? tr(context, 'Disconnesso')
                                         : playerReady
-                                        ? 'Pronto'
-                                        : 'In attesa';
+                                        ? tr(context, 'Pronto')
+                                        : tr(context, 'In attesa');
                                     return Container(
                                       padding: const EdgeInsets.all(10),
                                       decoration: BoxDecoration(
@@ -4055,12 +4496,18 @@ class _RoomStatusPanel extends StatelessWidget {
                                   !lobbySelfReady
                               ? () => online!.ready(true)
                               : null,
-                          child: Text(lobbySelfReady ? 'In attesa…' : 'Pronto'),
+                          child: Text(
+                            lobbySelfReady
+                                ? tr(context, 'In attesa…')
+                                : tr(context, 'Pronto'),
+                          ),
                         ),
                         TextButton(
                           onPressed: onLeaveLobby,
                           child: Text(
-                            lobbyHost ? 'Chiudi lobby' : 'Esci dalla lobby',
+                            lobbyHost
+                                ? tr(context, 'Chiudi lobby')
+                                : tr(context, 'Esci dalla lobby'),
                           ),
                         ),
                       ],
@@ -4090,7 +4537,7 @@ class _RoomStatusPanel extends StatelessWidget {
                                         ),
                                       ),
                                       Text(
-                                        '${players[i]['score']} ${players[i]['score'] == 1 ? 'coppia' : 'coppie'}',
+                                        '${players[i]['score']} ${players[i]['score'] == 1 ? tr(context, 'coppia') : tr(context, 'coppie')}',
                                         style: const TextStyle(
                                           color: ink,
                                           fontSize: 18,
@@ -4108,9 +4555,21 @@ class _RoomStatusPanel extends StatelessWidget {
                         Text(
                           preview.phase == 'finished'
                               ? preview.winnerId == null
-                                    ? 'Risultato finale · Pareggio'
-                                    : 'Risultato finale · Vince ${winner ?? 'un giocatore'}'
-                              : 'Partita in corso · Stanza ${preview.code}',
+                                    ? tr(context, 'Risultato finale · Pareggio')
+                                    : tr(
+                                        context,
+                                        'Risultato finale · Vince {name}',
+                                        {
+                                          'name':
+                                              winner ??
+                                              tr(context, 'un giocatore'),
+                                        },
+                                      )
+                              : tr(
+                                  context,
+                                  'Partita in corso · Stanza {code}',
+                                  {'code': preview.code},
+                                ),
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             color: ink,
@@ -4119,18 +4578,24 @@ class _RoomStatusPanel extends StatelessWidget {
                         ),
                       ],
                       if (preview != null)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 4),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
                           child: Text(
-                            'Anteprima statica · aggiorna per il risultato',
+                            tr(
+                              context,
+                              'Anteprima statica · aggiorna per il risultato',
+                            ),
                             textAlign: TextAlign.center,
                             style: TextStyle(color: ink, fontSize: 11),
                           ),
                         ),
                       if (update) ...[
                         const SizedBox(height: 8),
-                        const Text(
-                          'Aggiorna SommoMemory da TestFlight o Google Play, poi riapri l’invito.',
+                        Text(
+                          tr(
+                            context,
+                            'Aggiorna SommoMemory da TestFlight o Google Play, poi riapri l’invito.',
+                          ),
                           textAlign: TextAlign.center,
                           style: TextStyle(color: ink, fontSize: 13),
                         ),
@@ -4154,7 +4619,7 @@ class _RoomStatusPanel extends StatelessWidget {
                           TextButton.icon(
                             onPressed: onCopy,
                             icon: const Icon(Icons.copy_rounded, size: 18),
-                            label: const Text('Copia invito'),
+                            label: Text(tr(context, 'Copia invito')),
                           ),
                       ],
                       if (failed || terminal || preview != null) ...[
@@ -4169,15 +4634,15 @@ class _RoomStatusPanel extends StatelessWidget {
                                 onPressed: onBack,
                                 child: Text(
                                   preview != null
-                                      ? 'Cambia stanza'
-                                      : 'Torna alla home',
+                                      ? tr(context, 'Cambia stanza')
+                                      : tr(context, 'Torna alla home'),
                                 ),
                               ),
                             ),
                             if (preview != null) ...[
                               const SizedBox(width: 8),
                               IconButton(
-                                tooltip: 'Aggiorna anteprima',
+                                tooltip: tr(context, 'Aggiorna anteprima'),
                                 onPressed: online?.canRefreshPreview == true
                                     ? () => online!.refreshPreview()
                                     : null,
@@ -4188,7 +4653,7 @@ class _RoomStatusPanel extends StatelessWidget {
                               const SizedBox(width: 8),
                               IconButton(
                                 onPressed: () => online!.open(null),
-                                tooltip: 'Riprova connessione',
+                                tooltip: tr(context, 'Riprova connessione'),
                                 icon: const Icon(Icons.refresh_rounded),
                               ),
                             ],
@@ -4205,4 +4670,33 @@ class _RoomStatusPanel extends StatelessWidget {
       },
     );
   }
+}
+
+/// Localize display-only text while leaving network messages and stored receipts unchanged.
+String _gameMessage(BuildContext context, String message) {
+  final patterns = <(RegExp, String, String)>[
+    (
+      RegExp(r'^Visibile come SommoMemory (.+)$'),
+      'Visibile come SommoMemory {code}',
+      'code',
+    ),
+    (RegExp(r'^Connessione a (.+)…$'), 'Connessione a {name}…', 'name'),
+    (RegExp(r'^\+(\d+) gemme$'), '+{count} gemme', 'count'),
+    (RegExp(r'^([+-]?\d+) corone$'), '{count} corone', 'count'),
+    (
+      RegExp(r'^Saldo aggiornato · (\d+) gemme$'),
+      'Saldo aggiornato · {count} gemme',
+      'count',
+    ),
+  ];
+  for (final (pattern, source, key) in patterns) {
+    final match = pattern.firstMatch(message);
+    if (match != null) return tr(context, source, {key: match.group(1)!});
+  }
+  // A ranked reward receipt combines crowns and the gem-balance message.
+  if (RegExp(r'^[+-]?\d+ corone · ').hasMatch(message)) {
+    final separator = message.indexOf(' · ');
+    return '${_gameMessage(context, message.substring(0, separator))} · ${_gameMessage(context, message.substring(separator + 3))}';
+  }
+  return tr(context, message);
 }

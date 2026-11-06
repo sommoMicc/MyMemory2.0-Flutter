@@ -1,0 +1,50 @@
+[
+  {
+    "file": "01-home-pop-30017-it.png",
+    "width": 2064,
+    "height": 2752,
+    "mode": "RGB",
+    "bytes": 122300,
+    "sha256": "c41e8e2ae7c77368e40d3a80d7887b7f1044a6b67669bc5dc33e28f3517ed5fe",
+    "rgbPixelsSha256": "f259a3fb77a318f9e061efd0dcf5581e9f6b595f04fc74cfd00f6c013dba2a1d",
+    "alphaWasFullyOpaque": true,
+    "crcVerified": true,
+    "sbitChannels": 3
+  },
+  {
+    "file": "02-tabellone-pop-30017-it.png",
+    "width": 2064,
+    "height": 2752,
+    "mode": "RGB",
+    "bytes": 177466,
+    "sha256": "ddf8e1e1034fd3d296ded982c83a7ff72eb51caebb99c99cea39680f9fa3d574",
+    "rgbPixelsSha256": "e0df1b3127e067babf3447586c69fe3cc0ffbe2a1da63a97155191869a2c8fbf",
+    "alphaWasFullyOpaque": true,
+    "crcVerified": true,
+    "sbitChannels": 3
+  },
+  {
+    "file": "03-viaggio-30017-it.png",
+    "width": 2064,
+    "height": 2752,
+    "mode": "RGB",
+    "bytes": 240810,
+    "sha256": "4dd12b8d0e761b3a08ee4fae8ea8ab37202de984bdb7269d7eb3085c94ef7b72",
+    "rgbPixelsSha256": "3673dc62ed43dc1e17e78b81a55235033a2d54609f73e7a6bfb112eceb7edda4",
+    "alphaWasFullyOpaque": true,
+    "crcVerified": true,
+    "sbitChannels": 3
+  },
+  {
+    "file": "04-collezioni-30017-it.png",
+    "width": 2064,
+    "height": 2752,
+    "mode": "RGB",
+    "bytes": 845221,
+    "sha256": "cd51c03e6de15905b497075cad4d57a293b5377d5ffdf0ceadb217bbaabadfab",
+    "rgbPixelsSha256": "cdce10b2b8798a7c0b86630fefa0d78b75135fd6f4d14c47fde1d92ff1ff3e4e",
+    "alphaWasFullyOpaque": true,
+    "crcVerified": true,
+    "sbitChannels": 3
+  }
+]

@@ -1,0 +1,89 @@
+{
+  "release": "20261106-pop-30016",
+  "version": "3.1.0",
+  "build": 30016,
+  "verifiedAt": "2026-11-06T09:06:00.173Z",
+  "baseUrl": "https://sommomemory.sommomi.cc",
+  "deployment": {
+    "transport": "trusted LAN SSH with strict host-key verification",
+    "previousRelease": "20261106-pop-30015",
+    "currentRelease": "20261106-pop-30016",
+    "health": "healthy",
+    "persistentVolume": "mymemory-data",
+    "volumeReset": false,
+    "publicRouteConfigChanged": false
+  },
+  "preservation": {
+    "backupPath": "/data/backups/20261106-pop-30015",
+    "backupMethod": "Node SQLite online backup API",
+    "profilesBefore": 50,
+    "profilesAfter": 53,
+    "preexistingProfilesMissing": 0,
+    "capabilityKeyPreserved": true,
+    "integrity": "ok",
+    "runtimeSchemaChanged": false,
+    "backupNote": "Consistent backup made before UI-only 30015 and retained across the same-day 30016 UI correction; no backend schema changes.",
+    "newProfilesSinceBackup": 3
+  },
+  "web": {
+    "entrypoint": "main.e6562c3f29075853.dart.js",
+    "precacheResources": 412,
+    "verifiedPublicFiles": [
+      {
+        "path": "index.html",
+        "http": 200,
+        "bytes": 2019,
+        "sha256": "bac78211048bb7b4d32f7f35f8f28b73902f9e4947eeae0c5a6316cb6a4b9bb9"
+      },
+      {
+        "path": "flutter_bootstrap.js",
+        "http": 200,
+        "bytes": 13075,
+        "sha256": "b3505c5c5577ead888b31e66efd1fd0d736bb810c00dde11d6ef4d4f0c078e4c"
+      },
+      {
+        "path": "memory_service_worker.js",
+        "http": 200,
+        "bytes": 20797,
+        "sha256": "828bb8bc842472a7a1f5e7a95d516afe7f121acc446bc1370c03a1cc787627c8"
+      },
+      {
+        "path": "version.json",
+        "http": 200,
+        "bytes": 90,
+        "sha256": "b64460f504889433c5087e409a5dc290387a45fed1ffb1a16373e757b8681bc4"
+      },
+      {
+        "path": "assets/assets/decks/garden/dog.png",
+        "http": 200,
+        "bytes": 17321,
+        "sha256": "3bedccab42abb94e34896bed1f855315b315a9c3f001a409673167dbcca06424"
+      },
+      {
+        "path": "icons/Icon-512.png",
+        "http": 200,
+        "bytes": 24747,
+        "sha256": "5153805a1219af011ab97c9fd8c3e89308494d7c6d0f053453f0a5419fc30d67"
+      },
+      {
+        "path": "main.e6562c3f29075853.dart.js",
+        "http": 200,
+        "bytes": 3139862,
+        "sha256": "e6562c3f29075853023938afae205b6d1d28d82bf82f8dc48341723762f30f3d"
+      }
+    ],
+    "entrypointSha256": "e6562c3f29075853023938afae205b6d1d28d82bf82f8dc48341723762f30f3d",
+    "entrypointSelection": "Exact mainJsPath in the release bootstrap; corrected prior report which selected the first stale hashed file in the output directory."
+  },
+  "checks": {
+    "publicHealthz": {
+      "ok": true,
+      "service": "mymemory",
+      "protocol": 1,
+      "rooms": 4
+    },
+    "websocket": "WSS handshake and protocol ping/pong passed; no game or profile created",
+    "publicFilesByteIdentical": true,
+    "activeBootstrapEntrypointByteIdentical": true
+  }
+}

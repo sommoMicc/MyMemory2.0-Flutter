@@ -1,0 +1,163 @@
+{
+  "verifiedAt": "2026-11-06T10:07:26.792Z",
+  "brand": "SommoMemory",
+  "version": "3.1.0",
+  "build": 30017,
+  "packageName": "cc.sommomi.mymemory",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "localeSelection": "Device language, English fallback, persisted automatic/Italian/English preference",
+  "source": {
+    "baseCommit": "7d27c88380cfc9ebb705d976c42aa6e0da5f8b23",
+    "runtimeFiles": 429,
+    "runtimeDigest": "ffd650f7c6f0bc196d096557af45a9e16b3145cd4d35813c97058cdf90aec960",
+    "androidIosAndWorkspaceMatch": true,
+    "nativeBuildsUsedIsolatedCopies": true
+  },
+  "artifacts": {
+    "androidBundle": {
+      "path": "SommoMemory-3.1.0-30017.aab",
+      "bytes": 91393410,
+      "sha256": "958acdacdbdd8eb4c039098c425afd06195398016785df909e22f78a4503d80b"
+    },
+    "androidApk": {
+      "path": "SommoMemory-3.1.0-30017.apk",
+      "bytes": 93337603,
+      "sha256": "5311c4c30b89740a140e4dbf0891fdedd9557c05adec07a97abca41c494a9f54"
+    },
+    "ios": {
+      "path": "artifacts/SommoMemory-3.1.0-30017.ipa",
+      "bytes": 57434105,
+      "sha256": "05dc7ab74a6db7adfca2273ac20dbbda8433de9321cc3fff1eb2d3ec721b28c1"
+    }
+  },
+  "verification": {
+    "android": "bundletool / jarsigner / apksigner passed",
+    "ios": "codesign deep strict / provisioning / account entitlements passed",
+    "localizedIosBluetoothPermissions": "it and en verified in IPA",
+    "bundledDeckPngs": 378,
+    "bundledPythonFiles": 0
+  },
+  "distribution": {
+    "googlePlay": {
+      "appId": "4972469070574777722",
+      "internalTrackId": "4700857721365894827",
+      "releaseId": 15,
+      "status": "active",
+      "testers": {
+        "listName": "MyMemory test interno",
+        "usersObserved": 3,
+        "unchanged": true
+      },
+      "productionRelease": false,
+      "releaseTitle": "3.1.0 Sala giochi pop · English",
+      "detailsUrl": "https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/15/details",
+      "publishedAt": "2026-11-06 10:46 Europe/Rome",
+      "verifiedVersionCode": 30017,
+      "reviewStatus": "Non esaminata",
+      "unsupportedDevicesAdded": 0,
+      "proofScreenshot": "play-internal-live-30017.jpg",
+      "observedAvailability": "Disponibile per i tester interni"
+    },
+    "testFlight": {
+      "buildId": "0123368d-62a7-4ba0-954c-e73fba74d0e2",
+      "processingState": "VALID",
+      "internalBuildState": "IN_BETA_TESTING",
+      "betaGroupName": "SommoMemory Internal",
+      "internalTesterCount": 2,
+      "finalizedAt": "2026-11-06T09:48:30.448Z"
+    },
+    "productionStoreSubmission": false
+  },
+  "storeScope": {
+    "territoryCount": 28,
+    "territories": "27 European Union member states and United States",
+    "primaryLocale": "it",
+    "additionalLocales": [
+      "en-US",
+      "en-GB"
+    ],
+    "price": "free",
+    "inAppPurchases": false
+  },
+  "deployment": {
+    "release": "20261106-pop-30017",
+    "health": "healthy",
+    "preexistingProfilesPreserved": 56,
+    "totalProfilesAfter": 56,
+    "preexistingProfilesMissing": 0,
+    "capabilityKeyPreserved": true,
+    "activeBootstrapEntrypoint": "main.52c71468fa165976.dart.js",
+    "activeBootstrapEntrypointSha256": "52c71468fa1659761ad6f3085c21c7415c5ff178fa9ba409df0b9b24e721b88e",
+    "publicFilesByteIdentical": true,
+    "englishPagesVerified": 4,
+    "report": "artifacts/deployment-30017.json"
+  },
+  "validation": {
+    "flutterSdk": "3.47.9",
+    "flutterAnalysis": "No issues found",
+    "flutterTests": 182,
+    "nodeTests": 101,
+    "fullSuiteAfterFinalFreeze": true,
+    "screenshotCaptures": 24,
+    "screenshotCaptureViewports": 3,
+    "screenshotLanguages": 2,
+    "screenshotFileHashesDimensionsAndRgbVerified": 24,
+    "screenshotSourceMatchesRelease": true,
+    "publishedWebLanguageSwitchVerified": true,
+    "originalDeviceLanguagePreferenceRestored": true
+  },
+  "productionPreparation": {
+    "report": "artifacts/play-production-prepared-30017.json",
+    "submitted": false
+  },
+  "storePreparation": {
+    "googlePlay": {
+      "readyForManualReview": true,
+      "automaticChecks": "passed",
+      "productionPreparedBuild": 30017,
+      "territories": 28,
+      "locales": [
+        "it-IT",
+        "en-US",
+        "en-GB"
+      ],
+      "screenshotsPerLocale": 4,
+      "submitted": false,
+      "report": "artifacts/google-play-final-readiness-30017.json"
+    },
+    "apple": {
+      "build": 30017,
+      "locales": [
+        "it",
+        "en-US",
+        "en-GB"
+      ],
+      "territories": 28,
+      "price": "free",
+      "submitted": false,
+      "report": "artifacts/store-30017/apple-readiness.json",
+      "processedScreenshots": 24,
+      "processedScreenshotSets": 6,
+      "screenshotsPerSet": 4,
+      "screenshotStates": "COMPLETE",
+      "screenshotChecksumsVerified": true,
+      "readyForManualReview": true,
+      "reviewButtonEnabled": true,
+      "knownPending": [],
+      "localizations": [
+        "it",
+        "en-US",
+        "en-GB"
+      ],
+      "betaNotesLocales": [
+        "it",
+        "en-US",
+        "en-GB"
+      ]
+    }
+  },
+  "objectiveCompletedAt": "2026-11-06T10:09:07.248Z"
+}

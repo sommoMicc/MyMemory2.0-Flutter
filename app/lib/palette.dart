@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 
-const ink = Color(0xFF202C43);
-const paper = Color(0xFFFAF7F0);
-const teal = Color(0xFF207B73);
-const coral = Color(0xFFE77962);
-const muted = Color(0xFF7B827E);
-const line = Color(0xFFE6E6DC);
+const ink = Color(0xFF172345);
+const paper = Color(0xFFFFF4D8);
+const popCobalt = Color(0xFF2446D8);
+const popYellow = Color(0xFFFFE34C);
+const popSky = Color(0xFF93E6ED);
+const popNavy = Color(0xFF1B318F);
+const teal = popCobalt;
+const coral = Color(0xFFFF593B);
+const muted = Color(0xFF52617C);
+const line = Color(0xFF172345);
 String deckWorldTheme(String theme) => switch (theme) {
   'garden' || 'farm' || 'flora' || 'insects' || 'dinosaurs' => 'garden',
   'ocean' || 'beach' || 'navigation' || 'pirates' || 'abyss' => 'ocean',

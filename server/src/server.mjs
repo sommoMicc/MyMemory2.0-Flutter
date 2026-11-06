@@ -79,14 +79,14 @@ export function startServer({ port = Number(process.env.PORT || 8787), host = pr
       res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600' });
       if (req.method === 'HEAD') res.end(); else createReadStream(path).on('error', () => res.destroy()).pipe(res);
       return;
-    } else if (pathname === '/delete-account' || pathname === '/delete-account/') {
-      path = resolve(here, '../public/delete-account.html');
+    } else if (['/delete-account', '/delete-account/', '/en/delete-account', '/en/delete-account/'].includes(pathname)) {
+      path = resolve(here, pathname.startsWith('/en/') ? '../public/en/delete-account.html' : '../public/delete-account.html');
       res.setHeader('Referrer-Policy', 'no-referrer');
       res.setHeader('Content-Security-Policy', "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
-    } else if (pathname === '/account-deletion.js') {
-      path = resolve(here, '../public/account-deletion.js');
-    } else if (['/privacy', '/privacy/', '/support', '/support/'].includes(pathname)) {
-      path = resolve(here, '../public', pathname.includes('privacy') ? 'privacy.html' : 'support.html');
+    } else if (pathname === '/account-deletion.js' || pathname === '/en/account-deletion.js') {
+      path = resolve(here, pathname.startsWith('/en/') ? '../public/en/account-deletion.js' : '../public/account-deletion.js');
+    } else if (['/privacy', '/privacy/', '/support', '/support/', '/en/privacy', '/en/privacy/', '/en/support', '/en/support/'].includes(pathname)) {
+      path = resolve(here, pathname.startsWith('/en/') ? '../public/en' : '../public', pathname.includes('privacy') ? 'privacy.html' : 'support.html');
     } else {
       path = resolve(webDir, `.${pathname}`);
       if (path !== resolve(webDir) && !path.startsWith(resolve(webDir) + sep)) { res.writeHead(403); res.end(); return; }

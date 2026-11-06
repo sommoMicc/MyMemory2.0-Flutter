@@ -1,0 +1,13 @@
+{
+  "name": "3.1.0 Sala giochi pop · English",
+  "internal": {
+    "it-IT": "Nuovo stile Sala giochi pop: colori accesi, carte con bordi netti e coppie trovate in giallo. Interfaccia in italiano e inglese: segue la lingua del dispositivo oppure la scelta nelle impostazioni. Partite in solitaria offline con gemme, collezioni e record sincronizzati al ritorno online. Nessun acquisto con denaro.",
+    "en-US": "New pop arcade style: vivid colours, bold card outlines and matched pairs in yellow. English and Italian interface: follows your device language or your choice in Settings. Play solo offline, with gems, collections and records syncing when you reconnect. No real-money purchases.",
+    "en-GB": "New pop arcade style: vivid colours, bold card outlines and matched pairs in yellow. English and Italian interface: follows your device language or your choice in Settings. Play solo offline, with gems, collections and records syncing when you reconnect. No real-money purchases."
+  },
+  "production": {
+    "it-IT": "Nuovo stile Sala giochi pop: colori accesi, carte con bordi netti e coppie trovate in giallo. Interfaccia in italiano e inglese: segue la lingua del dispositivo oppure la scelta nelle impostazioni. Partite in solitaria offline con gemme, collezioni e record sincronizzati al ritorno online. Nessun acquisto con denaro. Disponibilità prevista nell’Unione europea e negli Stati Uniti.",
+    "en-US": "New pop arcade style: vivid colours, bold card outlines and matched pairs in yellow. English and Italian interface: follows your device language or your choice in Settings. Play solo offline, with gems, collections and records syncing when you reconnect. No real-money purchases. Planned availability in the European Union and United States.",
+    "en-GB": "New pop arcade style: vivid colours, bold card outlines and matched pairs in yellow. English and Italian interface: follows your device language or your choice in Settings. Play solo offline, with gems, collections and records syncing when you reconnect. No real-money purchases. Planned availability in the European Union and United States."
+  }
+}

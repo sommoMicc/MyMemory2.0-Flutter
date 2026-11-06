@@ -1,0 +1,7 @@
+SommoMemory 3.1.0 (30015) — Sala giochi pop
+
+Nuova grafica con fondo cobalto, tessere gialle e corallo, contorni scuri e ombre nette. Home, configurazione delle partite, arene, collezioni e profilo seguono la nuova palette. Icona aggiornata su iOS, Android e web. Sul tabellone le carte hanno bordi più marcati e le coppie trovate restano gialle; contatori, avvisi e risultati sono più leggibili.
+
+Verificare su telefoni e tablet piccoli, in verticale e orizzontale: visibilità di tutte le carte senza scorrimento, pulsante di avvio con tastiera, flip, punteggi e cambio turno, Riduci movimento, ritorno dall’app in background, singolo offline e sincronizzazione, amichevoli e classificate online.
+
+Le regole delle partite, le soglie delle arene e i premi sono invariati. Suoni e vibrazioni si possono disattivare separatamente. Bluetooth e accessi Apple/Google continuano a richiedere verifiche su dispositivi fisici. Nessun acquisto in denaro reale.

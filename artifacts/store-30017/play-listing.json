@@ -1,0 +1,52 @@
+{
+  "verifiedAt": "2026-11-06T09:50:16.794Z",
+  "version": "3.1.0",
+  "build": 30017,
+  "package": "cc.sommomi.mymemory",
+  "primaryLocale": "it-IT",
+  "localizations": [
+    {
+      "locale": "it-IT",
+      "name": "SommoMemory",
+      "shortDescription": "Trova le coppie, esplora le arene e sfida gli amici. Anche offline.",
+      "fullDescription": "Allena la memoria con SommoMemory, un gioco di carte per una persona o da condividere. Interfaccia in italiano e inglese.\n\nSCEGLI COME GIOCARE\n• In singolo, trova le coppie al tuo ritmo.\n• In due sullo stesso dispositivo, giocate a turni.\n• Online, crea una stanza privata e invita una persona con il codice. Le amichevoli durano un round; le classificate tre. Non c’è abbinamento automatico.\n• Senza Internet, gioca via Bluetooth tra app Android e iOS: scegli Cerca partita oppure Crea partita. Tieni entrambe le app aperte; la connessione dipende dai dispositivi.\n\nGIOCA ANCHE OFFLINE\nL’individuale è disponibile senza Internet dal primo avvio. Gemme, collezioni e record vengono salvati sul dispositivo e sincronizzati automaticamente al ritorno della connessione.\n\nESPLORA QUATTRO ARENE\nValle Selvaggia, Baia Corallina, Grande Città e Frontiera Spaziale si sbloccano a 0, 100, 300 e 600 corone. Troverai 21 mazzi illustrati, con tre mazzi gratuiti per arena e altri sbloccabili usando le gemme guadagnate giocando. Paola è il mazzo gratuito di sillabe italiane.\n\nCONFRONTATI IN TRE ROUND\nLe classificate si giocano solo su invito con un codice. Entrambi i giocatori affrontano, senza turni, tabelloni individuali identici. Si giocano tre round con mazzi diversi e vince chi totalizza meno tentativi. I due profili devono trovarsi nella stessa arena.\n\nINIZIA COME OSPITE\nApple e Google sono opzioni per collegare il profilo; puoi anche usare un codice di recupero. La sincronizzazione riguarda gemme, mazzi, personalizzazione e record dell’individuale. Nessun acquisto in denaro.\n\nPrivacy: https://sommomemory.sommomi.cc/privacy\nAssistenza: https://sommomemory.sommomi.cc/support",
+      "screenshots": [
+        "01-home-pop-30017-it.png",
+        "02-tabellone-pop-30017-it.png",
+        "03-viaggio-30017-it.png",
+        "04-collezioni-30017-it.png"
+      ],
+      "readbackVerified": true
+    },
+    {
+      "locale": "en-GB",
+      "name": "SommoMemory",
+      "shortDescription": "Match pairs, explore arenas and challenge friends. Play solo offline too.",
+      "fullDescription": "Train your memory with SommoMemory, a card matching game to enjoy on your own or with someone else. Interface available in English and Italian.\n\nCHOOSE HOW TO PLAY\n• Solo: choose a deck and find matching pairs at your own pace.\n• Two players on one device: take turns playing together.\n• Online: create a private room and invite someone with its code. Friendly matches last one round; ranked matches last three. There is no automatic matchmaking.\n• Without Internet: play over Bluetooth between the iOS and Android apps. Choose Find a game or Create a game and keep both apps open; availability depends on your devices.\n\nPLAY OFFLINE TOO\nSolo play works without Internet from the first launch. Gems, unlocked collections and personal records are saved on your device and sync automatically when you reconnect.\n\nFOUR ARENAS, 21 ILLUSTRATED DECKS\nExplore Wild Valley, Coral Bay, Grand City and Space Frontier, unlocked at 0, 100, 300 and 600 crowns. Each arena includes three free decks; other decks unlock with gems earned through play. Paola adds a free deck of Italian syllables.\n\nA THREE-ROUND RANKED CHALLENGE\nInvite someone using a room code. Both players play at the same time on their own identical boards, with the same cards in the same positions. Three different decks are used, one per round. The player who completes all three rounds with the fewest total attempts wins. Both profiles must be in the same arena.\n\nSTART AS A GUEST\nNo registration is required. You can optionally link Apple or Google, or use a recovery code, to access the same profile and sync gems, decks, appearance and solo records. There are no real-money purchases.\n\nPrivacy: https://sommomemory.sommomi.cc/en/privacy\nSupport: https://sommomemory.sommomi.cc/en/support",
+      "screenshots": [
+        "01-home-pop-30017-en.png",
+        "02-tabellone-pop-30017-en.png",
+        "03-viaggio-30017-en.png",
+        "04-collezioni-30017-en.png"
+      ],
+      "readbackVerified": true
+    },
+    {
+      "locale": "en-US",
+      "name": "SommoMemory",
+      "shortDescription": "Match pairs, explore arenas and challenge friends. Play solo offline too.",
+      "fullDescription": "Train your memory with SommoMemory, a card matching game to enjoy on your own or with someone else. Interface available in English and Italian.\n\nCHOOSE HOW TO PLAY\n• Solo: choose a deck and find matching pairs at your own pace.\n• Two players on one device: take turns playing together.\n• Online: create a private room and invite someone with its code. Friendly matches last one round; ranked matches last three. There is no automatic matchmaking.\n• Without Internet: play over Bluetooth between the iOS and Android apps. Choose Find a game or Create a game and keep both apps open; availability depends on your devices.\n\nPLAY OFFLINE TOO\nSolo play works without Internet from the first launch. Gems, unlocked collections and personal records are saved on your device and sync automatically when you reconnect.\n\nFOUR ARENAS, 21 ILLUSTRATED DECKS\nExplore Wild Valley, Coral Bay, Grand City and Space Frontier, unlocked at 0, 100, 300 and 600 crowns. Each arena includes three free decks; other decks unlock with gems earned through play. Paola adds a free deck of Italian syllables.\n\nA THREE-ROUND RANKED CHALLENGE\nInvite someone using a room code. Both players play at the same time on their own identical boards, with the same cards in the same positions. Three different decks are used, one per round. The player who completes all three rounds with the fewest total attempts wins. Both profiles must be in the same arena.\n\nSTART AS A GUEST\nNo registration is required. You can optionally link Apple or Google, or use a recovery code, to access the same profile and sync gems, decks, appearance and solo records. There are no real-money purchases.\n\nPrivacy: https://sommomemory.sommomi.cc/en/privacy\nSupport: https://sommomemory.sommomi.cc/en/support",
+      "screenshots": [
+        "01-home-pop-30017-en.png",
+        "02-tabellone-pop-30017-en.png",
+        "03-viaggio-30017-en.png",
+        "04-collezioni-30017-en.png"
+      ],
+      "readbackVerified": true
+    }
+  ],
+  "sharedIcon": "play-assets/Icon-512.png",
+  "sharedFeatureGraphic": "play-assets/feature-graphic.png",
+  "status": "Saved as draft; ready to send for review",
+  "submitted": false
+}

@@ -1,0 +1,117 @@
+{
+  "release": "20261106-pop-30017",
+  "version": "3.1.0",
+  "build": 30017,
+  "locales": [
+    "it",
+    "en"
+  ],
+  "verifiedAt": "2026-11-06T09:46:55.799Z",
+  "baseUrl": "https://sommomemory.sommomi.cc",
+  "deployment": {
+    "previousRelease": "20261106-pop-30016",
+    "currentRelease": "20261106-pop-30017",
+    "health": "healthy",
+    "persistentVolume": "mymemory-data",
+    "volumeReset": false,
+    "publicRouteConfigChanged": false
+  },
+  "preservation": {
+    "backupPath": "/data/backups/20261106-pop-30017",
+    "backupMethod": "Node SQLite online backup API",
+    "profilesBefore": 56,
+    "profilesAfter": 56,
+    "preexistingProfilesMissing": 0,
+    "capabilityKeyPreserved": true,
+    "integrity": "ok",
+    "runtimeSchemaChanged": false
+  },
+  "web": {
+    "entrypoint": "main.52c71468fa165976.dart.js",
+    "entrypointSha256": "52c71468fa1659761ad6f3085c21c7415c5ff178fa9ba409df0b9b24e721b88e",
+    "entrypointSelection": "Exact mainJsPath in the active bootstrap",
+    "precacheResources": 412,
+    "verifiedPublicFiles": [
+      {
+        "path": "index.html",
+        "http": 200,
+        "bytes": 2019,
+        "sha256": "bac78211048bb7b4d32f7f35f8f28b73902f9e4947eeae0c5a6316cb6a4b9bb9"
+      },
+      {
+        "path": "flutter_bootstrap.js",
+        "http": 200,
+        "bytes": 13075,
+        "sha256": "20c69ba120d13f5113aa172ea84411f99933ac57a02de50c6657daf4580452a6"
+      },
+      {
+        "path": "main.52c71468fa165976.dart.js",
+        "http": 200,
+        "bytes": 3621946,
+        "sha256": "52c71468fa1659761ad6f3085c21c7415c5ff178fa9ba409df0b9b24e721b88e"
+      },
+      {
+        "path": "memory_service_worker.js",
+        "http": 200,
+        "bytes": 20797,
+        "sha256": "4e1fab5e4ede7c127dd096d1239cc811eba6bbf602f5ee69a316291f81a56554"
+      },
+      {
+        "path": "version.json",
+        "http": 200,
+        "bytes": 90,
+        "sha256": "bd1859c866a368ea32dbca0be421fa53dc1b8b42698033b19dbad8ce87f3e050"
+      },
+      {
+        "path": "assets/assets/decks/garden/dog.png",
+        "http": 200,
+        "bytes": 17321,
+        "sha256": "3bedccab42abb94e34896bed1f855315b315a9c3f001a409673167dbcca06424"
+      },
+      {
+        "path": "icons/Icon-512.png",
+        "http": 200,
+        "bytes": 24747,
+        "sha256": "5153805a1219af011ab97c9fd8c3e89308494d7c6d0f053453f0a5419fc30d67"
+      }
+    ],
+    "englishPages": [
+      {
+        "path": "en/privacy",
+        "http": 200,
+        "bytes": 9306,
+        "sha256": "e3ddbdadef1b15a0978842c17adce6f9383905676d0a6255ebff71d2846ffdac"
+      },
+      {
+        "path": "en/support",
+        "http": 200,
+        "bytes": 4617,
+        "sha256": "09544367f331fdb91d168223e34b7c6e69635e65907233ebc3bf50d41380cf13"
+      },
+      {
+        "path": "en/delete-account",
+        "http": 200,
+        "bytes": 3694,
+        "sha256": "3a2eb3747bd0724b8defe02269b3b46449978c825ced2740c495f8337fe8dd92"
+      },
+      {
+        "path": "en/account-deletion.js",
+        "http": 200,
+        "bytes": 5086,
+        "sha256": "b59b3f75b9df1a19064e2a08deb98823d5d2f839a43519d7c70240cff9eb96ad"
+      }
+    ]
+  },
+  "checks": {
+    "publicHealthz": {
+      "ok": true,
+      "service": "mymemory",
+      "protocol": 1,
+      "rooms": 4
+    },
+    "publicFilesByteIdentical": true,
+    "englishPagesByteIdentical": true,
+    "activeBootstrapEntrypointByteIdentical": true,
+    "websocket": "WSS handshake and protocol ping/pong passed; no game or profile created"
+  }
+}

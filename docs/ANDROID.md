@@ -1,5 +1,60 @@
 # Android — new app and historical listing
 
+## 30017 — Italian and English
+
+Verified **6 November 2026**: **3.1.0 (30017)** is active on the existing internal
+track as release **15**, **3.1.0 Sala giochi pop · English**. The English UI follows
+the device language automatically and can be selected explicitly in Settings;
+Italian remains available, including as an explicit saved override. Other device
+languages fall back to English. Paola's syllables remain Italian.
+
+The existing **MyMemory test interno** audience, observed with **three users**,
+was preserved. Play reports zero newly unsupported devices. The AAB and APK
+signatures, package/version and bundletool validation passed; receipts are
+`artifacts/android-native-build-30017.json` and
+`artifacts/play-internal-30017.json`. The AAB is 91,393,410 bytes, SHA-256
+`958acdacdbdd8eb4c039098c425afd06195398016785df909e22f78a4503d80b`.
+
+Italian, en-US and en-GB listing texts are saved and reread; availability changes
+for exactly **27 EU states + USA** are saved in Publishing Overview, not submitted.
+The final 30017 capture set includes four Italian and four English phone images
+at 1080×1920, with PNG CRC/sBIT and RGB pixel hashes verified. All four images are
+saved and reread for each of the three listing locales, together with the shared
+icon and feature graphic. Console reports the draft ready to send for review.
+Receipts are in `artifacts/store-30017/`, including `play-listing.json`,
+`play-localizations.json`, `play-markets.json` and `screenshots.json`. The production draft now contains only build 30017 in the same 28 countries;
+automatic checks passed and Console enables sending the **13 pending changes**
+for review, with no blocker observed. Evidence:
+`artifacts/google-play-final-readiness-30017.json`. Internal release activation
+does not publish the production draft, and the user retains the submission step.
+
+## 30016 — Sala giochi pop (previous internal release)
+
+Verified **6 November 2026**: **3.1.0 (30016)** is active on the existing internal
+track as release **14**, **Sala giochi pop · comandi più leggibili**. It supersedes
+intermediate build 30015. The cobalt/yellow/coral visual system includes the new
+app icon, framed mode tiles and cards, yellow matched pairs and opaque settings,
+profile and collection surfaces. The final correction gives back/share controls
+and the Bluetooth lobby adequate contrast and declares Outfit explicitly for
+button labels.
+
+The package ID, signing identity and existing tester audience are preserved. Play
+reports **zero newly unsupported devices**. The AAB and APK signatures and the
+bundle manifest/version were verified; bundletool validation passed. The
+consolidated delivery evidence is `artifacts/play-internal-30016.json`, with the
+native details in `artifacts/android-native-build-30016.json` and the proof image
+`artifacts/play-internal-live-30016.jpg`.
+
+The store screenshot set contains four real Flutter UI captures at 1080×1920,
+rendered with an isolated fresh guest and exported as RGB without alpha. Capture
+provenance and hashes are in `artifacts/store-30016/screenshots.json`; these are
+widget-renderer images, not physical-device captures. The Italian listing text,
+512×512 icon, feature graphic and all four screenshots are saved and reread in
+Console, which reports the listing ready for review. The receipt is
+`artifacts/store-30016/play-listing.json`. This listing state does not by itself
+verify every initial app-setup requirement. No production rollout or first-review
+submission has been performed.
+
 ## New app requested by the user
 
 On 5 November 2026 the user explicitly requested a **new Android app**, internal
@@ -13,15 +68,15 @@ testing, and deletion of the historical app. The new Console record is created:
 | Console app ID | `4972469070574777722` |
 | Language/category/pricing | Italian `it-IT`, game, free |
 | Internal track ID | `4700857721365894827` |
-| Tester list | MyMemory test interno; selected and saved; one account owner tester |
-| Release | 12, version `3.1.0 (30014)`; **active on internal track** |
-| Binary | **3.1.0 (30014)** uploaded and accepted |
+| Tester list | MyMemory test interno; three existing users observed; unchanged |
+| Release | 15, version `3.1.0 (30017)`; **active on internal track** |
+| Binary | **3.1.0 (30017)** uploaded and accepted |
 | Track status | **Attivo** |
 | App signing | Releases signed by Google Play; no new terms prompt appeared |
-| Production | No production release requested or performed |
+| Production | Build 30017 draft prepared for 28 countries; not submitted or published |
 
 [New app dashboard](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/app-dashboard)
-and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/12/details).
+and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/15/details).
 The **live internal opt-in link** is
 [Join the internal test](https://play.google.com/apps/internaltest/4700857721365894827).
 It was opened in the owner's signed-in browser and showed the invitation to test
@@ -29,27 +84,22 @@ It was opened in the owner's signed-in browser and showed the invitation to test
 accepted on the user's behalf. The tester must open it with the account included
 in the selected tester list and accept the invitation before installation.
 
-The current AAB is `artifacts/SommoMemory-3.1.0-30014.aab` (90,219,639 bytes;
-SHA-256 `8f2419f3ab78cdfb97a23b1e48e7efe46c65d8b6b7ee986ecc1cbefbd15357cc`).
-Its local JAR signature check reports verified; Play release 12 is active on the
-existing internal track. The signed artifacts, deployment and data-preservation
-summary are recorded in `artifacts/native-builds-30014.json`; the Play-specific
-upload and activation receipt is `artifacts/play-internal-30014.json`. The Italian Play
-listing text and two 1080×1920 phone screenshots are saved. Console confirms
-“Modifica salvata”; the publishing overview lists the Italian listing among the
-changes not yet sent for review. Its submission button is disabled until required
-initial app dashboard steps are complete. Internal testing remains active.
-No production release was created.
+The current AAB is `artifacts/SommoMemory-3.1.0-30017.aab` (91,393,410 bytes;
+SHA-256 `958acdacdbdd8eb4c039098c425afd06195398016785df909e22f78a4503d80b`).
+Its local JAR signature check reports verified; Play release 15 is active on the
+existing internal track. The upload/activation receipt is
+`artifacts/play-internal-30017.json`. Localized listing and market preparation is
+tracked in `artifacts/store-30017/`; listing changes remain separate from internal
+testing and do not establish that all public-review setup declarations are complete. No production review submission or rollout was performed.
 
 Google temporarily displays the unreviewed package name instead of the eventual
 store name for this new internal app. This release is **internal only**, not a
 production listing. Console accepted the binary with min API 24, target API 36,
 three ABIs, and ReTrace mapping/native symbols attached.
 
-Build **30014** is the current internal binary. It adds the illustrated journey
+Build **30017** is the current internal binary. Build **30014** added the illustrated journey
 map and offline solo games with gems, collection unlocks and automatically
-synchronized progress and records; crowns remain reserved for ranked games. Play
-reports zero newly unsupported devices, and the existing internal tester
+synchronized progress and records; crowns remain reserved for ranked games. The existing internal tester
 audience is unchanged. Build **30013** and the feature and package details below
 document the preceding releases and remain as release history. Build
 **30011** replaced the intermediate internal build 30010. That binary uses
@@ -61,7 +111,9 @@ Package, signing identity, internal track and owner-only tester
 list are unchanged. Proof of the active release:
 `artifacts/play-internal-live-30011.jpg`.
 
-This version includes optional original sound cues and haptic feedback for card
+## Earlier releases and capabilities (historical)
+
+Build 30011 includes optional original sound cues and haptic feedback for card
 flips, matches, mismatches and turns, with saved sound/haptics preferences. The
 audio is bundled PCM WAV; lifecycle changes stop pending feedback and iOS uses
 the ambient audio category. The generator is kept outside the app under
@@ -79,7 +131,7 @@ pending entry actions; transport failures remain retryable. Snapshot immutabilit
 late socket messages, refresh without joining, and unchanged frame/rate limits
 are covered by server and client tests.
 
-The current release also includes game-only gems (100 once per new profile, 20 per verified complete
+Build 30011 also includes game-only gems (100 once per new profile, 20 per verified complete
 game), permanent deck unlocks and optional cross-device profiles via a recovery
 code. There are no payments, real-money purchases or account-balance merges.
 Four decks are free: Animals, Space, Ocean and **Paola**, whose 18 syllables are
@@ -151,10 +203,10 @@ verified after reloading the editor. No identifiers or tester settings changed.
 Local evidence, excluded from Git: `artifacts/play-sommomemory-name-draft.jpg`.
 
 At the time of this earlier snapshot, the name was a saved draft and the listing
-description and screenshots were absent. For 3.1.0, the Italian listing text was
-still pending a save and screenshot uploads were in progress when the current
-receipt was prepared. Console continues to show **MyMemory Together** and the
-temporary name **cc.sommomi.mymemory (unreviewed)**. Google's
+description and screenshots were absent. Those statements describe the earlier
+snapshot, not the 30016 listing work, which is tracked in
+`docs/STORE_METADATA_3_1_IT.md`. Console may continue to show **MyMemory Together**
+and the temporary name **cc.sommomi.mymemory (unreviewed)** before first review. Google's
 [internal-testing guidance](https://support.google.com/googleplay/android-developer/answer/9845334)
 explains that testers see a temporary name before the app's first review. A
 complete Store listing and review are separate from the internal binary release;
@@ -162,8 +214,7 @@ neither production publication nor a first-review submission was performed.
 
 Build **30011 was the live internal version** before release 30013, with
 SommoMemory as its installed launcher name. The Store draft status below is
-historical; the 3.1.0 listing update is tracked above. No production release was
-created.
+historical; the 3.1.0 listing update is tracked above. No production review submission or rollout was performed.
 
 ## Old app deleted — recoverable until 12 November 2026
 

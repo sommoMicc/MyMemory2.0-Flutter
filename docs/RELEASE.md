@@ -1,5 +1,129 @@
 # SommoMemory release readiness
 
+## 30017 — Italian and English
+
+The final bilingual revision is **3.1.0 (30017)**. It preserves the approved pop
+visual system and adds English across home, settings, gameplay, Bluetooth,
+collections, arenas, profiles and account controls. Device language resolves to
+Italian for Italian devices and English otherwise. Settings offers **Automatic /
+Italian / English**, persisted in `ui.language`. Dynamic parameters and user
+names are inserted without translating their values; Paola remains an Italian
+syllable deck. iOS English and Italian Bluetooth permission resources were
+verified in the signed native package.
+
+Analysis and **182 Flutter / 101 Node tests pass** after the source freeze. New
+checks cover automatic IT/EN selection and the English fallback for other device
+languages, live settings changes and persistence, rendered message templates,
+plural labels and compact English gameplay. A live browser check on the public
+30017 website verified Settings/Home switching to English and restored the
+original Automatic preference afterwards. The capture suite passed all six
+locale/device combinations and produced **24 approved RGB screenshots**. PNG
+CRC, RGB channel count, sBIT metadata and unchanged RGB pixel hashes were
+independently verified. The images use the real unchanged MyMemory widget tree
+with an isolated guest; they are not physical-device or Simulator captures.
+Evidence: `artifacts/store-30017/screenshots.json` and
+`scripts/capture-store-30017_test.dart`.
+
+- Google Play release **15**, **3.1.0 Sala giochi pop · English**, versionCode
+  **30017**, is active on the existing internal track. The selected tester list
+  has three observed existing users and was preserved. Receipt:
+  `artifacts/play-internal-30017.json`.
+- TestFlight build **0123368d-62a7-4ba0-954c-e73fba74d0e2** is **VALID /
+  IN_BETA_TESTING** in **SommoMemory Internal** for the same two existing testers.
+  Receipt: `artifacts/testflight-upload-30017.json`.
+- Web release **20261106-pop-30017** is healthy. The active bootstrap selects
+  `main.52c71468fa165976.dart.js`; its public bytes, worker/bootstrap/assets and
+  four English privacy/support/account-deletion resources match the local build.
+  A consistent new backup preceded deployment, all **56** existing profiles are
+  preserved, the capability key is unchanged and SQLite integrity is `ok`.
+  WSS handshake and protocol ping/pong passed. Receipt:
+  `artifacts/deployment-30017.json`.
+
+`artifacts/native-builds-30017.json` consolidates the signed IPA/AAB/APK hashes,
+permissions, distribution and the **429 runtime files** whose hashes match across
+Android, iOS and the workspace. The iOS IPA is 57,434,105 bytes, SHA-256
+`05dc7ab74a6db7adfca2273ac20dbbda8433de9321cc3fff1eb2d3ec721b28c1`.
+
+Store preparation preserves Italian as primary and adds **en-US / en-GB**.
+Availability is saved for exactly **27 EU member states plus the United States**,
+with no automatic future-territory inclusion. Market receipts and localized text
+are in `artifacts/store-30017/`. All **24 Apple assets are COMPLETE**: six sets
+(Italian/en-US/en-GB × iPhone/iPad), each ordered with exactly four current
+screenshots. The three legacy screenshots were removed only after the new assets
+completed. The three `apple-metadata*.json` receipts record the final readback.
+Google Play's three localized galleries, icon and feature graphic are saved and
+reread in `play-listing.json`.
+
+The production Play draft contains only build 30017 for the same 28 countries.
+All automatic checks passed; **13 pending changes** can be sent for review, and
+no blocker was observed. Evidence:
+`artifacts/google-play-final-readiness-30017.json`. Apple remains in
+`PREPARE_FOR_SUBMISSION`, with build 30017 linked, review contact/notes, published
+privacy and English beta notes verified. Its current-OS UI reports a **13+**
+global rating; legacy/regional API rating values are recorded in
+`artifacts/store-30017/apple-readiness.json`. No production App Review submission
+or Google Play production rollout has been performed. The user retains the
+submission step. Store details are in `docs/STORE_METADATA_3_1_IT.md`.
+
+## 30016 — Sala giochi pop (previous internal release)
+
+Verified **6 November 2026**: **3.1.0 (30016)** is distributed on TestFlight and
+the existing Google Play internal track, and deployed on the public website.
+The approved direction A uses cobalt, yellow and coral, opaque panels, dark
+frames and short hard shadows, explicit mode symbols, thick memory cards with
+yellow matched states and coordinated launcher/web icons. The final correction
+restores visible back/share controls, Bluetooth lobby contrast and explicit
+Outfit button typography. Existing animation authority, feedback and game rules
+are preserved.
+
+- TestFlight: **VALID / IN_BETA_TESTING**, build
+  `dc503284-e587-490d-ad38-1dc860068d91`, existing **SommoMemory Internal** group,
+  exactly two existing testers. The configured App Store Connect API performed
+  upload, processing checks and group assignment. Receipt:
+  `artifacts/testflight-upload-30016.json`.
+- Google Play: release **14**, **Sala giochi pop · comandi più leggibili**,
+  versionCode **30016**, **active** on track `4700857721365894827`, with the
+  existing tester audience and zero newly unsupported devices. API access still
+  returns 403, so the signed-in Console handled upload and activation. Receipt:
+  `artifacts/play-internal-30016.json`.
+- Web/backend: **20261106-pop-30016**, healthy at
+  `https://sommomemory.sommomi.cc`. All 50 profiles present at the retained
+  consistent backup remain; 53 profiles existed at final verification. The
+  capability key is preserved, SQLite integrity is `ok`, and no schema or volume
+  reset occurred. The active bootstrap selects the expected hashed runtime;
+  public files match local bytes and WSS handshake/ping-pong passed. Receipt:
+  `artifacts/deployment-30016.json`.
+- Analysis and the complete **166 Flutter / 99 Node tests pass**, with Flutter
+  analysis and all 166 Flutter tests rerun after the final source freeze.
+  Signed package identities, signatures and bundled content were verified in
+  `artifacts/ios-native-verification-30016.json` and
+  `artifacts/android-native-build-30016.json`.
+
+The screenshot set contains 12 approved captures: four each at 1320×2868
+(iPhone), 2064×2752 (iPad) and 1080×1920 (Play). They use the real Flutter widgets
+with an isolated fresh guest, bundled Outfit/MaterialIcons loaded and an Apple
+Color Emoji fallback supplied to the test renderer; they are not physical-device or Simulator captures. RGB conversion
+strips only fully opaque alpha channels and preserves the RGB pixels.
+`artifacts/store-30016/screenshots.json` records provenance and hashes.
+
+Store preparation remains distinct from release acceptance. Apple is still in
+`PREPARE_FOR_SUBMISSION`; the readiness receipt verifies the linked 30016 build,
+Games/Card/Puzzle categories, copyright, review contact/notes, age rating **12+**,
+free pricing, territorial availability and published privacy declarations with no
+tracking. Screenshot and listing upload status is recorded by the store agent in
+`artifacts/store-30016/` and `docs/STORE_METADATA_3_1_IT.md`. No production App
+Review submission or Play production rollout was performed; the user will submit.
+
+## 30015 — intermediate pop release
+
+Build 30015 introduced the visual revision and Bluetooth contrast correction,
+and reached Play internal release 13 and web release `20261106-pop-30015`.
+The final 30016 revision supersedes it with corrected back/share icon contrast
+and explicit Outfit button fonts. Receipts remain in
+`artifacts/play-internal-30015.json` and `artifacts/deployment-30015.json`.
+
+## 30014 — previous internal release
+
 Verified **6 November 2026**: **3.1.0 (30014)** is distributed to the existing
 internal testers on both stores. The arena map is an illustrated journey and
 individual games save gems, unlocks and best-attempt records without a prepared

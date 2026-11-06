@@ -1,3 +1,4 @@
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -162,6 +163,9 @@ Future<void> _mount(
   addTearDown(economy.dispose);
   await tester.pumpWidget(
     MaterialApp(
+      locale: const Locale('it'),
+      supportedLocales: const [Locale('it'), Locale('en')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(
           disableAnimations: true,

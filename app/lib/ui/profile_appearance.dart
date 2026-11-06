@@ -1,3 +1,4 @@
+import '../l10n/app_strings.dart';
 import 'package:flutter/material.dart';
 
 import '../palette.dart';
@@ -38,7 +39,10 @@ class ProfileAvatar extends StatelessWidget {
     final avatar = profileAvatars[avatarId] ?? profileAvatars['fox']!;
     final accent = profileAccents[accentId] ?? profileAccents['forest']!;
     return Semantics(
-      label: 'Avatar ${avatar.label}, colore ${accent.label}',
+      label: tr(context, 'Avatar {avatar}, colore {colour}', {
+        'avatar': tr(context, avatar.label),
+        'colour': tr(context, accent.label),
+      }),
       image: true,
       child: ExcludeSemantics(
         child: Container(
@@ -47,10 +51,7 @@ class ProfileAvatar extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Color.alphaBlend(
-              accent.color.withValues(alpha: .12),
-              paper,
-            ),
+            color: Color.alphaBlend(accent.color.withValues(alpha: .12), paper),
             border: Border.all(color: accent.color, width: 2),
           ),
           child: Text(

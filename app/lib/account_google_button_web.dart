@@ -1,3 +1,4 @@
+import 'l10n/app_strings.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -148,7 +149,7 @@ class _AccountGoogleWebButtonState extends State<AccountGoogleWebButton> {
       return TextButton.icon(
         onPressed: widget.enabled ? _prepare : null,
         icon: const Icon(Icons.refresh_rounded),
-        label: const Text('Accedi con Google'),
+        label: Text(tr(context, 'Accedi con Google')),
       );
     }
     if (_plugin == null || _processing) {
@@ -164,6 +165,7 @@ class _AccountGoogleWebButtonState extends State<AccountGoogleWebButton> {
         width: widget.width ?? 280,
         child: _plugin!.renderButton(
           configuration: GSIButtonConfiguration(
+            locale: Localizations.localeOf(context).languageCode,
             text: GSIButtonText.continueWith,
             size: GSIButtonSize.large,
             theme: GSIButtonTheme.outline,

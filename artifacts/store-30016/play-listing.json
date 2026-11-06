@@ -1,0 +1,57 @@
+{
+  "verifiedAt": "2026-11-06T09:13:10.614Z",
+  "package": "cc.sommomi.mymemory",
+  "locale": "it-IT",
+  "appName": "SommoMemory",
+  "shortDescription": "Trova le coppie, esplora le arene e sfida gli amici. Anche offline.",
+  "fullDescription": "Allena la memoria con SommoMemory, un gioco di carte per una persona o da condividere.\n\nSCEGLI COME GIOCARE\n\u2022 In singolo, trova le coppie al tuo ritmo.\n\u2022 In due sullo stesso dispositivo, giocate a turni.\n\u2022 Online, crea una stanza privata e invita una persona con il codice. Le amichevoli durano un round; le classificate tre. Non c\u2019\u00e8 abbinamento automatico.\n\u2022 Senza Internet, gioca via Bluetooth tra app Android e iOS: scegli Cerca partita oppure Crea partita. Tieni entrambe le app aperte; la connessione dipende dai dispositivi.\n\nGIOCA ANCHE OFFLINE\nL\u2019individuale \u00e8 disponibile senza Internet dal primo avvio. Gemme, collezioni e record vengono salvati sul dispositivo e sincronizzati automaticamente al ritorno della connessione.\n\nESPLORA QUATTRO ARENE\nValle Selvaggia, Baia Corallina, Grande Citt\u00e0 e Frontiera Spaziale si sbloccano a 0, 100, 300 e 600 corone. Troverai 21 mazzi illustrati, con tre mazzi gratuiti per arena e altri sbloccabili usando le gemme guadagnate giocando. Paola \u00e8 il mazzo gratuito di sillabe italiane.\n\nCONFRONTATI IN TRE ROUND\nLe classificate si giocano solo su invito con un codice. Entrambi i giocatori affrontano, senza turni, tabelloni individuali identici. Si giocano tre round con mazzi diversi e vince chi totalizza meno tentativi. I due profili devono trovarsi nella stessa arena.\n\nINIZIA COME OSPITE\nApple e Google sono opzioni per collegare il profilo; puoi anche usare un codice di recupero. La sincronizzazione riguarda gemme, mazzi, personalizzazione e record dell\u2019individuale. Nessun acquisto in denaro.\n\nPrivacy: https://sommomemory.sommomi.cc/privacy\nAssistenza: https://sommomemory.sommomi.cc/support",
+  "listingState": "READY_FOR_REVIEW_DRAFT_CHANGES_SAVED",
+  "readbackVerified": true,
+  "images": [
+    {
+      "file": "play-assets/Icon-512.png",
+      "sha256": "d07a8e63aa310a3b2482f50cb6757679f51bb3b2cb7c78a4392bd70a81a8f5fe",
+      "bytes": 38979
+    },
+    {
+      "file": "play-assets/feature-graphic.png",
+      "sha256": "ea9b182837429749f4032a6d32b458747088312db32aa32330f7b915f0f6c888",
+      "bytes": 55281
+    },
+    {
+      "file": "play/01-home-pop.png",
+      "sha256": "4fcadf33aa347c6fac9a301b2e438d68929d0b0271fcf47fbc0f121b2e5cc094",
+      "bytes": 113608
+    },
+    {
+      "file": "play/02-tabellone-pop.png",
+      "sha256": "0e157aceddbc3aa8ae3c128d340b228bd90dab51a6d94533a1f4408fedbb1826",
+      "bytes": 215820
+    },
+    {
+      "file": "play/03-viaggio.png",
+      "sha256": "52b8153d9f70058f079e15a1b466a3f55174c24812aa1bf3d0d7914f4da89f3d",
+      "bytes": 132145
+    },
+    {
+      "file": "play/04-collezioni.png",
+      "sha256": "437112e0d0c19508d46bae8dff446de3c842ad04020620fb637360546102c489",
+      "bytes": 200838
+    }
+  ],
+  "screenshotOrder": [
+    "play/01-home-pop.png",
+    "play/02-tabellone-pop.png",
+    "play/03-viaggio.png",
+    "play/04-collezioni.png"
+  ],
+  "evidence": "play-listing-final.jpg",
+  "productionSubmitted": false,
+  "apiPreflight": {
+    "oauth": 200,
+    "generatedApksBuild30014": 403,
+    "error": "PERMISSION_DENIED",
+    "fallback": "Signed-in Play Console UI"
+  },
+  "localExportMetadataCorrection": "The uploaded30016 source hashes are preserved above. Local PNG metadata was subsequently corrected without changing pixel streams; see png-metadata-correction.json. No30016 reupload; final listing uses30017."
+}

@@ -1,3 +1,4 @@
+import '../l10n/app_strings.dart';
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -71,7 +72,7 @@ class _ProfilePanelState extends State<ProfilePanel> {
         : economy.lastError ?? 'Operazione non completata. Riprova.';
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ).showSnackBar(SnackBar(content: Text(tr(context, message))));
   }
 
   Future<void> discover() async {
@@ -142,16 +143,16 @@ class _ProfilePanelState extends State<ProfilePanel> {
       await present<bool>(
         builder: (context) => AlertDialog(
           scrollable: true,
-          title: Text(title),
-          content: Text(body),
+          title: Text(tr(context, title)),
+          content: Text(tr(context, body)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annulla'),
+              child: Text(tr(context, 'Annulla')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: Text(action),
+              child: Text(tr(context, action)),
             ),
           ],
         ),
@@ -177,27 +178,32 @@ class _ProfilePanelState extends State<ProfilePanel> {
     final linked = economy.profile?.linkedProviders ?? <String>{};
     final method = await present<String>(
       builder: (context) => SimpleDialog(
-        title: const Text('Verifica il tuo accesso'),
+        title: Text(tr(context, 'Verifica il tuo accesso')),
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.fromLTRB(24, 0, 24, 12),
             child: Text(
-              'Per questa modifica, conferma di poter accedere al profilo.',
+              tr(
+                context,
+                'Per questa modifica, conferma di poter accedere al profilo.',
+              ),
             ),
           ),
           for (final provider in providers.where((p) => linked.contains(p.id)))
             SimpleDialogOption(
               onPressed: () => Navigator.pop(context, provider.id),
-              child: Text('Continua con ${providerName(provider.id)}'),
+              child: Text(
+                tr(context, 'Continua con ${providerName(provider.id)}'),
+              ),
             ),
           if (economy.profile?.recoveryEnabled == true)
             SimpleDialogOption(
               onPressed: () => Navigator.pop(context, 'recovery'),
-              child: const Text('Usa il codice di recupero'),
+              child: Text(tr(context, 'Usa il codice di recupero')),
             ),
           SimpleDialogOption(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annulla'),
+            child: Text(tr(context, 'Annulla')),
           ),
         ],
       ),
@@ -228,7 +234,9 @@ class _ProfilePanelState extends State<ProfilePanel> {
 
               return AlertDialog(
                 scrollable: true,
-                title: Text('Verifica con ${providerName(provider.id)}'),
+                title: Text(
+                  tr(context, 'Verifica con ${providerName(provider.id)}'),
+                ),
                 content: provider.id == 'apple'
                     ? AccountAppleWebButton(
                         economy: economy,
@@ -247,7 +255,7 @@ class _ProfilePanelState extends State<ProfilePanel> {
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(dialogContext, false),
-                    child: const Text('Annulla'),
+                    child: Text(tr(context, 'Annulla')),
                   ),
                 ],
               );
@@ -269,13 +277,16 @@ class _ProfilePanelState extends State<ProfilePanel> {
     await present<void>(
       builder: (context) => AlertDialog(
         scrollable: true,
-        title: const Text('Codice di recupero'),
+        title: Text(tr(context, 'Codice di recupero')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Chi possiede questo codice può accedere al tuo profilo. Conservalo in un posto sicuro.',
+            Text(
+              tr(
+                context,
+                'Chi possiede questo codice può accedere al tuo profilo. Conservalo in un posto sicuro.',
+              ),
             ),
             const SizedBox(height: 16),
             SelectableText(
@@ -293,17 +304,17 @@ class _ProfilePanelState extends State<ProfilePanel> {
             onPressed: () async {
               await Clipboard.setData(ClipboardData(text: code));
               if (mounted) {
-                ScaffoldMessenger.of(
-                  this.context,
-                ).showSnackBar(const SnackBar(content: Text('Codice copiato')));
+                ScaffoldMessenger.of(this.context).showSnackBar(
+                  SnackBar(content: Text(tr(this.context, 'Codice copiato'))),
+                );
               }
             },
             icon: const Icon(Icons.copy_rounded, size: 18),
-            label: const Text('Copia codice'),
+            label: Text(tr(context, 'Copia codice')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fatto'),
+            child: Text(tr(context, 'Fatto')),
           ),
         ],
       ),
@@ -336,22 +347,25 @@ class _ProfilePanelState extends State<ProfilePanel> {
     final decision = await present<String>(
       builder: (context) => AlertDialog(
         scrollable: true,
-        title: const Text('Conserva il profilo attuale'),
-        content: const Text(
-          'Prima di cambiarlo puoi creare un codice per ritrovare le sue gemme e collezioni. I due profili non verranno uniti.',
+        title: Text(tr(context, 'Conserva il profilo attuale')),
+        content: Text(
+          tr(
+            context,
+            'Prima di cambiarlo puoi creare un codice per ritrovare le sue gemme e collezioni. I due profili non verranno uniti.',
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annulla'),
+            child: Text(tr(context, 'Annulla')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, 'skip'),
-            child: const Text('Continua senza codice'),
+            child: Text(tr(context, 'Continua senza codice')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, 'save'),
-            child: const Text('Crea codice'),
+            child: Text(tr(context, 'Crea codice')),
           ),
         ],
       ),
@@ -367,7 +381,7 @@ class _ProfilePanelState extends State<ProfilePanel> {
       final found = preview.profile;
       if (!await confirm(
         'Usa questo profilo?',
-        '${found.displayName.isEmpty ? 'Giocatore' : found.displayName}\n'
+        '${found.displayName.isEmpty ? tr(context, 'Giocatore') : found.displayName}\n'
             '${found.gems} gemme · ${found.ownedDecks.length} collezioni\n\n'
             'Sostituirà il profilo su questo dispositivo. Gemme e collezioni dei due profili restano separate.',
         'Usa profilo',
@@ -385,7 +399,10 @@ class _ProfilePanelState extends State<ProfilePanel> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          preview.switchesProfile ? 'Profilo collegato' : 'Accesso salvato',
+          tr(
+            context,
+            preview.switchesProfile ? 'Profilo collegato' : 'Accesso salvato',
+          ),
         ),
       ),
     );
@@ -443,7 +460,7 @@ class _ProfilePanelState extends State<ProfilePanel> {
       if (!mounted ||
           !await confirm(
             'Collega questo profilo?',
-            '${preview.displayName.isEmpty ? 'Giocatore' : preview.displayName}\n'
+            '${preview.displayName.isEmpty ? tr(context, 'Giocatore') : preview.displayName}\n'
                 '${preview.gems} gemme · ${preview.ownedDecks.length} collezioni\n\n'
                 'Sostituirà il profilo su questo dispositivo. Gemme e collezioni non vengono unite.',
             'Collega',
@@ -493,7 +510,7 @@ class _ProfilePanelState extends State<ProfilePanel> {
             child: MediaQuery.withNoTextScaling(
               child: SignInWithAppleButton(
                 onPressed: () => signIn(provider),
-                text: 'Continua con Apple',
+                text: tr(context, 'Continua con Apple'),
                 height: 48,
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -522,8 +539,8 @@ class _ProfilePanelState extends State<ProfilePanel> {
                 height: 20,
                 excludeFromSemantics: true,
               ),
-              label: const Text(
-                'Continua con Google',
+              label: Text(
+                tr(context, 'Continua con Google'),
                 style: TextStyle(
                   fontFamily: 'GoogleSignIn',
                   fontWeight: FontWeight.w500,
@@ -548,6 +565,7 @@ class _ProfilePanelState extends State<ProfilePanel> {
       _ProfileAction(
         icon: Icons.edit_rounded,
         title: 'Nome giocatore',
+        translateSubtitle: profile?.displayName.isNotEmpty != true,
         subtitle: profile?.displayName.isNotEmpty == true
             ? profile!.displayName
             : 'Scegli un nickname',
@@ -578,7 +596,7 @@ class _ProfilePanelState extends State<ProfilePanel> {
       _ProfileAction(
         icon: Icons.emoji_events_rounded,
         title:
-            '${profile?.crowns ?? 0} corone · ${ArenaCatalog.instance.arenas.firstWhere((arena) => arena.id == (profile?.currentArenaId ?? 'wild_valley')).name}',
+            '${profile?.crowns ?? 0} corone · ${tr(context, ArenaCatalog.instance.arenas.firstWhere((arena) => arena.id == (profile?.currentArenaId ?? 'wild_valley')).name)}',
         subtitle: 'Record personale: ${profile?.peakCrowns ?? 0} corone',
       ),
       if (economy.pendingRewards > 0)
@@ -749,6 +767,7 @@ class _ProfilePanelState extends State<ProfilePanel> {
       for (final archived in archivedProfiles)
         _ProfileAction(
           icon: Icons.switch_account_outlined,
+          translateTitle: archived.displayName.isEmpty,
           title: archived.displayName.isEmpty
               ? 'Altro profilo sul dispositivo'
               : archived.displayName,
@@ -807,7 +826,7 @@ class _ProfilePanelState extends State<ProfilePanel> {
             ? () async {
                 if (await confirm(
                   'Eliminare definitivamente?',
-                  '${economy.profile?.displayName.isNotEmpty == true ? economy.profile!.displayName : 'Giocatore'}\n'
+                  '${economy.profile?.displayName.isNotEmpty == true ? economy.profile!.displayName : tr(context, 'Giocatore')}\n'
                       '${economy.gems} gemme · ${economy.ownedDecks.length} collezioni\n\n'
                       'Il profilo e i suoi accessi saranno eliminati dal servizio. I dispositivi offline riceveranno la revoca alla riconnessione. Questa azione non può essere annullata.',
                   'Elimina',
@@ -852,16 +871,17 @@ class _ProfilePanelState extends State<ProfilePanel> {
                     child: Row(
                       children: [
                         IconButton(
-                          tooltip: 'Chiudi profilo',
+                          tooltip: tr(context, 'Chiudi profilo'),
                           onPressed: () => Navigator.pop(context),
                           icon: const Icon(Icons.arrow_back_rounded),
                         ),
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'Profilo',
+                            tr(context, 'Profilo'),
                             style: TextStyle(
+                              color: paper,
                               fontSize: 24,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
@@ -890,7 +910,7 @@ class _ProfilePanelState extends State<ProfilePanel> {
                                     Text(
                                       profile?.displayName.isNotEmpty == true
                                           ? profile!.displayName
-                                          : 'Giocatore',
+                                          : tr(context, 'Giocatore'),
                                       style: const TextStyle(
                                         fontSize: 21,
                                         color: ink,
@@ -899,14 +919,20 @@ class _ProfilePanelState extends State<ProfilePanel> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      linked.isEmpty
-                                          ? 'Profilo ospite'
-                                          : 'Account collegato',
+                                      tr(
+                                        context,
+                                        linked.isEmpty
+                                            ? 'Profilo ospite'
+                                            : 'Account collegato',
+                                      ),
                                       style: const TextStyle(color: ink),
                                     ),
                                     if (profile?.recoveryEnabled == true)
-                                      const Text(
-                                        'Codice di recupero attivo',
+                                      Text(
+                                        tr(
+                                          context,
+                                          'Codice di recupero attivo',
+                                        ),
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: ink,
@@ -914,7 +940,10 @@ class _ProfilePanelState extends State<ProfilePanel> {
                                       ),
                                     if (linked.isNotEmpty)
                                       Text(
-                                        linked.map(providerName).join(' · '),
+                                        tr(
+                                          context,
+                                          linked.map(providerName).join(' · '),
+                                        ),
                                         style: const TextStyle(
                                           fontSize: 12,
                                           color: ink,
@@ -950,7 +979,7 @@ class _ProfilePanelState extends State<ProfilePanel> {
                               (2, 'Gestisci'),
                             ])
                               ChoiceChip(
-                                label: Text(label),
+                                label: Text(tr(context, label)),
                                 selected: section == value,
                                 onSelected: unavailable
                                     ? null
@@ -987,8 +1016,11 @@ class _ProfileSurface extends StatelessWidget {
   final Widget child;
   @override
   Widget build(BuildContext context) => Material(
-    color: const Color(0xFFFFF8E8),
-    borderRadius: BorderRadius.circular(18),
+    color: paper,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+      side: const BorderSide(color: ink, width: 2),
+    ),
     child: Padding(padding: const EdgeInsets.all(16), child: child),
   );
 }
@@ -998,7 +1030,10 @@ class _ProfileNote extends StatelessWidget {
   final String text;
   @override
   Widget build(BuildContext context) => _ProfileSurface(
-    child: Text(text, style: const TextStyle(color: ink, height: 1.45)),
+    child: Text(
+      tr(context, text),
+      style: const TextStyle(color: ink, height: 1.45),
+    ),
   );
 }
 
@@ -1009,21 +1044,26 @@ class _ProfileAction extends StatelessWidget {
     this.subtitle,
     this.onTap,
     this.destructive = false,
+    this.translateTitle = true,
+    this.translateSubtitle = true,
   });
   final IconData icon;
   final String title;
   final String? subtitle;
   final VoidCallback? onTap;
-  final bool destructive;
+  final bool destructive, translateTitle, translateSubtitle;
   @override
   Widget build(BuildContext context) => Material(
-    color: const Color(0xFFFFF8E8),
-    borderRadius: BorderRadius.circular(18),
+    color: paper,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(14),
+      side: const BorderSide(color: ink, width: 1.5),
+    ),
     child: ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
       leading: Icon(icon, color: destructive ? const Color(0xFFA84432) : teal),
       title: Text(
-        title,
+        translateTitle ? tr(context, title) : title,
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
@@ -1032,7 +1072,10 @@ class _ProfileAction extends StatelessWidget {
       ),
       subtitle: subtitle == null
           ? null
-          : Text(subtitle!, style: const TextStyle(fontSize: 13, color: ink)),
+          : Text(
+              translateSubtitle ? tr(context, subtitle!) : subtitle!,
+              style: const TextStyle(fontSize: 13, color: ink),
+            ),
       trailing: onTap == null
           ? null
           : const Icon(Icons.chevron_right_rounded, size: 20),
@@ -1067,7 +1110,7 @@ class _ProfileInputDialogState extends State<_ProfileInputDialog> {
   @override
   Widget build(BuildContext context) => AlertDialog(
     scrollable: true,
-    title: Text(widget.title),
+    title: Text(tr(context, widget.title)),
     content: TextField(
       controller: controller,
       autofocus: true,
@@ -1076,7 +1119,7 @@ class _ProfileInputDialogState extends State<_ProfileInputDialog> {
       enableSuggestions: !widget.secret,
       maxLength: widget.secret ? 100 : 24,
       decoration: InputDecoration(
-        labelText: widget.secret ? 'Codice personale' : 'Nickname',
+        labelText: tr(context, widget.secret ? 'Codice personale' : 'Nickname'),
         counterText: '',
       ),
       onSubmitted: (value) => Navigator.pop(context, value.trim()),
@@ -1084,11 +1127,11 @@ class _ProfileInputDialogState extends State<_ProfileInputDialog> {
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Annulla'),
+        child: Text(tr(context, 'Annulla')),
       ),
       FilledButton(
         onPressed: () => Navigator.pop(context, controller.text.trim()),
-        child: Text(widget.action),
+        child: Text(tr(context, widget.action)),
       ),
     ],
   );
@@ -1107,7 +1150,7 @@ class _AppearanceDialogState extends State<_AppearanceDialog> {
   @override
   Widget build(BuildContext context) => AlertDialog(
     scrollable: true,
-    title: const Text('Avatar e colore'),
+    title: Text(tr(context, 'Avatar e colore')),
     content: SizedBox(
       width: 450,
       child: Column(
@@ -1121,7 +1164,10 @@ class _AppearanceDialogState extends State<_AppearanceDialog> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text('Avatar', style: TextStyle(fontWeight: FontWeight.w700)),
+          Text(
+            tr(context, 'Avatar'),
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -1129,14 +1175,22 @@ class _AppearanceDialogState extends State<_AppearanceDialog> {
             children: [
               for (final entry in profileAvatars.entries)
                 ChoiceChip(
-                  label: Text('${entry.value.symbol} ${entry.value.label}'),
+                  label: Text(
+                    tr(
+                      context,
+                      '${entry.value.symbol} ${tr(context, entry.value.label)}',
+                    ),
+                  ),
                   selected: avatarId == entry.key,
                   onSelected: (_) => setState(() => avatarId = entry.key),
                 ),
             ],
           ),
           const SizedBox(height: 16),
-          const Text('Colore', style: TextStyle(fontWeight: FontWeight.w700)),
+          Text(
+            tr(context, 'Colore'),
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -1149,7 +1203,7 @@ class _AppearanceDialogState extends State<_AppearanceDialog> {
                     size: 18,
                     color: entry.value.color,
                   ),
-                  label: Text(entry.value.label),
+                  label: Text(tr(context, entry.value.label)),
                   selected: accentId == entry.key,
                   onSelected: (_) => setState(() => accentId = entry.key),
                 ),
@@ -1161,12 +1215,12 @@ class _AppearanceDialogState extends State<_AppearanceDialog> {
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Annulla'),
+        child: Text(tr(context, 'Annulla')),
       ),
       FilledButton(
         onPressed: () =>
             Navigator.pop(context, (avatarId: avatarId, accentId: accentId)),
-        child: const Text('Salva'),
+        child: Text(tr(context, 'Salva')),
       ),
     ],
   );

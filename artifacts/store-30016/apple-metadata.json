@@ -1,0 +1,35 @@
+{
+  "appId": "6831015201",
+  "version": "3.1.0",
+  "locale": "it",
+  "text": {
+    "appId": "6831015201",
+    "version": "3.1.0",
+    "locale": "it",
+    "mode": "text",
+    "changes": {
+      "appInfoLocalizationId": "d7b464a1-2aab-4f7a-b2c0-d6ad6b7c8b9b",
+      "appStoreVersionId": "df818c27-8b5a-4244-9563-e92168e59552",
+      "appStoreVersionLocalizationId": "eccad0e9-6291-4cb2-819d-21e590fdf6a5",
+      "betaAppLocalizationId": "aa75af53-5f68-485b-ab25-907fa83020a8",
+      "appInfo": {
+        "name": "SommoMemory",
+        "subtitle": "Memory, arene e sfide",
+        "privacyPolicyUrl": "https://sommomemory.sommomi.cc/privacy"
+      },
+      "appStore": {
+        "description": "Allena la memoria con SommoMemory, un gioco di carte per una persona o da condividere.\n\nGIOCA COME PREFERISCI\n• In singolo, scegli un mazzo e trova le coppie al tuo ritmo.\n• In due sullo stesso dispositivo, giocate a turni.\n• Online, crea una stanza privata e invita una persona con il codice. Le amichevoli durano un round; le classificate tre. Non c’è abbinamento automatico.\n• Senza Internet, usa il Bluetooth tra app iOS e Android: scegli Cerca partita oppure Crea partita. Tieni entrambe le app aperte; la connessione dipende dai dispositivi.\n\nGIOCA ANCHE OFFLINE\nL’individuale è disponibile senza Internet dal primo avvio. Gemme, collezioni e record vengono salvati sul dispositivo e sincronizzati automaticamente al ritorno della connessione.\n\nQUATTRO ARENE, 21 MAZZI ILLUSTRATI\nEsplora Valle Selvaggia, Baia Corallina, Grande Città e Frontiera Spaziale, sbloccate al raggiungimento di 0, 100, 300 e 600 corone. Ogni arena include tre mazzi gratuiti; altri mazzi si sbloccano con le gemme guadagnate giocando. Paola aggiunge un mazzo gratuito di sillabe italiane.\n\nUNA SFIDA CLASSIFICATA DI TRE ROUND\nInvita un’altra persona tramite codice. Entrambi giocate in contemporanea su tabelloni individuali con le stesse carte e la stessa disposizione. Si usano tre mazzi diversi, uno per round; vince chi completa tutti i round con meno tentativi complessivi. Ogni coppia di profili deve trovarsi nella stessa arena.\n\nPROFILO FACOLTATIVO\nPuoi iniziare come ospite. Se vuoi, collega Apple o Google oppure usa un codice di recupero per ritrovare il profilo e sincronizzare gemme, mazzi e personalizzazione. Anche i record dell’individuale si sincronizzano quando usi lo stesso profilo. Non ci sono acquisti in denaro.\n\nPrivacy: https://sommomemory.sommomi.cc/privacy\nAssistenza: https://sommomemory.sommomi.cc/support",
+        "keywords": "memory,carte,memoria,gioco,puzzle,famiglia,animali,mazzi,sfida,bluetooth",
+        "promotionalText": "Quattro arene da esplorare, 21 mazzi illustrati e sfide a invito. Gioca anche in singolo senza Internet e conserva i tuoi progressi.",
+        "marketingUrl": "https://sommomemory.sommomi.cc",
+        "supportUrl": "https://sommomemory.sommomi.cc/support"
+      },
+      "beta": {
+        "description": "Prova SommoMemory 3.1.0 con la nuova grafica: colori vivaci, pulsanti a tessera e carte a contrasto. Gioca in singolo anche offline, in due sul dispositivo o online con una stanza privata a codice. Esplora quattro arene e le classificate a invito in tre round. Il Bluetooth è disponibile nelle app iOS e Android con entrambe le app aperte. Apple e Google sono facoltativi."
+      },
+      "readbackVerified": true
+    },
+    "verifiedAt": "2026-11-06T08:56:07.238Z"
+  },
+  "verifiedAt": "2026-11-06T08:56:07.238Z"
+}

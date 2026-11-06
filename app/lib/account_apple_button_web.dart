@@ -1,3 +1,4 @@
+import 'l10n/app_strings.dart';
 import 'dart:async';
 import 'dart:js_interop';
 
@@ -193,7 +194,7 @@ class _AccountAppleWebButtonState extends State<AccountAppleWebButton> {
       return TextButton.icon(
         onPressed: widget.enabled ? _prepare : null,
         icon: const Icon(Icons.refresh_rounded),
-        label: const Text('Accedi con Apple'),
+        label: Text(tr(context, 'Accedi con Apple')),
       );
     }
     if (_attempt == null || _processing) {
@@ -208,7 +209,7 @@ class _AccountAppleWebButtonState extends State<AccountAppleWebButton> {
         ignoring: !widget.enabled,
         child: SignInWithAppleButton(
           onPressed: _openPopup,
-          text: 'Continua con Apple',
+          text: tr(context, 'Continua con Apple'),
         ),
       ),
     );

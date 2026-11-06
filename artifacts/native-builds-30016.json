@@ -1,0 +1,90 @@
+{
+  "verifiedAt": "2026-11-06T09:11:33.198Z",
+  "brand": "SommoMemory",
+  "version": "3.1.0",
+  "build": 30016,
+  "packageName": "cc.sommomi.mymemory",
+  "source": {
+    "baseCommit": "7d27c88380cfc9ebb705d976c42aa6e0da5f8b23",
+    "runtimeFiles": 425,
+    "runtimeDigest": "be593a3fa0f6aeb63c2fe315fa85ceaa57bbe36cd3f5493a67e3a5a3b64c40ef",
+    "androidIosAndWorkspaceMatch": true,
+    "nativeBuildsUsedIsolatedCopies": true
+  },
+  "artifacts": {
+    "androidBundle": {
+      "path": "SommoMemory-3.1.0-30016.aab",
+      "bytes": 90120985,
+      "sha256": "cda398ad56ce6dd8fe43ebe814272baa6d7da934139eb6bd9df6564531ef2517"
+    },
+    "androidApk": {
+      "path": "SommoMemory-3.1.0-30016.apk",
+      "bytes": 91879323,
+      "sha256": "7c692f34e22b1cdbcac764b14c115b23d06df69c7ca4455094d4309714219779"
+    },
+    "ios": {
+      "path": "artifacts/SommoMemory-3.1.0-30016.ipa",
+      "bytes": 57153748,
+      "sha256": "3169f416b210827358ebf1d1edabd7b830f5c8ca4f2164f7978c3e822d091866"
+    }
+  },
+  "verification": {
+    "android": "bundletool / jarsigner / apksigner passed",
+    "ios": "codesign deep strict / provisioning / account entitlements passed",
+    "bundledDeckPngs": 378,
+    "bundledPythonFiles": 0
+  },
+  "distribution": {
+    "googlePlay": {
+      "appId": "4972469070574777722",
+      "internalTrackId": "4700857721365894827",
+      "releaseId": 14,
+      "status": "active",
+      "testers": "existing audience unchanged",
+      "productionRelease": false,
+      "releaseTitle": "Sala giochi pop · comandi più leggibili",
+      "detailsUrl": "https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/14/details",
+      "publishedAt": "2026-11-06 10:08 Europe/Rome",
+      "verifiedVersionCode": 30016,
+      "reviewStatus": "Non esaminata",
+      "unsupportedDevicesAdded": 0,
+      "proofScreenshot": "play-internal-live-30016.jpg",
+      "observedAvailability": "Disponibile per i tester interni"
+    },
+    "testFlight": {
+      "buildId": "dc503284-e587-490d-ad38-1dc860068d91",
+      "processingState": "VALID",
+      "internalBuildState": "IN_BETA_TESTING",
+      "betaGroupName": "SommoMemory Internal",
+      "internalTesterCount": 2,
+      "finalizedAt": "2026-11-06T09:08:24.662Z"
+    },
+    "productionStoreSubmission": false
+  },
+  "deployment": {
+    "release": "20261106-pop-30016",
+    "health": "healthy",
+    "preexistingProfilesPreserved": 50,
+    "totalProfilesAfter": 53,
+    "preexistingProfilesMissing": 0,
+    "capabilityKeyPreserved": true,
+    "activeBootstrapEntrypoint": "main.e6562c3f29075853.dart.js",
+    "activeBootstrapEntrypointSha256": "e6562c3f29075853023938afae205b6d1d28d82bf82f8dc48341723762f30f3d",
+    "publicFilesByteIdentical": true,
+    "report": "artifacts/deployment-30016.json"
+  },
+  "validation": {
+    "flutterSdk": "3.47.9",
+    "flutterAnalysis": "No issues found",
+    "flutterTests": 166,
+    "nodeTests": 99,
+    "fullSuiteAfterFinalFreeze": true,
+    "screenshotCaptures": 12,
+    "screenshotCaptureViewports": 3,
+    "screenshotSourceMatchesRelease": true,
+    "screenshotFileHashesDimensionsAndRgbVerified": 12
+  },
+  "changesAfter30015": "High-contrast back/share controls, Bluetooth AppBar icons, explicit Outfit on action labels.",
+  "supersededBy": 30017,
+  "supersededReason": "User requested EU + USA availability and full English localization."
+}

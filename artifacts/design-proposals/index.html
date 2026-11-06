@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SommoMemory — proposte grafiche</title>
+  <style>
+    @font-face {
+      font-family: Outfit;
+      src: url('../../app/assets/fonts/Outfit.ttf') format('truetype');
+      font-weight: 100 900;
+      font-display: swap;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: #18233c;
+      background: #f1f3f8;
+      font-family: Outfit, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page { max-width: 1500px; margin: auto; padding: 36px 38px 56px; }
+    .page-head { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:30px; }
+    .eyebrow { font-size:12px; font-weight:800; letter-spacing:.13em; text-transform:uppercase; color:#68738c; }
+    h1 { font-size:34px; line-height:1.04; margin:8px 0 0; letter-spacing:-.035em; }
+    .page-head p { max-width:450px; margin:0; color:#5d6880; font-size:15px; line-height:1.45; }
+    .proposal { padding:26px 28px 30px; border-radius:28px; background:#fff; margin-top:22px; box-shadow:0 8px 28px #2736590d; }
+    .proposal-head { display:flex; align-items:flex-start; justify-content:space-between; gap:26px; margin-bottom:22px; }
+    .proposal-title { display:flex; align-items:center; gap:13px; }
+    .number { width:38px; height:38px; display:grid; place-items:center; border-radius:13px; font-size:18px; font-weight:900; }
+    h2 { margin:0; font-size:23px; letter-spacing:-.025em; }
+    .descriptor { margin:4px 0 0; color:#64708a; font-size:14px; }
+    .palette { display:flex; gap:7px; padding-top:4px; }
+    .swatch { width:23px; height:23px; border-radius:50%; border:1px solid #18233c1c; }
+    .stage { display:grid; grid-template-columns:1fr 1fr minmax(190px,.74fr); align-items:center; gap:22px; }
+    .device-wrap { display:flex; flex-direction:column; align-items:center; gap:9px; }
+    .device-label { align-self:flex-start; margin-left:max(calc((100% - 286px)/2),0px); font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:#77819a; }
+    .phone { width:min(100%,286px); height:596px; padding:8px; border-radius:34px; background:#111827; box-shadow:0 13px 24px #15234126; }
+    .screen { position:relative; width:100%; height:100%; overflow:hidden; border-radius:27px; isolation:isolate; }
+    .status { height:25px; display:flex; align-items:center; justify-content:space-between; padding:0 13px; font-size:9px; font-weight:700; letter-spacing:.02em; }
+    .status-icons { font-size:8px; letter-spacing:1px; }
+    .appbar { height:42px; display:flex; align-items:center; gap:8px; padding:0 12px; position:relative; z-index:2; }
+    .brandmark { position:relative; width:27px; height:29px; flex:none; }
+    .brandmark i { display:block; position:absolute; width:17px; height:23px; border-radius:5px; border:2px solid currentColor; }
+    .brandmark i:first-child { left:1px; top:1px; transform:rotate(-12deg); }
+    .brandmark i:last-child { right:1px; bottom:1px; transform:rotate(10deg); }
+    .wordmark { font-size:16px; font-weight:850; line-height:.9; letter-spacing:-.055em; }
+    .wordmark span { display:block; font-size:8px; letter-spacing:.17em; margin-top:3px; }
+    .appbar-spacer { flex:1; }
+    .gem-pill { padding:5px 9px 5px 7px; border-radius:99px; display:flex; align-items:center; gap:5px; font-size:10px; font-weight:800; }
+    .gem { width:12px; height:12px; display:inline-grid; place-items:center; font-size:10px; }
+    .avatar { width:27px; height:27px; display:grid; place-items:center; border-radius:50%; font-size:16px; border:2px solid currentColor; }
+    .home-title { margin:13px 14px 9px; font-size:20px; font-weight:850; line-height:1; letter-spacing:-.045em; }
+    .mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; padding:0 12px; }
+    .mode {
+      position:relative; height:126px; padding:10px 10px 9px; border:2px solid; border-radius:18px;
+      display:flex; flex-direction:column; justify-content:space-between; overflow:hidden;
+    }
+    .mode::after { content:""; position:absolute; width:54px; height:54px; border:1px solid currentColor; border-radius:50%; right:-24px; top:-21px; opacity:.18; }
+    .mode-symbol { width:40px; height:40px; display:grid; place-items:center; font-size:19px; font-weight:900; border-radius:12px; border:2px solid currentColor; box-shadow:0 3px 0 currentColor; }
+    .mode-title { font-size:15px; font-weight:850; line-height:1; letter-spacing:-.025em; }
+    .mode-sub { font-size:9px; margin-top:3px; font-weight:600; opacity:.8; }
+    .mode-arrow { position:absolute; right:10px; bottom:10px; font-size:16px; font-weight:900; }
+    .pair-shelf { display:flex; align-items:center; justify-content:center; gap:9px; height:103px; margin:0 12px 11px; position:relative; }
+    .pair-note { position:absolute; left:4px; bottom:5px; font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+    .mini-card { width:51px; height:68px; border:2px solid; border-radius:11px; display:grid; place-items:center; overflow:hidden; }
+    .mini-card img { width:85%; height:85%; object-fit:contain; }
+    .mini-card.back { transform:rotate(-9deg); }
+    .mini-card.face { transform:rotate(8deg); }
+    .arena-chip { margin:11px 12px 0; padding:9px 11px; border-radius:14px; display:flex; align-items:center; gap:8px; font-size:9px; line-height:1.15; font-weight:750; }
+    .arena-chip .medal { width:26px; height:26px; display:grid; place-items:center; border-radius:50%; font-size:15px; flex:none; }
+    .arena-chip strong { display:block; font-size:10px; }
+    .arena-chip .arrow { margin-left:auto; font-size:15px; }
+    /* A: Sala giochi pop */
+    .pop .number { color:#172345; background:#ffe34c; }
+    .pop .proposal-title h2 { color:#172345; }
+    .pop .stage-note { color:#44516d; }
+    .pop .screen { color:#fff4d8; background:#2446d8; }
+    .pop .screen::before { content:""; position:absolute; inset:0; opacity:.11; background-image:radial-gradient(#fff4d8 1.15px,transparent 1.15px); background-size:15px 15px; mask-image:linear-gradient(#000 0%,transparent 55%); z-index:-1; }
+    .pop .appbar { color:#fff4d8; }
+    .pop .brandmark i:first-child { background:#ff593b; border-color:#172345; }
+    .pop .brandmark i:last-child { background:#ffe34c; border-color:#172345; }
+    .pop .wordmark span { color:#ffe34c; }
+    .pop .gem-pill { color:#172345; background:#ffe34c; border:2px solid #172345; }
+    .pop .avatar { background:#ff593b; color:#172345; }
+    .pop .pair-shelf { background:#172f98; border:2px solid #172345; border-radius:17px; box-shadow:0 4px 0 #172345; }
+    .pop .pair-note { color:#ffe34c; }
+    .pop .mini-card { background:#fff4d8; color:#172345; border-color:#172345; box-shadow:0 3px 0 #172345; }
+    .pop .mini-card.back { background:#ff593b; }
+    .pop .mode { color:#172345; border-color:#172345; box-shadow:0 4px 0 #172345; border-radius:14px; }
+    .pop .mode:nth-child(1) { background:#ffe34c; }
+    .pop .mode:nth-child(2) { background:#ff8061; }
+    .pop .mode:nth-child(3) { background:#93e6ed; }
+    .pop .mode:nth-child(4) { background:#fff4d8; }
+    .pop .mode-symbol { background:#fff4d8; }
+    .pop .arena-chip { color:#fff4d8; background:#172f98; border:2px solid #172345; box-shadow:0 3px 0 #172345; }
+    .pop .arena-chip .medal { color:#172345; background:#ffe34c; }
+    .pop .board-screen { background:#1a318f; }
+    .pop .board-top { color:#fff4d8; }
+    .pop .board-stat { color:#172345; background:#fff4d8; border:2px solid #172345; box-shadow:0 3px 0 #172345; }
+    .pop .board-progress { color:#172345; background:#ffe34c; border:2px solid #172345; }
+    .pop .playing-card { color:#ffe34c; background:#2446d8; border:2px solid #172345; box-shadow:0 3px 0 #172345; border-radius:10px; }
+    .pop .playing-card.faceup { color:#172345; background:#fff4d8; }
+    .pop .playing-card.matched { color:#172345; background:#ffe34c; }
+    /* B: Isole in gioco */
+    .isles .number { color:#124c65; background:#ffca38; }
+    .isles .proposal-title h2 { color:#124c65; }
+    .isles .screen { color:#124c65; background:linear-gradient(#10bcd0 0%,#64d9df 49%,#73c64c 50%,#48b84a 100%); }
+    .isles .screen::before { content:""; position:absolute; z-index:-1; width:290px; height:200px; right:-128px; top:108px; background:#fff08f; border-radius:50%; opacity:.8; }
+    .isles .appbar { color:#124c65; }
+    .isles .brandmark i:first-child { background:#ff6a2e; border-color:#124c65; }
+    .isles .brandmark i:last-child { background:#ffca38; border-color:#124c65; }
+    .isles .gem-pill { background:#fff1b4; color:#124c65; box-shadow:inset 0 -2px #edb94c; }
+    .isles .avatar { background:#ffca38; color:#124c65; }
+    .isles .home-title { color:#124c65; text-shadow:0 1px #ffffff55; }
+    .isles .mode { color:#124c65; background:#fff5d7; border:2px solid #fff; border-radius:20px 20px 16px 16px; box-shadow:0 5px 0 #237e64; }
+    .isles .mode:nth-child(2) { background:#ffdc81; }
+    .isles .mode:nth-child(3) { background:#bcebed; }
+    .isles .mode:nth-child(4) { background:#ffc2a0; }
+    .isles .mode-symbol { background:#ffca38; border:0; border-radius:50%; box-shadow:inset 0 -4px #e9a732; }
+    .isles .mode:nth-child(2) .mode-symbol { background:#ff8a4c; box-shadow:inset 0 -4px #db5f2b; }
+    .isles .mode:nth-child(3) .mode-symbol { background:#49cbd2; box-shadow:inset 0 -4px #249ca8; }
+    .isles .mode:nth-child(4) .mode-symbol { background:#9cdd65; box-shadow:inset 0 -4px #68ad43; }
+    .isles .mode-arrow { color:#ff6a2e; }
+    .isles .arena-chip { color:#124c65; background:#fff3c5; border:2px solid #fff; box-shadow:0 4px 0 #237e64; }
+    .isles .arena-chip .medal { color:#124c65; background:#ffca38; box-shadow:inset 0 -3px #e9a732; }
+    .isles .pair-shelf { position:relative; overflow:hidden; border-radius:19px; background:linear-gradient(#10bcd0 0 55%,#6fc850 56%); box-shadow:0 5px 0 #237e64; }
+    .isles .pair-shelf::before,.isles .pair-shelf::after { content:""; position:absolute; bottom:-44px; width:155px; height:105px; border-radius:50% 50% 0 0; background:#48b84a; }
+    .isles .pair-shelf::before { left:-35px; }
+    .isles .pair-shelf::after { right:-28px; bottom:-52px; width:175px; background:#83cd4c; }
+    .isles .mini-card { position:relative; z-index:1; color:#124c65; background:#fff4d8; border:2px solid #fff; border-radius:13px; box-shadow:0 4px 0 #237e64; }
+    .isles .mini-card.back { background:#10bcd0; }
+    .isles .pair-note { z-index:2; color:#fff; text-shadow:0 1px 2px #125c58; }
+    .isles .board-screen { background:linear-gradient(#10bcd0 0 18%,#66d8da 18% 23%,#94d85b 23% 100%); }
+    .isles .board-screen::after { content:""; position:absolute; bottom:-47px; left:-50px; width:380px; height:135px; border-radius:50%; background:#48b84a; z-index:-1; }
+    .isles .board-top { color:#124c65; }
+    .isles .board-stat { color:#124c65; background:#fff3c5; border:1px solid #fff; box-shadow:0 3px 0 #288469; }
+    .isles .board-progress { color:#124c65; background:#ffca38; border:1px solid #fff; box-shadow:0 3px 0 #d7a32b; }
+    .isles .playing-card { color:#fff4d8; background:#10aebf; border:2px solid #d8fbf4; box-shadow:0 4px 0 #187b79; border-radius:13px; }
+    .isles .playing-card.faceup { color:#124c65; background:#fff4d8; border-color:#fff; }
+    .isles .playing-card.matched { color:#124c65; background:#ffca38; border-color:#fff; box-shadow:0 4px 0 #d7a32b; }
+    /* board */
+    .board-screen { padding:0 10px 12px; }
+    .board-top { height:43px; display:flex; align-items:center; gap:7px; padding:0 2px; font-size:14px; font-weight:850; }
+    .back-arrow { font-size:20px; margin-right:3px; }
+    .board-topic { display:flex; align-items:center; gap:6px; }
+    .topic-sticker { width:25px; height:25px; display:grid; place-items:center; border-radius:8px; background:#fff; font-size:16px; }
+    .timer { margin-left:auto; font-size:12px; font-weight:850; }
+    .stats { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+    .board-stat { min-height:48px; border-radius:13px; padding:6px 8px; display:flex; align-items:center; justify-content:space-between; }
+    .stat-label { font-size:8px; font-weight:750; letter-spacing:.07em; text-transform:uppercase; opacity:.78; }
+    .stat-value { font-size:23px; font-weight:850; line-height:.9; letter-spacing:-.045em; }
+    .board-progress { width:max-content; margin:8px auto 9px; border-radius:99px; padding:4px 11px; font-size:10px; font-weight:850; }
+    .card-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; padding:0 1px; }
+    .playing-card { height:58px; min-width:0; display:grid; place-items:center; position:relative; overflow:hidden; }
+    .playing-card.backface::before,.playing-card.backface::after { content:""; position:absolute; border:1px solid currentColor; opacity:.65; border-radius:50%; width:16px; height:16px; }
+    .playing-card.backface::before { transform:translateX(-4px); }
+    .playing-card.backface::after { transform:translateX(4px); }
+    .playing-card img { width:85%; height:85%; object-fit:contain; }
+    .playing-card.matched::before { content:"✦"; position:absolute; right:3px; top:0; font-size:9px; }
+    .stage-note { align-self:center; padding:18px 17px; border-radius:18px; background:#f3f5f9; font-size:13px; line-height:1.42; }
+    .stage-note strong { display:block; font-size:14px; margin-bottom:7px; color:#18233c; }
+    .stage-note ul { margin:10px 0 0; padding-left:18px; }
+    .stage-note li { margin:7px 0; }
+    .foot { margin:20px 5px 0; color:#67728a; font-size:12px; }
+    @media (max-width:1040px) {
+      .page { padding:24px 18px 42px; }
+      .stage { grid-template-columns:1fr 1fr; }
+      .stage-note { grid-column:1 / -1; }
+      .phone { width:min(100%,300px); }
+    }
+    @media (max-width:680px) {
+      .page-head,.proposal-head { display:block; }
+      .page-head p { margin-top:14px; }
+      .proposal { padding:20px 14px; }
+      .palette { margin:13px 0 0 51px; }
+      .stage { gap:14px 8px; }
+      .phone { height:520px; width:min(100%,236px); padding:6px; border-radius:28px; }
+      .screen { border-radius:23px; }
+      .status { height:21px; }
+      .appbar { height:35px; }
+      .home-title { margin-top:8px; font-size:17px; }
+      .pair-shelf { height:82px; margin-bottom:7px; }
+      .mini-card { width:42px; height:57px; }
+      .mode-grid { gap:7px; }
+      .mode { height:108px; padding:8px; }
+      .mode-symbol { width:34px; height:34px; font-size:16px; }
+      .mode-title { font-size:13px; }
+      .mode-sub { font-size:8px; }
+      .arena-chip { margin-top:7px; padding:7px; }
+      .board-top { height:38px; }
+      .board-stat { min-height:41px; }
+      .playing-card { height:48px; }
+      .card-grid { gap:5px; }
+      .device-label { margin-left:8px; }
+      .stage-note { font-size:12px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="page-head">
+      <div><div class="eyebrow">SommoMemory · studio visivo</div><h1>Due direzioni, stessa partita</h1></div>
+      <p>Proposte statiche per dare più carattere alla home e al tabellone. Contenuti, modalità e progresso restano quelli del gioco.</p>
+    </header>
+
+    <section class="proposal pop">
+      <div class="proposal-head">
+        <div class="proposal-title"><div class="number">A</div><div><h2>Sala giochi pop</h2><p class="descriptor">Piatto cobalto, colori primari, carte con peso e contorni da gioco da tavolo.</p></div></div>
+        <div class="palette" aria-label="Palette"> <span class="swatch" style="background:#2446d8"></span><span class="swatch" style="background:#ffe34c"></span><span class="swatch" style="background:#ff593b"></span><span class="swatch" style="background:#fff4d8"></span><span class="swatch" style="background:#172345"></span></div>
+      </div>
+      <div class="stage">
+        <div class="device-wrap">
+          <div class="device-label">Home</div>
+          <div class="phone"><div class="screen">
+            <div class="status"><span>9:41</span><span class="status-icons">● ● ▰</span></div>
+            <div class="appbar"><span class="brandmark"><i></i><i></i></span><span class="wordmark">SOMMO<span>MEMORY</span></span><span class="appbar-spacer"></span><span class="gem-pill"><span class="gem">◆</span>100</span><span class="avatar">🐱</span></div>
+            <div class="home-title">Modalità di gioco</div>
+            <div class="pair-shelf"><div class="pair-note">Mazzo attuale · Animali</div><div class="mini-card back"><span>≋</span></div><div class="mini-card face"><img src="../../app/assets/decks/garden/dog.png" alt="Carta cane"></div></div>
+            <div class="mode-grid">
+              <div class="mode"><span class="mode-symbol">1P</span><div><div class="mode-title">Singolo</div><div class="mode-sub">Un giocatore</div></div><span class="mode-arrow">↗</span></div>
+              <div class="mode"><span class="mode-symbol">2P</span><div><div class="mode-title">In due</div><div class="mode-sub">Un dispositivo</div></div><span class="mode-arrow">↗</span></div>
+              <div class="mode"><span class="mode-symbol">◎</span><div><div class="mode-title">Online</div><div class="mode-sub">Due dispositivi</div></div><span class="mode-arrow">↗</span></div>
+              <div class="mode"><span class="mode-symbol">ᛒ</span><div><div class="mode-title">Bluetooth</div><div class="mode-sub">Senza Internet</div></div><span class="mode-arrow">↗</span></div>
+            </div>
+            <div class="arena-chip"><span class="medal">♛</span><span><strong>Valle Selvaggia</strong>0 corone · prossimo traguardo: 100</span><span class="arrow">›</span></div>
+          </div></div>
+        </div>
+        <div class="device-wrap">
+          <div class="device-label">Tabellone · Animali</div>
+          <div class="phone"><div class="screen board-screen">
+            <div class="status"><span>9:41</span><span class="status-icons">● ● ▰</span></div>
+            <div class="board-top"><span class="back-arrow">‹</span><span class="topic-sticker">🐾</span><span>Animali</span><span class="timer">0:16</span></div>
+            <div class="stats"><div class="board-stat"><span class="stat-label">Coppie</span><span class="stat-value">1/12</span></div><div class="board-stat"><span class="stat-label">Tentativi</span><span class="stat-value">2</span></div></div>
+            <div class="board-progress">1 / 12 coppie</div>
+            <div class="card-grid">
+              <div class="playing-card matched"><img src="../../app/assets/decks/garden/dog.png" alt="Coppia trovata"></div><div class="playing-card matched"><img src="../../app/assets/decks/garden/dog.png" alt="Coppia trovata"></div>
+              <div class="playing-card faceup"><img src="../../app/assets/decks/garden/rabbit.png" alt="Carta scoperta"></div><div class="playing-card backface"></div>
+              <div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div>
+              <div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div>
+              <div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div>
+              <div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div>
+              <div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div>
+            </div>
+          </div></div>
+        </div>
+        <aside class="stage-note"><strong>Perché funziona</strong>La personalità viene da poche regole ripetibili: coppie, cornici marcate e ombre corte. Il colore fa leggere subito le modalità.<ul><li>Contrasto alto e carte riconoscibili.</li><li>Illustrazioni esistenti al centro.</li><li>Le coppie trovate hanno un accento giallo stabile.</li></ul></aside>
+      </div>
+    </section>
+
+    <section class="proposal isles">
+      <div class="proposal-head">
+        <div class="proposal-title"><div class="number">B</div><div><h2>Isole in gioco</h2><p class="descriptor">Mondi illustrati, sentiero tra le arene e pulsanti voluminosi integrati nel paesaggio.</p></div></div>
+        <div class="palette" aria-label="Palette"><span class="swatch" style="background:#10bcd0"></span><span class="swatch" style="background:#48b84a"></span><span class="swatch" style="background:#ffca38"></span><span class="swatch" style="background:#ff6a2e"></span><span class="swatch" style="background:#124c65"></span></div>
+      </div>
+      <div class="stage">
+        <div class="device-wrap">
+          <div class="device-label">Home</div>
+          <div class="phone"><div class="screen">
+            <div class="status"><span>9:41</span><span class="status-icons">● ● ▰</span></div>
+            <div class="appbar"><span class="brandmark"><i></i><i></i></span><span class="wordmark">SommoMemory</span><span class="appbar-spacer"></span><span class="gem-pill"><span class="gem">◆</span>100</span><span class="avatar">🐱</span></div>
+            <div class="home-title">Modalità di gioco</div>
+            <div class="pair-shelf"><div class="pair-note">Mazzo attuale · Animali</div><div class="mini-card back"><span>✦</span></div><div class="mini-card face"><img src="../../app/assets/decks/garden/dog.png" alt="Carta cane"></div></div>
+            <div class="mode-grid">
+              <div class="mode"><span class="mode-symbol">1P</span><div><div class="mode-title">Singolo</div><div class="mode-sub">Un giocatore</div></div><span class="mode-arrow">›</span></div>
+              <div class="mode"><span class="mode-symbol">2P</span><div><div class="mode-title">In due</div><div class="mode-sub">Un dispositivo</div></div><span class="mode-arrow">›</span></div>
+              <div class="mode"><span class="mode-symbol">◎</span><div><div class="mode-title">Online</div><div class="mode-sub">Due dispositivi</div></div><span class="mode-arrow">›</span></div>
+              <div class="mode"><span class="mode-symbol">ᛒ</span><div><div class="mode-title">Bluetooth</div><div class="mode-sub">Senza Internet</div></div><span class="mode-arrow">›</span></div>
+            </div>
+            <div class="arena-chip"><span class="medal">♛</span><span><strong>Valle Selvaggia</strong>0 corone · prossimo traguardo: 100</span><span class="arrow">›</span></div>
+          </div></div>
+        </div>
+        <div class="device-wrap">
+          <div class="device-label">Tabellone · Animali</div>
+          <div class="phone"><div class="screen board-screen">
+            <div class="status"><span>9:41</span><span class="status-icons">● ● ▰</span></div>
+            <div class="board-top"><span class="back-arrow">‹</span><span class="topic-sticker">🐾</span><span>Animali</span><span class="timer">0:16</span></div>
+            <div class="stats"><div class="board-stat"><span class="stat-label">Coppie</span><span class="stat-value">1/12</span></div><div class="board-stat"><span class="stat-label">Tentativi</span><span class="stat-value">2</span></div></div>
+            <div class="board-progress">1 / 12 coppie</div>
+            <div class="card-grid">
+              <div class="playing-card matched"><img src="../../app/assets/decks/garden/dog.png" alt="Coppia trovata"></div><div class="playing-card matched"><img src="../../app/assets/decks/garden/dog.png" alt="Coppia trovata"></div>
+              <div class="playing-card faceup"><img src="../../app/assets/decks/garden/rabbit.png" alt="Carta scoperta"></div><div class="playing-card backface"></div>
+              <div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div>
+              <div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div>
+              <div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div>
+              <div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div>
+              <div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div><div class="playing-card backface"></div>
+            </div>
+          </div></div>
+        </div>
+        <aside class="stage-note"><strong>Perché funziona</strong>La mappa delle arene diventa il filo visivo del gioco. Paesaggio e carte restano leggibili perché la zona di gioco centrale è calma.<ul><li>Più atmosfera da avventura mobile.</li><li>La progressione ha un posto visibile.</li><li>Ogni arena può avere un paesaggio proprio.</li></ul></aside>
+      </div>
+    </section>
+    <p class="foot">Elaborato con un confronto visivo di Astra. A distingue maggiormente il gioco e riusa gli asset attuali; B spinge di più sull’avventura illustrata e richiede una direzione coerente per tutte le arene.</p>
+  </main>
+</body>
+</html>

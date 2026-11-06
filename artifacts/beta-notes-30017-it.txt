@@ -1,0 +1,7 @@
+SommoMemory 3.1.0 (30017) — Sala giochi pop, italiano e inglese
+
+Nuova grafica cobalto, giallo e corallo, con tessere marcate e carte spesse. Le coppie trovate restano gialle e i comandi hanno contrasto più alto. Icona, profilo, collezioni e mappa sono coordinati.
+
+L’app ora supporta italiano e inglese: segue il dispositivo e permette di scegliere Automatico, Italiano o English nelle impostazioni. Menu, partita, profilo, collezioni, arene, accessibilità delle carte e messaggi di stato sono tradotti. I nomi scelti dai giocatori restano invariati. Il mazzo Paola contiene sillabe italiane anche nell’interfaccia inglese. Privacy, assistenza e cancellazione account hanno anche pagine inglesi.
+
+Verificare cambio lingua durante l’uso, preferenza conservata alla riapertura, schermi piccoli e orientamento orizzontale, tutte le carte visibili, flip e punteggi, Riduci movimento, gioco offline e sincronizzazione. L’app resta gratuita, senza pubblicità o acquisti in denaro reale. Bluetooth e login Apple/Google richiedono anche verifica sui dispositivi fisici.

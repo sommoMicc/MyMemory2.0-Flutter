@@ -1,0 +1,83 @@
+{
+  "verifiedAt": "2026-11-06T08:59:44.497Z",
+  "brand": "SommoMemory",
+  "version": "3.1.0",
+  "build": 30015,
+  "packageName": "cc.sommomi.mymemory",
+  "source": {
+    "baseCommit": "7d27c88380cfc9ebb705d976c42aa6e0da5f8b23",
+    "runtimeFiles": 425,
+    "runtimeDigest": "b8c59aaf57a110c72991d941b6e67f47c56a39c0f34361a2ad3794a32f3507e8",
+    "androidIosAndWorkspaceMatch": true,
+    "nativeBuildsUsedIsolatedCopies": true
+  },
+  "artifacts": {
+    "androidBundle": {
+      "path": "SommoMemory-3.1.0-30015.aab",
+      "bytes": 90119713,
+      "sha256": "7a50f4e7d02f02eb89a2103d5031d55fcde3de88ee6f08e03069badea0576476"
+    },
+    "androidApk": {
+      "path": "SommoMemory-3.1.0-30015.apk",
+      "bytes": 91879323,
+      "sha256": "f638730a6f4ba9d59e920c0fbcbaa2455d5f3cb0599188b824cb9fb76776b4ef"
+    },
+    "ios": {
+      "path": "artifacts/SommoMemory-3.1.0-30015.ipa",
+      "bytes": 57153502,
+      "sha256": "578bc1b09f0764195cc837516a8f9088cf3d567d0a9f838e49691940a711a03c"
+    }
+  },
+  "verification": {
+    "android": "bundletool / jarsigner / apksigner passed",
+    "ios": "codesign deep strict / provisioning / account entitlements passed",
+    "bundledDeckPngs": 378,
+    "bundledPythonFiles": 0
+  },
+  "distribution": {
+    "googlePlay": {
+      "appId": "4972469070574777722",
+      "internalTrackId": "4700857721365894827",
+      "releaseId": 13,
+      "status": "active",
+      "testers": "existing audience unchanged",
+      "productionRelease": false,
+      "releaseTitle": "Sala giochi pop",
+      "detailsUrl": "https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/13/details",
+      "publishedAt": "2026-11-06 09:52 Europe/Rome",
+      "verifiedVersionCode": 30015,
+      "reviewStatus": "Non esaminata",
+      "unsupportedDevicesAdded": 0,
+      "proofScreenshot": "play-internal-live-30015.jpg",
+      "observedAvailability": "Disponibile per i tester interni"
+    },
+    "testFlight": {
+      "buildId": "66fa3dad-36de-4a4e-9d5c-097f1a9b4feb",
+      "processingState": "VALID",
+      "internalBuildState": "IN_BETA_TESTING",
+      "betaGroupName": "SommoMemory Internal",
+      "internalTesterCount": 2,
+      "finalizedAt": "2026-11-06T08:56:50.308Z"
+    },
+    "productionStoreSubmission": false
+  },
+  "deployment": {
+    "release": "20261106-pop-30015",
+    "health": "healthy",
+    "profilesPreserved": 50,
+    "preexistingProfilesMissing": 0,
+    "capabilityKeyPreserved": true,
+    "publicFilesByteIdentical": true,
+    "report": "artifacts/deployment-30015.json"
+  },
+  "validation": {
+    "flutterSdk": "3.47.9",
+    "flutterAnalysis": "No issues found",
+    "flutterTests": 166,
+    "nodeTests": 99,
+    "finalFullSuiteAfterBluetoothContrastFix": true,
+    "publishedWebVisualReview": true
+  },
+  "supersededBy": 30016,
+  "supersededReason": "Final visual review found cream icons on cream controls; corrected before store submission."
+}

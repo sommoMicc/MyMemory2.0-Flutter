@@ -1,3 +1,4 @@
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -74,6 +75,9 @@ void main() {
         );
         await tester.pumpWidget(
           MaterialApp(
+            locale: const Locale('it'),
+            supportedLocales: const [Locale('it'), Locale('en')],
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
             theme: ThemeData(fontFamily: 'Outfit'),
             home: CollectionShop(selected: 'garden', economy: economy),
           ),

@@ -1,0 +1,89 @@
+{
+  "correction": "sBIT channel count normalized from RGBA4 to RGB3. Compressed IDAT bytes and RGB pixels unchanged. No reupload of intermediate30016; final listing will use30017 captures.",
+  "files": [
+    {
+      "file": "iphone/01-home-pop.png",
+      "oldSha256": "bb34a3a2474b4aaae32393bc9fe2b5f0856990f4fca16fd047140798dcd5e5f8",
+      "newSha256": "2ae9d30b1456795166e93801f8206fe03db283c252d5bda14bb78cc3bed5ea59",
+      "compressedPixelDataIdentical": true,
+      "correction": "sBIT 4-byte RGBA significance -> 3-byte RGB significance; CRC recomputed"
+    },
+    {
+      "file": "iphone/02-tabellone-pop.png",
+      "oldSha256": "479c07d0d40126effcc113d75ef81bd4599c12a5bea05285af6b15a633885725",
+      "newSha256": "f8c73c9cd35e3d40d43d95d2163d494aa8680d60815df96918f264ef4e1a18d1",
+      "compressedPixelDataIdentical": true,
+      "correction": "sBIT 4-byte RGBA significance -> 3-byte RGB significance; CRC recomputed"
+    },
+    {
+      "file": "iphone/03-viaggio.png",
+      "oldSha256": "02038e91100dfd8b5100a2a0ce6fac0efee888618db22ea7968fb30841d54909",
+      "newSha256": "def52908fd6bd5611ba2f9655b75906e1e9c55ddaa5a9e247cf7522af52367cc",
+      "compressedPixelDataIdentical": true,
+      "correction": "sBIT 4-byte RGBA significance -> 3-byte RGB significance; CRC recomputed"
+    },
+    {
+      "file": "iphone/04-collezioni.png",
+      "oldSha256": "6ae268fb60384fa67edc89fa98f16fe20e4281fc919f1ffb85f0e56ac98f1452",
+      "newSha256": "60b80a7d072fa54617915a3b811ce08d586a0c34ba61f1f3c5f0cd720ad0ea3e",
+      "compressedPixelDataIdentical": true,
+      "correction": "sBIT 4-byte RGBA significance -> 3-byte RGB significance; CRC recomputed"
+    },
+    {
+      "file": "ipad/01-home-pop.png",
+      "oldSha256": "569e617ee95b57debd4a728a1425b4ecae502a0309e99c0ef59488131fd6355f",
+      "newSha256": "c41e8e2ae7c77368e40d3a80d7887b7f1044a6b67669bc5dc33e28f3517ed5fe",
+      "compressedPixelDataIdentical": true,
+      "correction": "sBIT 4-byte RGBA significance -> 3-byte RGB significance; CRC recomputed"
+    },
+    {
+      "file": "ipad/02-tabellone-pop.png",
+      "oldSha256": "6d09dea250ac531d0776288e97b7be6770dc05caf82761e997b9ebe05a1022f0",
+      "newSha256": "ddf8e1e1034fd3d296ded982c83a7ff72eb51caebb99c99cea39680f9fa3d574",
+      "compressedPixelDataIdentical": true,
+      "correction": "sBIT 4-byte RGBA significance -> 3-byte RGB significance; CRC recomputed"
+    },
+    {
+      "file": "ipad/03-viaggio.png",
+      "oldSha256": "62df095434bd655145df99567400b6b6914167f1dab6189b0165dd8f94ba171d",
+      "newSha256": "4dd12b8d0e761b3a08ee4fae8ea8ab37202de984bdb7269d7eb3085c94ef7b72",
+      "compressedPixelDataIdentical": true,
+      "correction": "sBIT 4-byte RGBA significance -> 3-byte RGB significance; CRC recomputed"
+    },
+    {
+      "file": "ipad/04-collezioni.png",
+      "oldSha256": "099bba97bcba5df8967c1418d4166a8f84ed8869dc82c11137d7339eb37db0ee",
+      "newSha256": "cd51c03e6de15905b497075cad4d57a293b5377d5ffdf0ceadb217bbaabadfab",
+      "compressedPixelDataIdentical": true,
+      "correction": "sBIT 4-byte RGBA significance -> 3-byte RGB significance; CRC recomputed"
+    },
+    {
+      "file": "play/01-home-pop.png",
+      "oldSha256": "4fcadf33aa347c6fac9a301b2e438d68929d0b0271fcf47fbc0f121b2e5cc094",
+      "newSha256": "fa7a777b2e8acc0a6e8b6354f6a5fe5b9884037175cf6f59788a61d7d9594acc",
+      "compressedPixelDataIdentical": true,
+      "correction": "sBIT 4-byte RGBA significance -> 3-byte RGB significance; CRC recomputed"
+    },
+    {
+      "file": "play/02-tabellone-pop.png",
+      "oldSha256": "0e157aceddbc3aa8ae3c128d340b228bd90dab51a6d94533a1f4408fedbb1826",
+      "newSha256": "65b8d011dea0af54246a5f7107bddf3c00243a9f13dd583d7d044d018e0a2b81",
+      "compressedPixelDataIdentical": true,
+      "correction": "sBIT 4-byte RGBA significance -> 3-byte RGB significance; CRC recomputed"
+    },
+    {
+      "file": "play/03-viaggio.png",
+      "oldSha256": "52b8153d9f70058f079e15a1b466a3f55174c24812aa1bf3d0d7914f4da89f3d",
+      "newSha256": "2e6744592f5f7949e2485504ebed0788342ea453eab15668a39ba514cc70c88b",
+      "compressedPixelDataIdentical": true,
+      "correction": "sBIT 4-byte RGBA significance -> 3-byte RGB significance; CRC recomputed"
+    },
+    {
+      "file": "play/04-collezioni.png",
+      "oldSha256": "437112e0d0c19508d46bae8dff446de3c842ad04020620fb637360546102c489",
+      "newSha256": "656156132f70f820ce2471e7a06dc7d62cb159f2a9ad936a9177f754633003cb",
+      "compressedPixelDataIdentical": true,
+      "correction": "sBIT 4-byte RGBA significance -> 3-byte RGB significance; CRC recomputed"
+    }
+  ]
+}

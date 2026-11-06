@@ -1,0 +1,60 @@
+{
+  "packageName": "cc.sommomi.mymemory",
+  "versionName": "3.1.0",
+  "versionCode": 30017,
+  "builtAt": "2026-11-06T09:44:46.862090+00:00",
+  "artifacts": {
+    "aab": {
+      "path": "SommoMemory-3.1.0-30017.aab",
+      "bytes": 91393410,
+      "sha256": "958acdacdbdd8eb4c039098c425afd06195398016785df909e22f78a4503d80b"
+    },
+    "apk": {
+      "path": "SommoMemory-3.1.0-30017.apk",
+      "bytes": 93337603,
+      "sha256": "5311c4c30b89740a140e4dbf0891fdedd9557c05adec07a97abca41c494a9f54"
+    },
+    "mapping": {
+      "path": "SommoMemory-3.1.0-30017-mapping.txt",
+      "bytes": 12168810,
+      "sha256": "34ce6d2328355b8e6f4f09aa6fa9a6598e34353bc3fe74bb0d7a466e05971c66"
+    }
+  },
+  "signing": {
+    "certificateSha256": "404D6F54025C024007E37F2A25352CB84471268A1C6C0D78C17A9565E12BED67",
+    "aab": "jarsigner verified",
+    "apk": "apksigner verified"
+  },
+  "bundleVerification": {
+    "bundletoolValidate": "passed",
+    "manifestPackage": "cc.sommomi.mymemory",
+    "manifestVersionCode": 30017,
+    "manifestVersionName": "3.1.0",
+    "minSdk": 24,
+    "targetSdk": 36
+  },
+  "archiveInspection": {
+    "aab": {
+      "files": 809,
+      "bundledScripts": [],
+      "deckPngCount": 378,
+      "nativeAppHashes": {
+        "base/lib/arm64-v8a/libapp.so": "24b43f7f46930e7ea7a6758dbf2341b6cbef56ceb6dfa37451e31a7f8e1aeceb",
+        "base/lib/armeabi-v7a/libapp.so": "805818e07eeb9a416627cedcecf90d4b4ce0c7c3fe63aa0cf3036a88f69ceee2",
+        "base/lib/x86_64/libapp.so": "8fdecbcf33880b05a2704867aabd58056fb54e040b35eab2ee80c022f264044a"
+      }
+    },
+    "apk": {
+      "files": 787,
+      "bundledScripts": [],
+      "deckPngCount": 378,
+      "nativeAppHashes": {
+        "lib/arm64-v8a/libapp.so": "24b43f7f46930e7ea7a6758dbf2341b6cbef56ceb6dfa37451e31a7f8e1aeceb",
+        "lib/armeabi-v7a/libapp.so": "805818e07eeb9a416627cedcecf90d4b4ce0c7c3fe63aa0cf3036a88f69ceee2",
+        "lib/x86_64/libapp.so": "8fdecbcf33880b05a2704867aabd58056fb54e040b35eab2ee80c022f264044a"
+      }
+    }
+  },
+  "runtimeDigest": "ffd650f7c6f0bc196d096557af45a9e16b3145cd4d35813c97058cdf90aec960",
+  "buildWorkspace": "/tmp/sommomemory-android-30015-6f6am_dp/app"
+}

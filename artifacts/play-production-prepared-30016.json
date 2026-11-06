@@ -1,0 +1,37 @@
+{
+  "appId": "4972469070574777722",
+  "packageName": "cc.sommomi.mymemory",
+  "versionName": "3.1.0",
+  "versionCode": 30016,
+  "trackId": "4697917574109626557",
+  "track": "production",
+  "releaseId": 1,
+  "releaseName": "3.1.0 · Sala giochi pop",
+  "preparation": "Created draft, added existing library bundle30016, saved Italian release notes, selected all178 available country options, preview validation passed and saved to publishing overview without submission.",
+  "status": "Prepared, not yet sent for review",
+  "observedReleaseStatus": "Non ancora inviato per la revisione",
+  "observedTrackStatus": "Attivo (configured track, not evidence of public availability)",
+  "reviewSubmitted": false,
+  "productionPublished": false,
+  "contractsAccepted": false,
+  "internalRelease30016": "Still active with unchanged audience",
+  "alphaTrack": "Preserved unchanged",
+  "countries": {
+    "count": 178,
+    "explicitCountries": 177,
+    "restOfWorld": true,
+    "status": "Pending review changes; not published"
+  },
+  "publishingOverview": {
+    "pendingChanges": 14,
+    "reviewButton": "Enabled",
+    "productionAction": "Avvio dell’implementazione completa (listed under not yet submitted changes)",
+    "automaticChecks": "Completed successfully; Ora le modifiche possono essere inviate per la revisione",
+    "managedPublishing": "Disabled, pre-existing setting unchanged",
+    "proofScreenshot": "google-play-production-ready-30016.jpg"
+  },
+  "notes": "Saving the preview only queued the production release in Publishing Overview. No Send for review or publish/rollout action was used. User controls final submission; with current managed-publishing setting, approval may publish automatically.",
+  "detailsUrl": "https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4697917574109626557/releases/1/details",
+  "proofScreenshot": "play-production-prepared-30016.jpg",
+  "updatedAt": "2026-11-06T09:20:58.746975+00:00"
+}

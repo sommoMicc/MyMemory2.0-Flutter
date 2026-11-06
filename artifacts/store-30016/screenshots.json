@@ -1,0 +1,130 @@
+{
+  "version": "3.1.0",
+  "build": 30016,
+  "source": "Actual Flutter application widgets captured from frozen shared source in an isolated widget renderer, not physical devices or simulators. Read-only fresh guest state: 100 gems, zero crowns, starter decks; no production profile created. The capture harness loads the bundled Outfit/MaterialIcons fonts and supplies Apple Color Emoji as the fallback omitted by flutter_tester. Fully opaque RGBA screenshots converted to RGB by lossless PNG channel stripping; no interface elements retouched.",
+  "harness": "scripts/capture-store-30016_test.dart",
+  "mainDartSha256": "bb562d3fec031cf5bb2d04596a55865aabae4d635aa8f3874082ffa8d4a99fa1",
+  "files": [
+    {
+      "file": "iphone/01-home-pop.png",
+      "width": 1320,
+      "height": 2868,
+      "mode": "RGB",
+      "bytes": 160198,
+      "sha256": "2ae9d30b1456795166e93801f8206fe03db283c252d5bda14bb78cc3bed5ea59",
+      "rgbPixelsSha256": "935e05dd36bde3db16a033e4d8164ede3d5b008573a52c731a1e3ab1ff630cb8",
+      "alphaWasFullyOpaque": true
+    },
+    {
+      "file": "iphone/02-tabellone-pop.png",
+      "width": 1320,
+      "height": 2868,
+      "mode": "RGB",
+      "bytes": 232611,
+      "sha256": "f8c73c9cd35e3d40d43d95d2163d494aa8680d60815df96918f264ef4e1a18d1",
+      "rgbPixelsSha256": "c56948347e56ac71f228c0c92bcf2c5884bb8d0812f6ffc0e8537048cb8f4591",
+      "alphaWasFullyOpaque": true
+    },
+    {
+      "file": "iphone/03-viaggio.png",
+      "width": 1320,
+      "height": 2868,
+      "mode": "RGB",
+      "bytes": 191093,
+      "sha256": "def52908fd6bd5611ba2f9655b75906e1e9c55ddaa5a9e247cf7522af52367cc",
+      "rgbPixelsSha256": "aa651c0245e21d835bcf626046da42f90c1a4f8527cd9c7ffce967059f72a6df",
+      "alphaWasFullyOpaque": true
+    },
+    {
+      "file": "iphone/04-collezioni.png",
+      "width": 1320,
+      "height": 2868,
+      "mode": "RGB",
+      "bytes": 407701,
+      "sha256": "60b80a7d072fa54617915a3b811ce08d586a0c34ba61f1f3c5f0cd720ad0ea3e",
+      "rgbPixelsSha256": "f38044953659b256416a6d93e0e19408ad930f2584283f028c63f21464ed6367",
+      "alphaWasFullyOpaque": true
+    },
+    {
+      "file": "ipad/01-home-pop.png",
+      "width": 2064,
+      "height": 2752,
+      "mode": "RGB",
+      "bytes": 122300,
+      "sha256": "c41e8e2ae7c77368e40d3a80d7887b7f1044a6b67669bc5dc33e28f3517ed5fe",
+      "rgbPixelsSha256": "f259a3fb77a318f9e061efd0dcf5581e9f6b595f04fc74cfd00f6c013dba2a1d",
+      "alphaWasFullyOpaque": true
+    },
+    {
+      "file": "ipad/02-tabellone-pop.png",
+      "width": 2064,
+      "height": 2752,
+      "mode": "RGB",
+      "bytes": 177466,
+      "sha256": "ddf8e1e1034fd3d296ded982c83a7ff72eb51caebb99c99cea39680f9fa3d574",
+      "rgbPixelsSha256": "e0df1b3127e067babf3447586c69fe3cc0ffbe2a1da63a97155191869a2c8fbf",
+      "alphaWasFullyOpaque": true
+    },
+    {
+      "file": "ipad/03-viaggio.png",
+      "width": 2064,
+      "height": 2752,
+      "mode": "RGB",
+      "bytes": 240810,
+      "sha256": "4dd12b8d0e761b3a08ee4fae8ea8ab37202de984bdb7269d7eb3085c94ef7b72",
+      "rgbPixelsSha256": "3673dc62ed43dc1e17e78b81a55235033a2d54609f73e7a6bfb112eceb7edda4",
+      "alphaWasFullyOpaque": true
+    },
+    {
+      "file": "ipad/04-collezioni.png",
+      "width": 2064,
+      "height": 2752,
+      "mode": "RGB",
+      "bytes": 845221,
+      "sha256": "cd51c03e6de15905b497075cad4d57a293b5377d5ffdf0ceadb217bbaabadfab",
+      "rgbPixelsSha256": "cdce10b2b8798a7c0b86630fefa0d78b75135fd6f4d14c47fde1d92ff1ff3e4e",
+      "alphaWasFullyOpaque": true
+    },
+    {
+      "file": "play/01-home-pop.png",
+      "width": 1080,
+      "height": 1920,
+      "mode": "RGB",
+      "bytes": 113607,
+      "sha256": "fa7a777b2e8acc0a6e8b6354f6a5fe5b9884037175cf6f59788a61d7d9594acc",
+      "rgbPixelsSha256": "8be5e885593079f05aca3dc710fdcfabbc580de3f067e36a7fa7b2eda2854608",
+      "alphaWasFullyOpaque": true
+    },
+    {
+      "file": "play/02-tabellone-pop.png",
+      "width": 1080,
+      "height": 1920,
+      "mode": "RGB",
+      "bytes": 215819,
+      "sha256": "65b8d011dea0af54246a5f7107bddf3c00243a9f13dd583d7d044d018e0a2b81",
+      "rgbPixelsSha256": "3a9295e77e3b1970e0082bbe33f4ab979f77c2fb3f6c752bf8e27a0d4e0e7a85",
+      "alphaWasFullyOpaque": true
+    },
+    {
+      "file": "play/03-viaggio.png",
+      "width": 1080,
+      "height": 1920,
+      "mode": "RGB",
+      "bytes": 132144,
+      "sha256": "2e6744592f5f7949e2485504ebed0788342ea453eab15668a39ba514cc70c88b",
+      "rgbPixelsSha256": "32b5c9c873329090aad09e974fb266446a7a101892df885cdca876d3b1aa1251",
+      "alphaWasFullyOpaque": true
+    },
+    {
+      "file": "play/04-collezioni.png",
+      "width": 1080,
+      "height": 1920,
+      "mode": "RGB",
+      "bytes": 200837,
+      "sha256": "656156132f70f820ce2471e7a06dc7d62cb159f2a9ad936a9177f754633003cb",
+      "rgbPixelsSha256": "74597af96555ac60ffee22f68cf63439b1679b5437d6be67eef5a3c3d6533c48",
+      "alphaWasFullyOpaque": true
+    }
+  ],
+  "metadataCorrection": "png-metadata-correction.json"
+}

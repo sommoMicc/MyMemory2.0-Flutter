@@ -1,0 +1,53 @@
+{
+  "packageName": "cc.sommomi.mymemory",
+  "versionName": "3.1.0",
+  "versionCode": 30016,
+  "artifact": {
+    "path": "SommoMemory-3.1.0-30016.aab",
+    "bytes": 90120985,
+    "sha256": "cda398ad56ce6dd8fe43ebe814272baa6d7da934139eb6bd9df6564531ef2517"
+  },
+  "mapping": {
+    "path": "SommoMemory-3.1.0-30016-mapping.txt",
+    "bytes": 12168810,
+    "sha256": "34ce6d2328355b8e6f4f09aa6fa9a6598e34353bc3fe74bb0d7a466e05971c66"
+  },
+  "signing": {
+    "certificateSha256": "404D6F54025C024007E37F2A25352CB84471268A1C6C0D78C17A9565E12BED67",
+    "aab": "jarsigner verified",
+    "apk": "apksigner verified"
+  },
+  "bundleVerification": {
+    "bundletoolValidate": "passed",
+    "manifestPackage": "cc.sommomi.mymemory",
+    "manifestVersionCode": 30016,
+    "manifestVersionName": "3.1.0",
+    "minSdk": 24,
+    "targetSdk": 36
+  },
+  "runtimeDigest": "be593a3fa0f6aeb63c2fe315fa85ceaa57bbe36cd3f5493a67e3a5a3b64c40ef",
+  "googlePlay": {
+    "appId": "4972469070574777722",
+    "internalTrackId": "4700857721365894827",
+    "releaseId": 14,
+    "status": "active",
+    "testers": "existing audience unchanged",
+    "productionRelease": false,
+    "releaseTitle": "Sala giochi pop · comandi più leggibili",
+    "detailsUrl": "https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/14/details",
+    "publishedAt": "2026-11-06 10:08 Europe/Rome",
+    "verifiedVersionCode": 30016,
+    "reviewStatus": "Non esaminata",
+    "unsupportedDevicesAdded": 0,
+    "proofScreenshot": "play-internal-live-30016.jpg",
+    "observedAvailability": "Disponibile per i tester interni"
+  },
+  "apiAccess": {
+    "readOnlyGeneratedApks": "HTTP 403 PERMISSION_DENIED reported by store agent today",
+    "fallback": "signed-in Play Console"
+  },
+  "buildCommand": "Flutter 3.47.9 release appbundle and APK; build name 3.1.0, number 30016; isolated app copy after final freeze3",
+  "releaseNotes": "SommoMemory cambia stile: colori accesi, carte con bordi e ombre nette, coppie evidenziate in giallo e nuova icona coordinata. Migliorata la leggibilità dei comandi durante la partita e nella lobby Bluetooth.",
+  "verifiedAt": "2026-11-06T09:08:56.936709+00:00",
+  "notes": "Release14 is active on the existing internal track with version30016, superseding30015. Existing testers unchanged. No production release or first-review submission."
+}

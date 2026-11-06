@@ -1,3 +1,4 @@
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -183,6 +184,9 @@ void main() {
             };
           await tester.pumpWidget(
             MaterialApp(
+              locale: const Locale('it'),
+              supportedLocales: const [Locale('it'), Locale('en')],
+              localizationsDelegates: GlobalMaterialLocalizations.delegates,
               home: Scaffold(
                 body: Builder(
                   builder: (context) => TextButton(
@@ -454,6 +458,9 @@ void main() {
         );
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('it'),
+          supportedLocales: const [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           home: GameScreen(
             prefs: prefs,
             pairs: 12,
@@ -516,6 +523,9 @@ void main() {
         );
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('it'),
+          supportedLocales: const [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           home: GameScreen(
             prefs: prefs,
             pairs: 12,
@@ -645,6 +655,9 @@ void main() {
         );
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('it'),
+          supportedLocales: const [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           home: GameScreen(
             prefs: prefs,
             pairs: 12,

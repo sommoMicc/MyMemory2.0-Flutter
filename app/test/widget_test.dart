@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mymemory/main.dart';
@@ -10,7 +11,6 @@ import 'package:mymemory/account.dart';
 import 'package:mymemory/decks.dart';
 import 'package:mymemory/invite_links.dart';
 import 'package:mymemory/ui/collection_shop.dart';
-import 'package:mymemory/palette.dart';
 import 'package:mymemory/bluetooth/bluetooth_controller.dart';
 import 'package:mymemory/online.dart';
 import 'package:mymemory/ui/game_world.dart';
@@ -51,6 +51,7 @@ void main() {
       (tester) async {
         configureView(tester, viewport.$1, viewport.$2);
         SharedPreferences.setMockInitialValues({
+          'ui.language': 'it',
           'sound': false,
           'haptics': false,
         });
@@ -60,6 +61,9 @@ void main() {
           ..error = 'Aggiorna SommoMemory per giocare con questa collezione.';
         await tester.pumpWidget(
           MaterialApp(
+            locale: const Locale('it'),
+            supportedLocales: const [Locale('it'), Locale('en')],
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
             home: Builder(
               builder: (context) => Scaffold(
                 body: TextButton(
@@ -155,6 +159,7 @@ void main() {
     testWidgets('Setup and all 36 cards fit ${viewport.$1}', (tester) async {
       configureView(tester, viewport.$1, viewport.$2);
       SharedPreferences.setMockInitialValues({
+        'ui.language': 'it',
         'sound': false,
         'haptics': false,
       });
@@ -290,7 +295,7 @@ void main() {
       expect(createdLobby.pairs, 18);
       expect(find.text('Aggiorna ricerca'), findsNothing);
       expect(find.text('Fattoria · 18 coppie'), findsOneWidget);
-      await tester.pageBack();
+      await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       expect(find.text('Collezione').hitTestable(), findsOneWidget);
       await tester.tap(find.byTooltip('Scelta partita Bluetooth'));
@@ -323,6 +328,9 @@ void main() {
         };
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('it'),
+          supportedLocales: const [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           home: GameScreen(
             prefs: prefs,
             pairs: 18,
@@ -349,7 +357,11 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    SharedPreferences.setMockInitialValues({'sound': false, 'haptics': false});
+    SharedPreferences.setMockInitialValues({
+      'ui.language': 'it',
+      'sound': false,
+      'haptics': false,
+    });
     final prefs = await SharedPreferences.getInstance();
     final economy = _UiEconomy(prefs)..replace(crowns: 145, peakCrowns: 420);
     await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
@@ -370,6 +382,7 @@ void main() {
     ) async {
       configureView(tester, viewport.$1, viewport.$2);
       SharedPreferences.setMockInitialValues({
+        'ui.language': 'it',
         'sound': false,
         'haptics': false,
       });
@@ -377,6 +390,9 @@ void main() {
       for (final pairs in [6, 8, 12, 18]) {
         await tester.pumpWidget(
           MaterialApp(
+            locale: const Locale('it'),
+            supportedLocales: const [Locale('it'), Locale('en')],
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
             theme: ThemeData(fontFamily: 'Outfit'),
             home: GameScreen(
               key: ValueKey(pairs),
@@ -423,6 +439,9 @@ void main() {
       late StateSetter change;
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('it'),
+          supportedLocales: const [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           home: StatefulBuilder(
             builder: (context, setState) {
               change = setState;
@@ -476,6 +495,9 @@ void main() {
     int? value;
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('it'),
+        supportedLocales: const [Locale('it'), Locale('en')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
         home: MediaQuery(
           data: const MediaQueryData(disableAnimations: true),
           child: StatefulBuilder(
@@ -520,6 +542,9 @@ void main() {
           const FakeAccessibilityFeatures(disableAnimations: false);
       await tester.pumpWidget(
         const MaterialApp(
+          locale: Locale('it'),
+          supportedLocales: [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           home: GameWorld(collection: 'ocean', child: SizedBox.expand()),
         ),
       );
@@ -557,12 +582,16 @@ void main() {
       tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(disableAnimations: false);
       SharedPreferences.setMockInitialValues({
+        'ui.language': 'it',
         'sound': false,
         'haptics': false,
       });
       final prefs = await SharedPreferences.getInstance();
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('it'),
+          supportedLocales: const [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           theme: ThemeData(fontFamily: 'Outfit'),
           home: GameScreen(
             prefs: prefs,
@@ -634,12 +663,16 @@ void main() {
     'Reduced motion releases a mismatch as soon as its faces are hidden',
     (tester) async {
       SharedPreferences.setMockInitialValues({
+        'ui.language': 'it',
         'sound': false,
         'haptics': false,
       });
       final prefs = await SharedPreferences.getInstance();
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('it'),
+          supportedLocales: const [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           theme: ThemeData(fontFamily: 'Outfit'),
           home: GameScreen(
             prefs: prefs,
@@ -678,6 +711,7 @@ void main() {
         tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
             const FakeAccessibilityFeatures(disableAnimations: false);
         SharedPreferences.setMockInitialValues({
+          'ui.language': 'it',
           'sound': false,
           'haptics': false,
         });
@@ -708,6 +742,9 @@ void main() {
         publish(List<int?>.filled(12, null));
         await tester.pumpWidget(
           MaterialApp(
+            locale: const Locale('it'),
+            supportedLocales: const [Locale('it'), Locale('en')],
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
             theme: ThemeData(fontFamily: 'Outfit'),
             home: GameScreen(
               prefs: prefs,
@@ -764,6 +801,7 @@ void main() {
       tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(disableAnimations: false);
       SharedPreferences.setMockInitialValues({
+        'ui.language': 'it',
         'sound': false,
         'haptics': false,
       });
@@ -784,6 +822,9 @@ void main() {
       publish([0, 1, ...List<int?>.filled(10, null)], locked: true);
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('it'),
+          supportedLocales: const [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           theme: ThemeData(fontFamily: 'Outfit'),
           home: GameScreen(
             prefs: prefs,
@@ -835,12 +876,16 @@ void main() {
       tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(disableAnimations: false);
       SharedPreferences.setMockInitialValues({
+        'ui.language': 'it',
         'sound': false,
         'haptics': false,
       });
       final prefs = await SharedPreferences.getInstance();
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('it'),
+          supportedLocales: const [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           theme: ThemeData(fontFamily: 'Outfit'),
           home: GameScreen(
             prefs: prefs,
@@ -913,6 +958,7 @@ void main() {
         tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
             const FakeAccessibilityFeatures(disableAnimations: false);
         SharedPreferences.setMockInitialValues({
+          'ui.language': 'it',
           'sound': false,
           'haptics': false,
         });
@@ -931,6 +977,9 @@ void main() {
         publish(presentationFrame(empty));
         await tester.pumpWidget(
           MaterialApp(
+            locale: const Locale('it'),
+            supportedLocales: const [Locale('it'), Locale('en')],
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
             theme: ThemeData(fontFamily: 'Outfit'),
             home: GameScreen(
               prefs: prefs,
@@ -1055,6 +1104,7 @@ void main() {
       tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(disableAnimations: false);
       SharedPreferences.setMockInitialValues({
+        'ui.language': 'it',
         'sound': false,
         'haptics': false,
       });
@@ -1064,6 +1114,9 @@ void main() {
       online.publish(presentationFrame(cards));
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('it'),
+          supportedLocales: const [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           theme: ThemeData(fontFamily: 'Outfit'),
           home: GameScreen(
             prefs: prefs,
@@ -1127,6 +1180,7 @@ void main() {
       (tester) async {
         configureView(tester, viewport.$1, viewport.$2);
         SharedPreferences.setMockInitialValues({
+          'ui.language': 'it',
           'sound': false,
           'haptics': false,
         });
@@ -1164,22 +1218,6 @@ void main() {
           scrollable: find.byType(Scrollable).first,
         );
         final oceanText = find.text('Oceano');
-        final oceanCards = find.ancestor(
-          of: oceanText,
-          matching: find.byWidgetPredicate(
-            (widget) =>
-                widget is Container && widget.decoration is BoxDecoration,
-          ),
-        );
-        expect(oceanCards, findsWidgets);
-        final hasLegacyOceanPalette = tester
-            .widgetList<Container>(oceanCards)
-            .any(
-              (container) =>
-                  (container.decoration! as BoxDecoration).border?.top.color ==
-                  deckAccent('ocean').withValues(alpha: .28),
-            );
-        expect(hasLegacyOceanPalette, isTrue);
         await tester.ensureVisible(oceanText);
         await tester.pumpAndSettle();
         await tester.tap(oceanText);
@@ -1224,6 +1262,7 @@ void main() {
         const FakeViewPadding(top: 20),
       );
       SharedPreferences.setMockInitialValues({
+        'ui.language': 'it',
         'sound': false,
         'haptics': false,
       });
@@ -1275,6 +1314,7 @@ void main() {
     'A validated ticket is claimed once only after the completed final flip',
     (tester) async {
       SharedPreferences.setMockInitialValues({
+        'ui.language': 'it',
         'sound': false,
         'haptics': false,
       });
@@ -1288,6 +1328,9 @@ void main() {
       );
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('it'),
+          supportedLocales: const [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           theme: ThemeData(fontFamily: 'Outfit'),
           home: GameScreen(
             prefs: prefs,
@@ -1327,6 +1370,7 @@ void main() {
     'Cold and warm invitations keep the profile and confirm leaving an active game',
     (tester) async {
       SharedPreferences.setMockInitialValues({
+        'ui.language': 'it',
         'sound': false,
         'haptics': false,
       });
@@ -1376,7 +1420,11 @@ void main() {
   testWidgets('Wallet refresh preserves an in-progress name edit', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({'sound': false, 'haptics': false});
+    SharedPreferences.setMockInitialValues({
+      'ui.language': 'it',
+      'sound': false,
+      'haptics': false,
+    });
     final prefs = await SharedPreferences.getInstance();
     final economy = _UiEconomy(prefs);
     await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
@@ -1399,7 +1447,11 @@ void main() {
   });
 
   testWidgets('Opening profile cancels a pending ticket start', (tester) async {
-    SharedPreferences.setMockInitialValues({'sound': false, 'haptics': false});
+    SharedPreferences.setMockInitialValues({
+      'ui.language': 'it',
+      'sound': false,
+      'haptics': false,
+    });
     final prefs = await SharedPreferences.getInstance();
     final economy = _UiEconomy(prefs)..holdTicket = Completer<GameTicket?>();
     await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
@@ -1438,6 +1490,7 @@ void main() {
         const FakeViewPadding(top: 20),
       );
       SharedPreferences.setMockInitialValues({
+        'ui.language': 'it',
         'sound': false,
         'haptics': false,
       });
@@ -1485,6 +1538,9 @@ void main() {
       });
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('it'),
+          supportedLocales: const [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           theme: ThemeData(fontFamily: 'Outfit'),
           home: GameScreen(
             prefs: prefs,
@@ -1527,6 +1583,7 @@ void main() {
     'An offline name remains local after reopening without claiming cloud sync',
     (tester) async {
       SharedPreferences.setMockInitialValues({
+        'ui.language': 'it',
         'sound': false,
         'haptics': false,
       });
@@ -1561,7 +1618,11 @@ void main() {
   testWidgets('Collection and difficulty survive reopening the app', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({'sound': false, 'haptics': false});
+    SharedPreferences.setMockInitialValues({
+      'ui.language': 'it',
+      'sound': false,
+      'haptics': false,
+    });
     final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(MyMemory(prefs: prefs));
     await tester.tap(find.text('Singolo'));
@@ -1587,7 +1648,11 @@ void main() {
     tester,
   ) async {
     configureView(tester, const Size(320, 568), const FakeViewPadding(top: 20));
-    SharedPreferences.setMockInitialValues({'sound': false, 'haptics': false});
+    SharedPreferences.setMockInitialValues({
+      'ui.language': 'it',
+      'sound': false,
+      'haptics': false,
+    });
     final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(MyMemory(prefs: prefs));
     await tester.tap(find.text('Singolo'));

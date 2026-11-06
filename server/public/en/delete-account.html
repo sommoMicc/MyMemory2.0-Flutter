@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Delete account · SommoMemory</title>
+  <style>
+    body{font:17px/1.65 system-ui,sans-serif;color:#243c35;background:#faf8f1;max-width:720px;margin:48px auto;padding:0 24px}
+    h1{font-size:34px;line-height:1.2}h2{font-size:23px;margin-top:32px}a{color:#256850}
+    label{display:block;font-weight:600;margin-bottom:8px}input{display:block;box-sizing:border-box;width:100%;padding:14px;font:inherit;border:1px solid #7b827e;border-radius:10px}
+    button,.action{display:inline-block;font:inherit;padding:12px 18px;border:0;border-radius:10px;background:#207b73;color:white;margin:12px 8px 0 0;cursor:pointer;text-decoration:none}
+    button.secondary{color:#243c35;background:#e6e6dc}button.danger{background:#9f2929}button:disabled{opacity:.6;cursor:wait}
+    :focus-visible{outline:3px solid #b97d14;outline-offset:4px}section{margin:24px 0}#status{min-height:1.65em}#status.error{color:#9f2929}
+    [hidden]{display:none!important}small{color:#52665c}#preview{padding:20px;border:1px solid #b6c7be;border-radius:12px}
+  </style>
+  <script src="/en/account-deletion.js" defer></script>
+</head>
+<body>
+  <a href="/">← SommoMemory</a>
+  <h1>Delete your SommoMemory account</h1>
+  <p>You can delete your profile and its associated data without reinstalling the app. Deletion removes gems, unlocked collections, your name, customisations, sign-in methods and sessions. It is permanent.</p>
+  <section aria-labelledby="browser-title">
+    <h2 id="browser-title">Sign in with Apple or Google</h2>
+    <p>Open the game in your browser. If necessary, sign in under <strong>Save and link</strong>, check that you have opened the correct profile, then choose <strong>Manage → Delete profile</strong>. You can also use an existing session.</p>
+    <a class="action" href="/?account=delete">Open your profile in the browser</a>
+    <p><small>This action deletes only your SommoMemory profile, not your Apple or Google account.</small></p>
+  </section>
+  <section aria-labelledby="code-title" id="recovery-section">
+    <h2 id="code-title">Use your recovery code</h2>
+    <p>If you have kept your personal code, you can verify and delete the profile here. We first show which profile will be deleted.</p>
+    <form id="recovery-form" autocomplete="off">
+      <label for="recovery-code">Recovery code</label>
+      <input id="recovery-code" name="recovery-code" type="password" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="100" required aria-describedby="code-help">
+      <small id="code-help">The code starts with SMM. Do not share it with other people.</small><br>
+      <button type="submit" id="verify">Verify profile</button>
+    </form>
+    <div id="preview" hidden>
+      <h3>Delete this profile?</h3>
+      <p id="profile-summary"></p>
+      <p>You will permanently lose its gems and collections. Other devices will lose access to the service. Offline devices do not receive the deletion immediately; the limits of local cleanup are described in the privacy policy.</p>
+      <button type="button" id="confirm-delete" class="danger">Delete permanently</button>
+      <button type="button" id="cancel" class="secondary">Cancel</button>
+    </div>
+  </section>
+  <p id="status" role="status" aria-live="polite"></p>
+  <noscript><p>JavaScript must be enabled to verify the code. Alternatively, open SommoMemory and use Profile → Manage → Delete profile.</p></noscript>
+  <p><a href="/en/privacy">Privacy</a> · <a href="/en/support">Support</a></p>
+</body>
+</html>

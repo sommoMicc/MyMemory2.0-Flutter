@@ -1,0 +1,112 @@
+{
+  "appId": "6831015201",
+  "version": "3.1.0",
+  "locale": "en-GB",
+  "text": {
+    "appId": "6831015201",
+    "version": "3.1.0",
+    "locale": "en-GB",
+    "mode": "text",
+    "changes": {
+      "appInfoLocalizationId": "ad07ed10-61a1-46ed-8210-618b16385a95",
+      "appStoreVersionId": "df818c27-8b5a-4244-9563-e92168e59552",
+      "appStoreVersionLocalizationId": "83e973bf-0164-4644-b491-f421a7cd7710",
+      "betaAppLocalizationId": "49a79afe-a6be-4982-b76a-0d28c7f677a1",
+      "appInfo": {
+        "name": "SommoMemory",
+        "subtitle": "Memory, arenas and challenges",
+        "privacyPolicyUrl": "https://sommomemory.sommomi.cc/en/privacy"
+      },
+      "appStore": {
+        "description": "Train your memory with SommoMemory, a card matching game to enjoy on your own or with someone else. Interface available in English and Italian.\n\nCHOOSE HOW TO PLAY\n• Solo: choose a deck and find matching pairs at your own pace.\n• Two players on one device: take turns playing together.\n• Online: create a private room and invite someone with its code. Friendly matches last one round; ranked matches last three. There is no automatic matchmaking.\n• Without Internet: play over Bluetooth between the iOS and Android apps. Choose Find a game or Create a game and keep both apps open; availability depends on your devices.\n\nPLAY OFFLINE TOO\nSolo play works without Internet from the first launch. Gems, unlocked collections and personal records are saved on your device and sync automatically when you reconnect.\n\nFOUR ARENAS, 21 ILLUSTRATED DECKS\nExplore Wild Valley, Coral Bay, Grand City and Space Frontier, unlocked at 0, 100, 300 and 600 crowns. Each arena includes three free decks; other decks unlock with gems earned through play. Paola adds a free deck of Italian syllables.\n\nA THREE-ROUND RANKED CHALLENGE\nInvite someone using a room code. Both players play at the same time on their own identical boards, with the same cards in the same positions. Three different decks are used, one per round. The player who completes all three rounds with the fewest total attempts wins. Both profiles must be in the same arena.\n\nSTART AS A GUEST\nNo registration is required. You can optionally link Apple or Google, or use a recovery code, to access the same profile and sync gems, decks, appearance and solo records. There are no real-money purchases.\n\nPrivacy: https://sommomemory.sommomi.cc/en/privacy\nSupport: https://sommomemory.sommomi.cc/en/support",
+        "keywords": "memory,card,matching,puzzle,pairs,animals,offline,multiplayer,bluetooth,friends",
+        "promotionalText": "Explore four arenas and 21 illustrated decks, or invite a friend to a challenge. Play solo offline and keep your progress.",
+        "marketingUrl": "https://sommomemory.sommomi.cc",
+        "supportUrl": "https://sommomemory.sommomi.cc/en/support"
+      },
+      "beta": {
+        "description": "Try SommoMemory 3.1.0 with its new colourful interface and Italian or English language. Play solo, including offline from the first launch, take turns on one device, or invite someone to a private online room. Explore four arenas and three-round ranked challenges. Bluetooth is available in the iOS and Android apps with both apps open. Apple and Google sign-in are optional."
+      },
+      "readbackVerified": true
+    },
+    "verifiedAt": "2026-11-06T09:49:28.381Z"
+  },
+  "verifiedAt": "2026-11-06T09:59:03.837Z",
+  "screenshots": {
+    "appId": "6831015201",
+    "version": "3.1.0",
+    "locale": "en-GB",
+    "mode": "screenshots",
+    "versionId": "df818c27-8b5a-4244-9563-e92168e59552",
+    "localizationId": "83e973bf-0164-4644-b491-f421a7cd7710",
+    "screenshots": [
+      {
+        "displayType": "APP_IPAD_PRO_3GEN_129",
+        "id": "4a400019-7290-8521-803f-5a46d003f417",
+        "fileName": "01-home-pop-30017-en.png",
+        "state": "COMPLETE",
+        "checksum": "f077de2e8f30fd73216df62a1e339340",
+        "skipped": true,
+        "resumed": true
+      },
+      {
+        "displayType": "APP_IPAD_PRO_3GEN_129",
+        "id": "2c800019-7290-8521-8007-318bb3d51f0a",
+        "fileName": "02-tabellone-pop-30017-en.png",
+        "state": "COMPLETE",
+        "checksum": "8010544e1e5dcaf242d17ca5b051abd4",
+        "skipped": false
+      },
+      {
+        "displayType": "APP_IPAD_PRO_3GEN_129",
+        "id": "0c800019-7290-8521-8025-67f3c748ab0c",
+        "fileName": "03-viaggio-30017-en.png",
+        "state": "COMPLETE",
+        "checksum": "0dcad69992fce40a4302ef7682b113dd",
+        "skipped": false
+      },
+      {
+        "displayType": "APP_IPAD_PRO_3GEN_129",
+        "id": "9cc00019-7290-8521-8020-d1ae9b579635",
+        "fileName": "04-collezioni-30017-en.png",
+        "state": "COMPLETE",
+        "checksum": "96f7a82d659d167d0b2485c7da783b81",
+        "skipped": false
+      },
+      {
+        "displayType": "APP_IPHONE_67",
+        "id": "f8800019-7290-8521-8028-da3642170ec4",
+        "fileName": "01-home-pop-30017-en.png",
+        "state": "COMPLETE",
+        "checksum": "af26183b97d701920b1a5462c0ab31ce",
+        "skipped": true
+      },
+      {
+        "displayType": "APP_IPHONE_67",
+        "id": "87400019-7290-8521-800b-17cf11b5c61a",
+        "fileName": "02-tabellone-pop-30017-en.png",
+        "state": "COMPLETE",
+        "checksum": "43786f1e8ed57c44398253764dd06d62",
+        "skipped": true
+      },
+      {
+        "displayType": "APP_IPHONE_67",
+        "id": "3c800019-7290-8521-803b-08044fa75bc7",
+        "fileName": "03-viaggio-30017-en.png",
+        "state": "COMPLETE",
+        "checksum": "5eea9b97c6d7918831c3fcd78d11be04",
+        "skipped": true
+      },
+      {
+        "displayType": "APP_IPHONE_67",
+        "id": "0f800019-7290-8521-8002-2b53ac65df96",
+        "fileName": "04-collezioni-30017-en.png",
+        "state": "COMPLETE",
+        "checksum": "51ad985797f547c58f2d1b857adb7c2f",
+        "skipped": true
+      }
+    ],
+    "verifiedAt": "2026-11-06T09:59:03.837Z",
+    "replacedExisting": true
+  }
+}

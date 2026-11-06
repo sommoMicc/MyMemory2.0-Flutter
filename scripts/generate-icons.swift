@@ -5,14 +5,19 @@ func icon(_ size:Int)->Data {
  let c=CGContext(data:nil,width:size,height:size,bitsPerComponent:8,bytesPerRow:size*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.noneSkipLast.rawValue)!
  NSGraphicsContext.saveGraphicsState();NSGraphicsContext.current=NSGraphicsContext(cgContext:c,flipped:false)
  c.scaleBy(x:CGFloat(size)/1024,y:CGFloat(size)/1024)
- NSColor(srgbRed:0.98,green:0.97,blue:0.94,alpha:1).setFill();NSBezierPath(rect:NSRect(x:0,y:0,width:1024,height:1024)).fill()
+ let ink = NSColor(srgbRed:23/255,green:35/255,blue:69/255,alpha:1)
+ let yellow = NSColor(srgbRed:1,green:227/255,blue:76/255,alpha:1)
+ NSColor(srgbRed:36/255,green:70/255,blue:216/255,alpha:1).setFill();NSBezierPath(rect:NSRect(x:0,y:0,width:1024,height:1024)).fill()
  c.saveGState();c.translateBy(x:425,y:535);c.rotate(by:-0.18)
- NSColor(srgbRed:0.90,green:0.47,blue:0.38,alpha:1).setFill();NSBezierPath(roundedRect:NSRect(x:-225,y:-285,width:450,height:570),xRadius:66,yRadius:66).fill();c.restoreGState()
+ ink.setFill();NSBezierPath(roundedRect:NSRect(x:-225,y:-311,width:450,height:570),xRadius:56,yRadius:56).fill()
+ let back = NSBezierPath(roundedRect:NSRect(x:-225,y:-285,width:450,height:570),xRadius:56,yRadius:56)
+ NSColor(srgbRed:1,green:89/255,blue:59/255,alpha:1).setFill();back.fill();ink.setStroke();back.lineWidth=24;back.stroke();c.restoreGState()
  c.saveGState();c.translateBy(x:600,y:475);c.rotate(by:0.14)
- NSColor(srgbRed:0.125,green:0.48,blue:0.45,alpha:1).setFill();NSBezierPath(roundedRect:NSRect(x:-225,y:-285,width:450,height:570),xRadius:66,yRadius:66).fill()
- NSColor(srgbRed:0.98,green:0.97,blue:0.94,alpha:1).setFill()
- for i in 0..<5 {c.saveGState();c.rotate(by:CGFloat(i)*2*CGFloat.pi/5);NSBezierPath(ovalIn:NSRect(x:-37,y:22,width:74,height:135)).fill();c.restoreGState()}
- NSBezierPath(ovalIn:NSRect(x:-35,y:-35,width:70,height:70)).fill();c.restoreGState()
+ ink.setFill();NSBezierPath(roundedRect:NSRect(x:-225,y:-311,width:450,height:570),xRadius:56,yRadius:56).fill()
+ let front = NSBezierPath(roundedRect:NSRect(x:-225,y:-285,width:450,height:570),xRadius:56,yRadius:56)
+ yellow.setFill();front.fill();ink.setStroke();front.lineWidth=24;front.stroke()
+ for x in [-65.0,65.0] {let ring=NSBezierPath(ovalIn:NSRect(x:x-82,y:-82,width:164,height:164));ring.lineWidth=24;ring.stroke()}
+ c.restoreGState()
  NSGraphicsContext.restoreGraphicsState();let rep=NSBitmapImageRep(cgImage:c.makeImage()!);return rep.representation(using:.png,properties:[:])!
 }
 func save(_ path:String,_ size:Int)throws {let u=root.appendingPathComponent(path);try FileManager.default.createDirectory(at:u.deletingLastPathComponent(),withIntermediateDirectories:true);try icon(size).write(to:u)}

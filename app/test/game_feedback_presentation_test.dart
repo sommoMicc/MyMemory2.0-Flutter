@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mymemory/bluetooth/bluetooth_controller.dart';
 import 'package:mymemory/game.dart';
@@ -15,7 +16,7 @@ void main() {
         .accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
       disableAnimations: false,
     );
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'ui.language': 'it'});
   });
   tearDown(() {
     TestWidgetsFlutterBinding.instance.platformDispatcher
@@ -34,6 +35,9 @@ void main() {
     final feedback = _RecordingFeedback(prefs);
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('it'),
+        supportedLocales: const [Locale('it'), Locale('en')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
         home: GameScreen(
           prefs: prefs,
           pairs: 6,
@@ -107,6 +111,9 @@ void main() {
         publish(_frame(empty));
         await tester.pumpWidget(
           MaterialApp(
+            locale: const Locale('it'),
+            supportedLocales: const [Locale('it'), Locale('en')],
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
             home: GameScreen(
               prefs: prefs,
               pairs: 6,
@@ -149,6 +156,9 @@ void main() {
         publish(_frame([0, 0, ...empty.skip(2)], matched: [0, 1]));
         await tester.pumpWidget(
           MaterialApp(
+            locale: const Locale('it'),
+            supportedLocales: const [Locale('it'), Locale('en')],
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
             home: GameScreen(
               prefs: prefs,
               pairs: 6,
@@ -179,6 +189,9 @@ void main() {
       online.publish(_frame(empty));
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('it'),
+          supportedLocales: const [Locale('it'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           home: GameScreen(
             prefs: prefs,
             pairs: 6,
