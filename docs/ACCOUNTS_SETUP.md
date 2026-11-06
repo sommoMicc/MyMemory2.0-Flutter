@@ -28,6 +28,8 @@ Le dichiarazioni **App Privacy** di Apple comprendono **10 tipi di dati** config
 
 Il primo collegamento aggiunge un'identità al profilo ospite esistente: mantiene ID, saldo, collezioni e premi in attesa. Se l'identità appartiene già a un altro profilo, il gioco mostra un'anteprima e richiede la conferma del cambio. I due portafogli non si sommano. Il client conserva separatamente il profilo precedente, le sue credenziali e le prove pendenti per consentirne il ripristino.
 
+Dalla build **30014**, l'individuale funziona anche al primo avvio senza rete: gemme, sblocchi e record dei tentativi sono salvati localmente e sincronizzati alla riconnessione. I nuovi record sincronizzati conservano il miglior numero di tentativi per difficoltà; i vecchi record soltanto locali e le preferenze restano sul dispositivo. Le operazioni pendenti mantengono il profilo di appartenenza durante un cambio account. Il percorso illustrato delle arene mantiene le soglie delle corone della classificata.
+
 Il codice di recupero e i login possono coesistere. Il server associa le identità attraverso issuer e subject verificati, senza usare l'email. Non importa nome reale, foto o email nel profilo pubblico. Avatar e colore provengono dal catalogo incluso nell'app.
 
 Le sessioni degli account collegati durano 90 giorni; quelle degli ospiti mantengono il comportamento precedente. Aggiungere un metodo a un account già collegato, rimuoverlo, revocare dispositivi, ruotare il recupero o eliminare l'account richiede una verifica negli ultimi cinque minuti. È possibile verificare tramite un provider già collegato oppure reimmettendo il codice di recupero. L'ultimo provider può essere rimosso solo se rimane un altro metodo di accesso.
@@ -114,7 +116,7 @@ La cancellazione locale e l'accodamento delle revoche Apple sono atomici. I dati
 
 I dispositivi offline non ricevono la cancellazione. Alla riconnessione entro la finestra delle impronte, il client elimina cache e prove del profilo riconosciuto come cancellato. Dopo 31 giorni una vecchia sessione restituisce il generico `INVALID_TOKEN`: il client conserva prudentemente i dati recuperabili invece di dedurre una cancellazione. La copia presente sul dispositivo può essere rimossa anche cancellando i dati dell'app o del browser.
 
-I nomi e i riferimenti al profilo eliminato vengono rimossi anche dalle stanze persistite, mantenendo la partita giocabile per l'avversario. Durante la migrazione il server ripulisce gli eventuali riferimenti a profili già assenti. I record personali restano record dell'installazione e non vengono presentati come record sincronizzati dell'account.
+I nomi e i riferimenti al profilo eliminato vengono rimossi anche dalle stanze persistite, mantenendo la partita giocabile per l'avversario. Durante la migrazione il server ripulisce gli eventuali riferimenti a profili già assenti. I nuovi record sincronizzati dell'individuale vengono cancellati con il profilo; gli eventuali vecchi record e preferenze soltanto locali restano dati dell'installazione.
 
 Il database mantiene le migrazioni additive; preservare `economy.sqlite` e `economy-capability.key` nei backup coerenti già previsti. La cifratura delle credenziali deriva da quella chiave esterna al database con separazione di dominio. Definire una scadenza dei backup e riapplicare le cancellazioni prima di rendere operativo un ripristino storico.
 

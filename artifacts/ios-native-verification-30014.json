@@ -1,0 +1,56 @@
+{
+  "platform": "iOS",
+  "version": "3.1.0",
+  "build": "30014",
+  "bundleIdentifier": "cc.sommomi.mymemory",
+  "displayName": "SommoMemory",
+  "deploymentTarget": "15.0",
+  "flutterVersion": "3.47.9",
+  "dartDefines": {
+    "ACCOUNT_APPLE_IOS_ENABLED": true,
+    "ACCOUNT_GOOGLE_IOS_ENABLED": true
+  },
+  "signing": {
+    "deepStrictVerification": "passed",
+    "authority": "Apple Distribution: Michele Tagliabue (L6CS7PYA4B)",
+    "teamIdentifier": "L6CS7PYA4B",
+    "provisioningProfile": {
+      "name": "SommoMemory App Store Accounts Notifications",
+      "uuid": "dc790f0a-5752-4d01-9b8a-9b84d4ff01a7",
+      "expiresAt": "2027-10-09T18:58:17Z"
+    }
+  },
+  "capabilities": {
+    "appleSignInEntitlement": true,
+    "googleSignInUrlSchemePresent": true,
+    "associatedDomains": [
+      "applinks:sommomemory.sommomi.cc"
+    ],
+    "keychainAccessGroups": [
+      "L6CS7PYA4B.cc.sommomi.mymemory"
+    ]
+  },
+  "contents": {
+    "deckPngs": 378,
+    "flutterAssetPngs": 379,
+    "pythonFiles": 0
+  },
+  "artifact": {
+    "path": "artifacts/SommoMemory-3.1.0-30014.ipa",
+    "bytes": 57141847,
+    "sha256": "40e80b1d9372e988d63b9b7cef165f53c811e44d14c7a9eab7c309f356d9b4d5"
+  },
+  "verifiedAt": "2026-11-06T06:24:04.543Z",
+  "testflight": {
+    "uploadId": "77362c17-8639-4967-a6ba-69f46d62db84",
+    "buildId": "77362c17-8639-4967-a6ba-69f46d62db84",
+    "uploadState": "COMPLETE",
+    "processingState": "VALID",
+    "internalBuildState": "IN_BETA_TESTING",
+    "betaGroup": "SommoMemory Internal",
+    "internalTesterCount": 2,
+    "notesLocale": "it",
+    "finalizedAt": "2026-11-06T06:29:26.600Z"
+  },
+  "appleApiVerifiedAt": "2026-11-06T06:30:08.968Z"
+}

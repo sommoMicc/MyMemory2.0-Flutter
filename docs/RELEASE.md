@@ -1,5 +1,37 @@
 # SommoMemory release readiness
 
+Verified **6 November 2026**: **3.1.0 (30014)** is distributed to the existing
+internal testers on both stores. The arena map is an illustrated journey and
+individual games save gems, unlocks and best-attempt records without a prepared
+ticket or prior connection, then synchronize automatically. Ranked crown rules
+are preserved.
+
+- TestFlight: **VALID / IN_BETA_TESTING**, build
+  `77362c17-8639-4967-a6ba-69f46d62db84`, existing **SommoMemory Internal** group,
+  exactly two existing testers. Upload/finalization used the configured App Store
+  Connect API. Receipt: `artifacts/testflight-upload-30014.json`.
+- Google Play: release **12**, **Viaggio e partite offline**, versionCode
+  **30014**, **active** on the existing internal track `4700857721365894827`.
+  API access still returns 403, so the signed-in Console performed the authorized
+  upload and internal rollout. Tester audience is preserved. Receipt:
+  `artifacts/play-internal-30014.json`.
+- Backend and web: **20261106-journey-offline-30014**, healthy at
+  `https://sommomemory.sommomi.cc`. A consistent private backup preceded the
+  additive migration. All 48 live profiles and associated rows were preserved,
+  gem balances and the capability key match the pre-migration snapshot, and
+  SQLite integrity is `ok`. Receipt: `artifacts/deployment-30014.json`.
+- Analysis and **166 Flutter / 99 Node tests** pass, including real client/server
+  offline replay. Signed IPA and AAB identities, signatures, account capabilities
+  and bundled content were verified. Browser offline restart and public runtime,
+  worker, assets, provider discovery and WebSocket ping were checked.
+
+Native artifact hashes and consolidated release evidence are in
+`artifacts/native-builds-30014.json`; signing credentials, native binaries and
+Android mapping output remain outside Git. No App Store production submission
+or Google Play production rollout was performed.
+
+## 30013 — previous internal release
+
 Verified 2026-11-05. The latest native build is **3.1.0 (30013)** for internal
 testing. No production release or production store binary was published.
 

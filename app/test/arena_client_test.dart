@@ -82,6 +82,11 @@ void main() {
           .position
           .jumpTo(0);
       await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Selezionata'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.text('Selezionata'));
       await tester.pumpAndSettle();
       expect(find.text('Arena amichevole'), findsOneWidget);
@@ -231,6 +236,62 @@ void main() {
       );
     }
   }
+
+  testWidgets(
+    'solo journey keeps its destination and collection after reopening',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      SharedPreferences.setMockInitialValues({
+        'sound': false,
+        'haptics': false,
+        'game.friendlyArena': 'wild_valley',
+        'game.collection': 'garden',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final economy = _ArenaFixtureEconomy(prefs);
+      await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Singolo'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ArenaJourneyTile), findsOneWidget);
+      await tester.tap(find.text('Il tuo viaggio'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ArenaPicker), findsOneWidget);
+      expect(find.text('3 di 4 arene raggiunte'), findsOneWidget);
+      final city = find.byKey(const ValueKey('arena-stop-grand_city'));
+      final chooseCity = find.descendant(
+        of: city,
+        matching: find.text('Scegli arena'),
+      );
+      await tester.scrollUntilVisible(chooseCity, 200);
+      await tester.tap(chooseCity);
+      await tester.pumpAndSettle();
+      expect(find.byType(ArenaPicker), findsNothing);
+      expect(find.text('Grande Città'), findsOneWidget);
+      expect(find.text('Veicoli'), findsOneWidget);
+      expect(prefs.getString('game.friendlyArena'), 'grand_city');
+      expect(prefs.getString('game.collection'), 'vehicles');
+      final dynamic home = tester.state(find.byType(Home));
+      expect(home.mode, PlayMode.solo);
+      expect(home.arenaId, 'grand_city');
+      expect(home.theme, 'vehicles');
+      expect(tester.takeException(), isNull);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(MyMemory(prefs: prefs, economy: economy));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Singolo'));
+      await tester.pumpAndSettle();
+      expect(find.text('Grande Città'), findsOneWidget);
+      expect(find.text('Veicoli'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      economy.dispose();
+    },
+  );
 
   testWidgets('friendly arena and collection choices stay synchronized', (
     tester,

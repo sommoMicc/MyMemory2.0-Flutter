@@ -61,7 +61,10 @@ export function economyApi({ store, origins, addressOf, now = Date.now, auth }) 
         res.end(); return;
       }
       const address = addressOf(req);
-      limit(`all:${address}`, 240, 600_000);
+      const soloReplay = pathname === '/api/v1/solo/operations' && req.method === 'POST';
+      // Reconnecting devices can carry months of individual progress. Keep
+      // replay bounded without consuming the shared profile/account budget.
+      limit(`${soloReplay ? 'solo-address' : 'all'}:${address}`, soloReplay ? 7200 : 240, 600_000);
       if (pathname === '/api/v1/catalog' && req.method === 'GET') {
         const existing = new Set(DECKS.map(deck => deck.id));
         const additional = store.catalog.decks.filter(deck => deck.contentReady && !existing.has(deck.id))
@@ -70,9 +73,9 @@ export function economyApi({ store, origins, addressOf, now = Date.now, auth }) 
           arenas: store.catalog.arenas, rankedEnabled: store.catalog.rankedEnabled }); return;
       }
       if (pathname === '/api/v1/profiles' && req.method === 'POST') {
-        limit(`create:${address}`, 10, 86_400_000);
-        await body(req);
-        reply(201, store.createProfile()); return;
+        const input = await body(req);
+        if (!store.hasBootstrap(input.bootstrapToken)) limit(`create:${address}`, 10, 86_400_000);
+        reply(201, Object.hasOwn(input, 'bootstrapToken') ? store.bootstrapGuest(input) : store.createProfile()); return;
       }
       if (pathname === '/api/v1/profiles/restore/preview' || pathname === '/api/v1/profiles/restore') {
         if (req.method !== 'POST') throw new EconomyError('METHOD_NOT_ALLOWED', 'Metodo non valido.', 405);
@@ -86,6 +89,7 @@ export function economyApi({ store, origins, addressOf, now = Date.now, auth }) 
       }
       const token = req.headers.authorization?.match(/^Bearer ([A-Za-z0-9_-]{43})$/)?.[1];
       const id = store.authenticate(token);
+      if (soloReplay) limit(`solo-profile:${id}`, 6000, 600_000);
       let result;
       const route = `${req.method} ${pathname}`;
       if (route === 'GET /api/v1/profile') result = { profile: store.profile(id) };
@@ -99,6 +103,7 @@ export function economyApi({ store, origins, addressOf, now = Date.now, auth }) 
       else if (route === 'POST /api/v1/games/tickets') result = store.issueTicket(id, await body(req));
       else if (route === 'POST /api/v1/games/tickets/batch') result = store.issueBatch(id, await body(req));
       else if (route === 'POST /api/v1/games/claims') result = store.claim(id, await body(req));
+      else if (route === 'POST /api/v1/solo/operations') result = store.soloOperation(id, await body(req));
       else throw new EconomyError('NOT_FOUND', 'Servizio non trovato.', 404);
       reply(200, result);
     } catch (error) {

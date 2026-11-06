@@ -21,7 +21,11 @@ arena. The canonical 21-deck arena catalog plus Paola is in
 `paola` is the text-based Paola collection: string IDs 0–17 map in order to
 PA, PE, PI, PO, PU, LA, LE, LI, LO, LU, MA, ME, MI, MO, MU, SA, SE, SI.
 
-Authenticated profile JSON is `{id,displayName,avatarId,accentId,activated,recoveryEnabled,linkedProviders,recoveryVersion,gems,ownedDecks,legacyDecks,revision,crowns,peakCrowns,currentArenaId,unlockedArenaIds}`. `activated`
+Authenticated profile JSON is `{id,displayName,avatarId,accentId,activated,recoveryEnabled,linkedProviders,recoveryVersion,gems,ownedDecks,legacyDecks,revision,crowns,peakCrowns,currentArenaId,unlockedArenaIds,soloBestAttempts}`. `soloBestAttempts`
+maps difficulty keys `"6"`, `"8"`, `"12"`, `"18"` to the minimum validated number
+of attempts; missing keys mean no completed game yet. Solo transcripts update
+these records by minimum, so another device cannot replace a better record with
+a worse one. `activated`
 retains its original meaning (recovery code enabled); it does not indicate a
 social login. Appearance defaults to `fox` and `forest`, providers to an empty
 list, and `recoveryEnabled` falls back to `activated` for older services. Display name
@@ -112,9 +116,61 @@ in the background, respecting a 100-ticket/profile/24h limit. Each ticket is one
 rewardable game; never reuse a ticket to start a second game. A retry with the
 same request ID returns the same ticket and Bluetooth capability.
 
-First use without a network-issued ticket can still play practice games with
-already-owned/free decks; it cannot earn verified gems. Cache owned decks and
-unused tickets for offline play, and queue completed transcripts durably.
+Local multiplayer and Bluetooth still use the prepared-ticket reward mechanism.
+Solo games use the offline journal below and need no prepared tickets or prior
+connection, including for completion gems and permanent deck purchases.
+
+## Offline solo journal
+
+On first launch the client creates a guest immediately, with the usual 100
+welcome gems and free decks, and securely saves a cryptographically random
+32-byte base64url `bootstrapToken` (43 characters). Register it using public
+`POST /profiles {bootstrapToken}`. The response is the usual `{token,profile}`;
+`token` is that credential. An identical retry after a lost response or restart
+returns the same profile, without another welcome grant. Empty `{}` preserves
+the legacy profile-creation API. Only hashes are stored by the server. Repeating
+registration cannot revive a session revoked by logout, device management,
+expiry, or profile deletion. The client remaps its local guest ID and pending
+journal to the returned server profile ID before uploading operations.
+
+`POST /solo/operations` is authenticated and accepts one of:
+
+```json
+{"kind":"complete","requestId":"operation_nonce","gameId":"unique_game_nonce","theme":"garden","pairs":6,"board":[0,0,1,1,2,2,3,3,4,4,5,5],"moves":[0,1,2,3,4,5,6,7,8,9,10,11]}
+{"kind":"unlock","requestId":"purchase_nonce","deckId":"insects"}
+```
+
+Each ID is 8–80 `[A-Za-z0-9_-]` characters, generated once and reused for retries.
+The board is locally shuffled before play: exactly two numeric occurrences of
+every value `0` through `pairs-1`. The complete chronological transcript follows
+the same 4000-move validation as ticket claims. The server checks deck ownership,
+canonical arena access and purchase prices; it never accepts a supplied balance,
+reward amount or crown count. Complete operations credit exactly 20 gems and
+merge the best solo record. Unlock operations are permanent and charge once;
+another device already owning the same deck causes no second charge. Neither
+operation changes competitive crowns or arena thresholds.
+Replay has a separate bounded budget of 6000 operations per profile and 7200 per
+network address in ten minutes, so a large backlog does not consume the normal
+profile/account request budget. A 429 response is retryable without losing work.
+
+The response includes a fresh `profile` and `operation` receipt:
+`{requestId,kind:"complete",reward:{gameId,gems:20,granted}}` or
+`{requestId,kind:"unlock",deckId,unlocked,alreadyOwned}`. Receipts and game proof
+hashes persist without the prepared-ticket TTL. A reused operation ID with a
+different payload returns `IDEMPOTENCY_CONFLICT`; a game ID already submitted by
+another profile returns `GAME_ALREADY_CLAIMED`. The ledger prevents repeated
+credit even if the caller changes the operation ID for the same game.
+
+The client persists an authoritative profile plus an ordered journal in one
+snapshot, projects pending rewards and purchases immediately, and uploads in
+order after reconnecting. It removes an acknowledged entry together with accepting
+the returned profile, then reapplies remaining entries. This preserves work when
+a response is lost or the app closes mid-sync. A second device's newer snapshot
+can be merged without counting local rewards twice. Different simultaneous
+offline purchases can exceed the shared balance: `INSUFFICIENT_GEMS` never
+overdraws or records a failed operation. Keep that purchase pending, upload
+independent completions, and retry when funded. A pending purchase's deck proofs
+remain queued until that purchase succeeds.
 
 ## Completion and Bluetooth guest rewards
 

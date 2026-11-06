@@ -4,6 +4,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { resolve, join } from 'node:path';
+import { prepareOfflineWeb } from './offline-web.mjs';
 const root = resolve(process.argv[2] ?? 'app/build/web');
 const bytes = await readFile(join(root, 'main.dart.js'));
 const hash = createHash('sha256').update(bytes).digest('hex').slice(0, 16);
@@ -19,4 +20,5 @@ if (bootstrap.includes(filename)) {
   await writeFile(join(root, filename), bytes);
   await writeFile(bootstrapPath, bootstrap.replace(original, `"mainJsPath":"${filename}"`));
 }
+await prepareOfflineWeb(root, filename);
 console.log(`Web entrypoint: ${filename}`);

@@ -51,6 +51,7 @@ Caddyfile.before-*
 *.aab
 *.ipa
 *.xcarchive/
+/artifacts/*-mapping.txt
 
 # Keep superseded Console drafts and private deletion review screenshots local.
 /artifacts/play-internal-draft.jpg

@@ -27,6 +27,7 @@ jobs:
       - run: flutter --version && java -version
       - run: flutter pub get
       - run: flutter analyze
+      - run: npm ci --prefix ../server
       - run: flutter test
       - run: flutter build web --release
       - run: node ../scripts/prepare-web.mjs build/web

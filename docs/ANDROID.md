@@ -14,14 +14,14 @@ testing, and deletion of the historical app. The new Console record is created:
 | Language/category/pricing | Italian `it-IT`, game, free |
 | Internal track ID | `4700857721365894827` |
 | Tester list | MyMemory test interno; selected and saved; one account owner tester |
-| Release | 11, version `3.1.0 (30013)`; **active on internal track** |
-| Binary | **3.1.0 (30013)** uploaded and accepted |
+| Release | 12, version `3.1.0 (30014)`; **active on internal track** |
+| Binary | **3.1.0 (30014)** uploaded and accepted |
 | Track status | **Attivo** |
 | App signing | Releases signed by Google Play; no new terms prompt appeared |
 | Production | No production release requested or performed |
 
 [New app dashboard](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/app-dashboard)
-and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/11/details).
+and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/12/details).
 The **live internal opt-in link** is
 [Join the internal test](https://play.google.com/apps/internaltest/4700857721365894827).
 It was opened in the owner's signed-in browser and showed the invitation to test
@@ -29,11 +29,12 @@ It was opened in the owner's signed-in browser and showed the invitation to test
 accepted on the user's behalf. The tester must open it with the account included
 in the selected tester list and accept the invitation before installation.
 
-The current AAB is `artifacts/SommoMemory-3.1.0-30013.aab` (90,032,282 bytes;
-SHA-256 `70629b0f64a282d6595321c92d643334d9610a44d7b8435a969e3f87eda6f273`).
-Its local JAR signature check reports verified; Play release 11 is active on the
+The current AAB is `artifacts/SommoMemory-3.1.0-30014.aab` (90,219,639 bytes;
+SHA-256 `8f2419f3ab78cdfb97a23b1e48e7efe46c65d8b6b7ee986ecc1cbefbd15357cc`).
+Its local JAR signature check reports verified; Play release 12 is active on the
 existing internal track. The signed artifacts, deployment and data-preservation
-summary are recorded in `artifacts/native-builds-30013.json`. The Italian Play
+summary are recorded in `artifacts/native-builds-30014.json`; the Play-specific
+upload and activation receipt is `artifacts/play-internal-30014.json`. The Italian Play
 listing text and two 1080×1920 phone screenshots are saved. Console confirms
 “Modifica salvata”; the publishing overview lists the Italian listing among the
 changes not yet sent for review. Its submission button is disabled until required
@@ -45,8 +46,12 @@ store name for this new internal app. This release is **internal only**, not a
 production listing. Console accepted the binary with min API 24, target API 36,
 three ABIs, and ReTrace mapping/native symbols attached.
 
-Build **30013** is the current internal binary. The feature and package details
-below document the preceding 30011 build and remain as release history. Build
+Build **30014** is the current internal binary. It adds the illustrated journey
+map and offline solo games with gems, collection unlocks and automatically
+synchronized progress and records; crowns remain reserved for ranked games. Play
+reports zero newly unsupported devices, and the existing internal tester
+audience is unchanged. Build **30013** and the feature and package details below
+document the preceding releases and remain as release history. Build
 **30011** replaced the intermediate internal build 30010. That binary uses
 `wss://sommomemory.sommomi.cc/ws`; the public service is
 `https://sommomemory.sommomi.cc`. Only this new domain is associated with native

@@ -28,7 +28,9 @@ class ProfileData {
     bool? recoveryEnabled,
     this.crowns = 0,
     int? peakCrowns,
-  }) : ownedDecks = Set.unmodifiable({...freeDecks, ...ownedDecks}),
+    Map<String, int> soloBestAttempts = const {},
+  }) : soloBestAttempts = Map.unmodifiable(soloBestAttempts),
+       ownedDecks = Set.unmodifiable({...freeDecks, ...ownedDecks}),
        linkedProviders = Set.unmodifiable(linkedProviders),
        legacyDecks = Set.unmodifiable(legacyDecks),
        recoveryEnabled = recoveryEnabled ?? activated,
@@ -43,6 +45,7 @@ class ProfileData {
   final bool recoveryEnabled;
   final int gems, revision, recoveryVersion;
   final int crowns, peakCrowns;
+  final Map<String, int> soloBestAttempts;
   final Set<String> ownedDecks, linkedProviders, legacyDecks;
   String get currentArenaId =>
       ArenaProgress(crowns: crowns, peakCrowns: peakCrowns).currentArenaId;
@@ -81,6 +84,13 @@ class ProfileData {
       accentId: json['accentId'] as String? ?? 'forest',
       crowns: crowns,
       peakCrowns: peakCrowns,
+      soloBestAttempts: {
+        for (final entry in (json['soloBestAttempts'] as Map? ?? {}).entries)
+          if (['6', '8', '12', '18'].contains(entry.key) &&
+              entry.value is int &&
+              (entry.value as int) >= int.parse(entry.key as String))
+            entry.key as String: entry.value as int,
+      },
     );
   }
 
@@ -99,6 +109,7 @@ class ProfileData {
     'accentId': accentId,
     'crowns': crowns,
     'peakCrowns': peakCrowns,
+    'soloBestAttempts': soloBestAttempts,
     'currentArenaId': currentArenaId,
     'unlockedArenaIds': unlockedArenaIds.toList(),
   };
@@ -126,13 +137,15 @@ class GameTicket {
     required List<int> board,
     required this.expiresAt,
     this.guestClaimToken,
+    this.profileId,
   }) : board = List.unmodifiable(board);
 
   final String id, mode, theme;
   final int pairs;
   final List<int> board;
   final DateTime expiresAt;
-  final String? guestClaimToken;
+  final String? guestClaimToken, profileId;
+  bool get isLocalSolo => mode == 'solo' && id.startsWith('solo_');
 
   factory GameTicket.fromJson(
     Map<String, dynamic> json, {
@@ -152,6 +165,7 @@ class GameTicket {
           )
         : DateTime.parse(json['expiresAt'] as String),
     guestClaimToken: json['guestClaimToken'] as String?,
+    profileId: json['profileId'] as String?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -162,6 +176,7 @@ class GameTicket {
     'board': board,
     'expiresAt': expiresAt.toUtc().toIso8601String(),
     if (guestClaimToken != null) 'guestClaimToken': guestClaimToken,
+    if (profileId != null) 'profileId': profileId,
   };
 }
 
@@ -204,8 +219,8 @@ class SecureEconomySecrets implements EconomySecrets {
   Future<void> delete(String key) => storage.delete(key: key);
 }
 
-/// The displayed wallet is a cached server snapshot, never a local counter.
-/// Only replay-safe game proofs are queued offline; profile credentials are not.
+/// A durable, ordered solo journal overlays the last server wallet snapshot.
+/// Acknowledgements replace the base and remove operations in one local write.
 class EconomyController extends ChangeNotifier {
   EconomyController({
     required this.prefs,
@@ -231,12 +246,14 @@ class EconomyController extends ChangeNotifier {
   static const _ticketsKey = 'profile.tickets.v1';
   static const _archivedIdsKey = 'profile.archivedIds.v1';
   static const _sessionEndedKey = 'profile.sessionEnded.v1';
+  static const _soloKey = 'profile.solo.v1';
   final SharedPreferences prefs;
   final http.Client _client;
   final EconomySecrets _secrets;
   final AccountCredentialProvider _accountCredentials;
   final Uri _base;
-  ProfileData? _profile;
+  ProfileData? _profile, _baseProfile;
+  String? _bootstrapToken, _sessionProfileId;
   String? _token, _recoveryCode;
   int? _recoveryCodeVersion;
   bool _busy = false, _offline = false, _disposed = false, _syncing = false;
@@ -244,11 +261,15 @@ class EconomyController extends ChangeNotifier {
   int _generation = 0;
   String? _lastError;
   Future<void>? _initialization;
+  final Completer<void> _localLoaded = Completer<void>();
   Future<void> _storage = Future.value();
   Future<void> _secretStorage = Future.value();
   final Map<String, Future<void>> _prefetching = {};
   final List<Map<String, dynamic>> _claims = [];
   final List<Map<String, dynamic>> _tickets = [];
+  final List<Map<String, dynamic>> _soloOperations = [];
+  final Set<String> _finishedSoloGames = {};
+  final Map<String, String> _profileAliases = {};
   Timer? _retry;
   List<AccountProvider> _accountProviders = const [];
 
@@ -269,10 +290,28 @@ class EconomyController extends ChangeNotifier {
         };
   bool get busy => _busy;
   bool get offline => _offline;
+  bool get syncing => _syncing;
+  int get pendingChanges =>
+      pendingRewards +
+      _soloOperations
+          .where(
+            (op) => op['profileId'] == _profile?.id && op['kind'] != 'complete',
+          )
+          .length;
+  Future<void> get localReady {
+    unawaited(initialize());
+    return _localLoaded.future;
+  }
+
   String? get lastError => _lastError;
   String? get profileToken => _token;
   int get pendingRewards =>
-      _claims.where((c) => c['profileId'] == _profile?.id).length;
+      _claims.where((c) => c['profileId'] == _profile?.id).length +
+      _soloOperations
+          .where(
+            (op) => op['profileId'] == _profile?.id && op['kind'] == 'complete',
+          )
+          .length;
 
   void _changed() {
     if (!_disposed) notifyListeners();
@@ -290,7 +329,9 @@ class EconomyController extends ChangeNotifier {
       if (_disposed) return;
       if (session != null) {
         final json = jsonDecode(session) as Map<String, dynamic>;
-        _token = json['token'] as String;
+        _token = json['token'] as String?;
+        _bootstrapToken = json['bootstrapToken'] as String?;
+        _sessionProfileId = json['profileId'] as String?;
         final cache = prefs.getString(_cacheKey);
         if (cache != null) {
           try {
@@ -310,20 +351,126 @@ class EconomyController extends ChangeNotifier {
           _recoveryCodeVersion = null;
         }
       }
+      _loadSoloState();
+      _baseProfile ??= _profile;
+      if (_profile == null && _token == null && !_sessionEnded) {
+        await _createLocalGuest();
+      }
+      _rebuildProfile();
       _loadList(_claimsKey, _claims);
       _loadList(_ticketsKey, _tickets);
+      await _persist();
       _changed();
+      if (!_localLoaded.isCompleted) _localLoaded.complete();
       await sync();
     } catch (_) {
       _lastError =
           'Impossibile aprire il profilo salvato. Puoi usare il codice di recupero.';
       _changed();
     }
+    if (!_localLoaded.isCompleted) _localLoaded.complete();
     if (!_disposed) {
-      _retry = Timer.periodic(const Duration(seconds: 30), (_) {
+      _retry = Timer.periodic(const Duration(seconds: 10), (_) {
         if (!_busy) unawaited(sync());
       });
     }
+  }
+
+  void _loadSoloState() {
+    final raw = prefs.getString(_soloKey);
+    if (raw == null) return;
+    try {
+      final state = jsonDecode(raw) as Map<String, dynamic>;
+      _profileAliases.addAll(
+        Map<String, String>.from(state['aliases'] as Map? ?? {}),
+      );
+      final base = state['base'];
+      if (base is Map) {
+        final cached = ProfileData.fromJson(Map<String, dynamic>.from(base));
+        if (cached.id == _sessionProfileId ||
+            (_bootstrapToken != null &&
+                cached.id == _profileAliases[_sessionProfileId])) {
+          _baseProfile = cached;
+          _profile = cached;
+        }
+      }
+      _soloOperations.addAll(
+        (state['operations'] as List? ?? []).map(
+          (value) => Map<String, dynamic>.from(value as Map),
+        ),
+      );
+      _finishedSoloGames.addAll(
+        (state['finishedGames'] as List? ?? []).cast<String>(),
+      );
+      _profileAliases.addAll(
+        Map<String, String>.from(state['aliases'] as Map? ?? {}),
+      );
+    } catch (_) {
+      // Keep legacy cache and credentials usable if the solo journal is damaged.
+    }
+  }
+
+  Future<void> _createLocalGuest() async {
+    _bootstrapToken = base64UrlEncode(
+      List.generate(32, (_) => Random.secure().nextInt(256)),
+    ).replaceAll('=', '');
+    final id = 'offline_${_nonce()}';
+    _sessionProfileId = id;
+    await _writeSecret(
+      _sessionKey,
+      jsonEncode({'bootstrapToken': _bootstrapToken, 'profileId': id}),
+    );
+    _baseProfile = ProfileData(
+      id: id,
+      displayName: '',
+      activated: false,
+      gems: 100,
+      ownedDecks: ProfileData.freeDecks,
+      revision: 0,
+    );
+    _profile = _baseProfile;
+    _offline = true;
+    await _persist();
+  }
+
+  void _rebuildProfile() {
+    final base = _baseProfile;
+    if (base == null) {
+      _profile = null;
+      return;
+    }
+    var balance = base.gems;
+    final owned = {...base.ownedDecks};
+    final best = {...base.soloBestAttempts};
+    for (final operation in _soloOperations) {
+      if (operation['profileId'] != base.id) continue;
+      if (operation['kind'] == 'complete') {
+        balance += 20;
+        final key = '${operation['pairs']}';
+        final attempts = (operation['moves'] as List).length ~/ 2;
+        best[key] = min(best[key] ?? attempts, attempts);
+      } else if (operation['kind'] == 'unlock') {
+        final deckId = operation['deckId'] as String;
+        if (owned.add(deckId)) balance -= deckPrices[deckId] ?? 0;
+      }
+    }
+    _profile = ProfileData.fromJson({
+      ...base.toJson(),
+      // A second device may spend the same cached balance. Preserve the pending
+      // unlock and retry it; never display a negative local balance.
+      'gems': max(0, balance),
+      'ownedDecks': owned.toList(),
+      'soloBestAttempts': best,
+    });
+  }
+
+  bool canPlayDeck(String id) {
+    final current = _profile;
+    if (current == null) return ProfileData.freeDecks.contains(id);
+    return ArenaProgress(
+      crowns: current.crowns,
+      peakCrowns: current.peakCrowns,
+    ).canUseDeck(id, ownedDecks: current.ownedDecks);
   }
 
   void _loadList(String key, List<Map<String, dynamic>> target) {
@@ -433,9 +580,21 @@ class EconomyController extends ChangeNotifier {
 
   Future<void> _persist() {
     final profile = _profile?.toJson();
+    final bestAttempts = Map<String, int>.from(
+      _profile?.soloBestAttempts ?? const {},
+    );
+    final soloState = jsonEncode({
+      'base': _baseProfile?.toJson(),
+      'operations': _soloOperations,
+      'finishedGames': _finishedSoloGames.toList(),
+      'aliases': _profileAliases,
+    });
     final sessionEnded = _sessionEnded;
     final claims = jsonEncode(_claims), tickets = jsonEncode(_tickets);
     _storage = _storage.catchError((Object _) {}).then((_) async {
+      // The wallet base and journal must be committed together before any
+      // acknowledgement or optimistic reward is considered durable.
+      await prefs.setString(_soloKey, soloState);
       if (profile == null) {
         await prefs.remove(_cacheKey);
       } else {
@@ -444,19 +603,44 @@ class EconomyController extends ChangeNotifier {
       await prefs.setString(_claimsKey, claims);
       await prefs.setString(_ticketsKey, tickets);
       await prefs.setBool(_sessionEndedKey, sessionEnded);
+      for (final entry in bestAttempts.entries) {
+        final previous = prefs.getInt('best.${entry.key}');
+        if (previous == null || entry.value < previous) {
+          await prefs.setInt('best.${entry.key}', entry.value);
+        }
+      }
     });
     return _storage;
   }
 
-  Future<void> _accept(Map<String, dynamic> json, int generation) async {
+  ProfileData _safeSoloSnapshot(ProfileData next, ProfileData? base) {
+    if (base == null ||
+        base.id != next.id ||
+        !_soloOperations.any((op) => op['profileId'] == next.id)) {
+      return next;
+    }
+    return ProfileData.fromJson({
+      ...next.toJson(),
+      'gems': base.gems,
+      'ownedDecks': base.ownedDecks.toList(),
+      'soloBestAttempts': base.soloBestAttempts,
+    });
+  }
+
+  Future<void> _accept(
+    Map<String, dynamic> json,
+    int generation, {
+    bool soloReceipt = false,
+  }) async {
     final next = ProfileData.fromJson(json['profile'] as Map<String, dynamic>);
     if (_disposed ||
         generation != _generation ||
         (_profile != null && next.id != _profile!.id) ||
-        (_profile != null && next.revision < _profile!.revision)) {
+        (_baseProfile != null && next.revision < _baseProfile!.revision)) {
       return;
     }
-    _profile = next;
+    _baseProfile = soloReceipt ? next : _safeSoloSnapshot(next, _baseProfile);
+    _rebuildProfile();
     if (_recoveryCode != null && _recoveryCodeVersion != next.recoveryVersion) {
       _recoveryCode = null;
       _recoveryCodeVersion = null;
@@ -475,11 +659,59 @@ class EconomyController extends ChangeNotifier {
   Future<void> _install(
     Map<String, dynamic> json, {
     String? recoveryCode,
+    bool adoptOfflineGuest = false,
+    String? adoptingProfileId,
   }) async {
-    final next = ProfileData.fromJson(json['profile'] as Map<String, dynamic>);
+    var next = ProfileData.fromJson(json['profile'] as Map<String, dynamic>);
     final token = json['token'];
     if (token is! String || token.length < 24) {
       throw const FormatException('Invalid session');
+    }
+    if (!adoptOfflineGuest) {
+      ProfileData? previousBase = _baseProfile;
+      if (previousBase?.id != next.id &&
+          _soloOperations.any((op) => op['profileId'] == next.id)) {
+        final rawArchive = await _secrets.read('profile.archive.${next.id}');
+        if (rawArchive != null) {
+          final archive = jsonDecode(rawArchive) as Map<String, dynamic>;
+          previousBase = ProfileData.fromJson(
+            archive['profile'] as Map<String, dynamic>,
+          );
+        }
+      }
+      next = _safeSoloSnapshot(next, previousBase);
+    }
+    if (_profile != null && _profile!.id != next.id) {
+      if (adoptOfflineGuest) {
+        final previousId = adoptingProfileId ?? _profile!.id;
+        _profileAliases[previousId] = next.id;
+        for (final operation in _soloOperations) {
+          if (operation['profileId'] == previousId) {
+            operation['profileId'] = next.id;
+          }
+        }
+        final migrated = _finishedSoloGames
+            .where((id) => id.startsWith('$previousId:'))
+            .toList();
+        for (final id in migrated) {
+          _finishedSoloGames.remove(id);
+          _finishedSoloGames.add(
+            '${next.id}:${id.substring(previousId.length + 1)}',
+          );
+        }
+        if (prefs.getString('name.localProfile') == previousId) {
+          unawaited(prefs.setString('name.localProfile', next.id));
+        }
+      } else {
+        await _clearProfileName(_profile!.id);
+      }
+    }
+    if (adoptOfflineGuest) {
+      // Commit the remapping before replacing the bootstrap credential. A crash
+      // can then retry provisioning with the original token and same journal.
+      _baseProfile = next;
+      _rebuildProfile();
+      await _persist();
     }
     await _writeSecret(
       _sessionKey,
@@ -490,12 +722,12 @@ class EconomyController extends ChangeNotifier {
         if (recoveryCode != null) 'recoveryVersion': next.recoveryVersion,
       }),
     );
-    if (_profile != null && _profile!.id != next.id) {
-      await _clearProfileName(_profile!.id);
-    }
     ++_generation;
     _token = token;
-    _profile = next;
+    _sessionProfileId = next.id;
+    _bootstrapToken = null;
+    _baseProfile = next;
+    _rebuildProfile();
     _recoveryCode = recoveryCode;
     _recoveryCodeVersion = recoveryCode == null ? null : next.recoveryVersion;
     await _removeAccountArchive(next.id);
@@ -515,17 +747,23 @@ class EconomyController extends ChangeNotifier {
         final created = await _request(
           'POST',
           'profiles',
-          body: {},
+          body: {'bootstrapToken': ?_bootstrapToken},
           authenticated: false,
         );
         if (_disposed || generation != _generation) return;
-        await _install(created);
+        await _install(created, adoptOfflineGuest: _bootstrapToken != null);
       } else {
         final json = await _request('GET', 'profile');
-        await _accept(json, generation);
+        // A lost operation response can mean this snapshot already includes the
+        // first queued reward. Replay its receipt before overlaying the journal.
+        if (!_soloOperations.any((op) => op['profileId'] == _profile?.id)) {
+          await _accept(json, generation);
+        }
       }
       if (_disposed) return;
       final current = _generation;
+      await _syncSolo(current);
+      if (current != _generation) return;
       for (final claim in List<Map<String, dynamic>>.from(_claims)) {
         if (claim['profileId'] != _profile?.id) continue;
         try {
@@ -849,12 +1087,13 @@ class EconomyController extends ChangeNotifier {
 
   Future<void> _archiveCurrentAccount() async {
     final current = _profile;
-    if (current == null || _token == null) return;
+    if (current == null || (_token == null && _bootstrapToken == null)) return;
     await _writeSecret(
       'profile.archive.${current.id}',
       jsonEncode({
-        'token': _token,
-        'profile': current.toJson(),
+        'token': ?_token,
+        'bootstrapToken': ?_bootstrapToken,
+        'profile': (_baseProfile ?? current).toJson(),
         'recoveryCode': ?_recoveryCode,
         'recoveryVersion': ?_recoveryCodeVersion,
       }),
@@ -899,10 +1138,23 @@ class EconomyController extends ChangeNotifier {
       final raw = await _secrets.read('profile.archive.$id');
       if (raw == null) throw const EconomyException('Profilo non disponibile.');
       final saved = jsonDecode(raw) as Map<String, dynamic>;
-      final token = saved['token'] as String;
+      final bootstrapToken = saved['bootstrapToken'] as String?;
+      var token = saved['token'] as String?;
       Map<String, dynamic> json;
       try {
-        json = await _request('GET', 'profile', sessionToken: token);
+        if (token == null && bootstrapToken != null) {
+          json = await _request(
+            'POST',
+            'profiles',
+            body: {'bootstrapToken': bootstrapToken},
+            authenticated: false,
+          );
+          token = json['token'] as String;
+        } else if (token != null) {
+          json = await _request('GET', 'profile', sessionToken: token);
+        } else {
+          throw const EconomyException('Profilo non disponibile.');
+        }
       } on EconomyException catch (error) {
         if (error.code == 'PROFILE_DELETED') {
           await _removeAccountArchive(id);
@@ -910,41 +1162,115 @@ class EconomyController extends ChangeNotifier {
           await _clearProfileName(id, allowUnscoped: false);
           _claims.removeWhere((value) => value['profileId'] == id);
           _tickets.removeWhere((value) => value['profileId'] == id);
+          _soloOperations.removeWhere((op) => op['profileId'] == id);
           await _persist();
         }
         rethrow;
       }
-      if ((json['profile'] as Map)['id'] != id) {
+      if (bootstrapToken == null && (json['profile'] as Map)['id'] != id) {
         throw const EconomyException('Profilo non disponibile.');
       }
       await _archiveCurrentAccount();
       await _install(
         {...json, 'token': token},
+        adoptOfflineGuest: bootstrapToken != null,
+        adoptingProfileId: bootstrapToken != null ? id : null,
         recoveryCode:
             saved['recoveryVersion'] ==
                 (json['profile'] as Map)['recoveryVersion']
             ? saved['recoveryCode'] as String?
             : null,
       );
+      if (bootstrapToken != null) await _removeAccountArchive(id);
     });
   }
 
-  Future<UnlockResult> unlockDeck(String deckId) => _action(() async {
+  Future<UnlockResult> unlockDeck(String deckId) async {
+    await localReady;
+    final current = _profile;
+    if (current == null || _sessionEnded) {
+      throw const EconomyException(
+        'Crea un profilo per sbloccare le collezioni.',
+      );
+    }
     if (!deckPrices.containsKey(deckId)) {
       throw const EconomyException('Collezione non valida.');
     }
-    final generation = _generation;
-    final json = await _request(
-      'POST',
-      'wallet/unlock',
-      body: {'deckId': deckId, 'requestId': _nonce()},
-    );
-    await _accept(json, generation);
-    return UnlockResult(
-      unlocked: json['unlocked'] == true,
-      alreadyOwned: json['alreadyOwned'] == true,
-    );
-  });
+    if (ownsDeck(deckId)) {
+      return const UnlockResult(unlocked: false, alreadyOwned: true);
+    }
+    if (!ArenaProgress(
+      crowns: current.crowns,
+      peakCrowns: current.peakCrowns,
+    ).canUnlockDeck(deckId)) {
+      throw const EconomyException('Raggiungi prima questa arena.');
+    }
+    if (gems < deckPrices[deckId]!) {
+      throw const EconomyException('Gemme insufficienti.');
+    }
+    _soloOperations.add({
+      'profileId': current.id,
+      'requestId': _nonce(),
+      'kind': 'unlock',
+      'deckId': deckId,
+    });
+    _rebuildProfile();
+    await _persist();
+    _changed();
+    unawaited(sync());
+    return const UnlockResult(unlocked: true, alreadyOwned: false);
+  }
+
+  Future<void> _syncSolo(int generation) async {
+    EconomyException? blocked;
+    bool progressed;
+    do {
+      progressed = false;
+      blocked = null;
+      for (final operation in List<Map<String, dynamic>>.from(
+        _soloOperations,
+      )) {
+        if (generation != _generation || _disposed) return;
+        if (operation['profileId'] != _profile?.id) continue;
+        try {
+          final json = await _request(
+            'POST',
+            'solo/operations',
+            body: Map<String, dynamic>.from(operation)..remove('profileId'),
+          );
+          if (generation != _generation || _disposed) return;
+          final receipt = json['operation'];
+          final snapshot = ProfileData.fromJson(
+            json['profile'] as Map<String, dynamic>,
+          );
+          if (receipt is! Map ||
+              receipt['requestId'] != operation['requestId'] ||
+              snapshot.id != _profile?.id) {
+            throw const EconomyException(
+              'Sincronizzazione incompleta. Riproveremo automaticamente.',
+              retryable: true,
+            );
+          }
+          _soloOperations.removeWhere(
+            (op) => op['requestId'] == operation['requestId'],
+          );
+          await _accept(json, generation, soloReceipt: true);
+          _rebuildProfile();
+          await _persist();
+          progressed = true;
+        } on EconomyException catch (error) {
+          if (error.retryable ||
+              !['INSUFFICIENT_GEMS', 'DECK_LOCKED'].contains(error.code)) {
+            rethrow;
+          }
+          // Another device may have spent the cached balance. Later completions
+          // on already-owned decks must still fund a pending offline purchase.
+          blocked = error;
+        }
+      }
+    } while (progressed && blocked != null);
+    if (blocked != null) throw blocked;
+  }
 
   Future<String> activateRecovery({String? displayName}) => _action(() async {
     if (_recoveryCode != null) return _recoveryCode!;
@@ -1049,6 +1375,7 @@ class EconomyController extends ChangeNotifier {
       await _deleteSecret('profile.recovery.$id');
       _claims.removeWhere((c) => c['profileId'] == id);
       _tickets.removeWhere((c) => c['profileId'] == id);
+      _soloOperations.removeWhere((op) => op['profileId'] == id);
     }
     await _clearSession(ended: true);
   });
@@ -1059,6 +1386,7 @@ class EconomyController extends ChangeNotifier {
       await _deleteSecret('profile.recovery.$id');
       _claims.removeWhere((value) => value['profileId'] == id);
       _tickets.removeWhere((value) => value['profileId'] == id);
+      _soloOperations.removeWhere((op) => op['profileId'] == id);
     }
     await _clearSession(ended: true);
   }
@@ -1069,7 +1397,9 @@ class EconomyController extends ChangeNotifier {
       throw const EconomyException('Attendi la sincronizzazione in corso.');
     }
     _sessionEnded = false;
+    if (_profile == null && _token == null) await _createLocalGuest();
     await _persist();
+    _changed();
     await sync();
   }
 
@@ -1080,6 +1410,9 @@ class EconomyController extends ChangeNotifier {
     await _deleteSecret(_sessionKey);
     ++_generation;
     _token = null;
+    _sessionProfileId = null;
+    _bootstrapToken = null;
+    _baseProfile = null;
     _profile = null;
     _recoveryCode = null;
     _recoveryCodeVersion = null;
@@ -1107,6 +1440,26 @@ class EconomyController extends ChangeNotifier {
     required int pairs,
     required String theme,
   }) async {
+    if (mode == 'solo') {
+      await localReady;
+      if (_profile == null ||
+          _sessionEnded ||
+          !canPlayDeck(theme) ||
+          ![6, 8, 12, 18].contains(pairs)) {
+        return null;
+      }
+      return GameTicket(
+        id: 'solo_${_nonce()}',
+        profileId: _profile!.id,
+        mode: mode,
+        theme: theme,
+        pairs: pairs,
+        board: [
+          for (var i = 0; i < pairs; i++) ...[i, i],
+        ]..shuffle(Random.secure()),
+        expiresAt: DateTime.utc(9999),
+      );
+    }
     await initialize();
     final sessionGeneration = _generation;
     _tickets.removeWhere(
@@ -1163,6 +1516,7 @@ class EconomyController extends ChangeNotifier {
     required int pairs,
     required String theme,
   }) {
+    if (mode == 'solo') return Future.value();
     final key = '$mode:$pairs:$theme';
     return _prefetching[key] ??=
         _prefetch(mode: mode, pairs: pairs, theme: theme).whenComplete(() {
@@ -1222,7 +1576,71 @@ class EconomyController extends ChangeNotifier {
   Future<RewardResult?> claimGame({
     required GameTicket ticket,
     required List<int> moves,
-  }) => claimProof(ticketId: ticket.id, moves: moves);
+  }) => ticket.isLocalSolo
+      ? _completeSolo(ticket, moves)
+      : claimProof(ticketId: ticket.id, moves: moves);
+
+  Future<RewardResult?> _completeSolo(
+    GameTicket ticket,
+    List<int> moves,
+  ) async {
+    await localReady;
+    final current = _profile;
+    if (current == null ||
+        _sessionEnded ||
+        moves.isEmpty ||
+        moves.length > 4000 ||
+        moves.length.isOdd) {
+      return null;
+    }
+    final owner = _profileAliases[ticket.profileId] ?? ticket.profileId;
+    if (owner != current.id) return null;
+    final completedKey = '${current.id}:${ticket.id}';
+    if (_finishedSoloGames.contains(completedKey)) {
+      return const RewardResult(gems: 0, granted: false);
+    }
+    final matched = <int>{};
+    if (ticket.board.length != ticket.pairs * 2 ||
+        ticket.board.any((card) => card < 0 || card >= ticket.pairs) ||
+        List.generate(
+          ticket.pairs,
+          (i) => ticket.board.where((v) => v == i).length,
+        ).any((count) => count != 2)) {
+      return null;
+    }
+    for (var i = 0; i < moves.length; i += 2) {
+      final first = moves[i], second = moves[i + 1];
+      if (first < 0 ||
+          second < 0 ||
+          first >= ticket.board.length ||
+          second >= ticket.board.length ||
+          first == second ||
+          matched.contains(first) ||
+          matched.contains(second)) {
+        return null;
+      }
+      if (ticket.board[first] == ticket.board[second]) {
+        matched.addAll([first, second]);
+      }
+    }
+    if (matched.length != ticket.board.length) return null;
+    _soloOperations.add({
+      'profileId': current.id,
+      'requestId': _nonce(),
+      'kind': 'complete',
+      'gameId': ticket.id,
+      'theme': ticket.theme,
+      'pairs': ticket.pairs,
+      'board': ticket.board,
+      'moves': List<int>.from(moves),
+    });
+    _finishedSoloGames.add(completedKey);
+    _rebuildProfile();
+    await _persist();
+    _changed();
+    unawaited(sync());
+    return const RewardResult(gems: 20, granted: true);
+  }
 
   Future<RewardResult?> claimProof({
     required String ticketId,

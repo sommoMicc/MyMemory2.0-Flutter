@@ -110,6 +110,24 @@ export class EconomyStore {
       CREATE TABLE IF NOT EXISTS online_rounds (
         id TEXT PRIMARY KEY, participants TEXT NOT NULL, claimed INTEGER NOT NULL DEFAULT 0,
         receipt TEXT NOT NULL DEFAULT '{}'
+      );
+      CREATE TABLE IF NOT EXISTS offline_bootstraps (
+        hash TEXT PRIMARY KEY, profile_id TEXT NOT NULL UNIQUE REFERENCES profiles(id) ON DELETE CASCADE,
+        created_at INTEGER NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS solo_operations (
+        profile_id TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+        request_id TEXT NOT NULL, payload_hash TEXT NOT NULL, result TEXT NOT NULL,
+        created_at INTEGER NOT NULL, PRIMARY KEY(profile_id,request_id)
+      );
+      CREATE TABLE IF NOT EXISTS solo_games (
+        game_id TEXT PRIMARY KEY, profile_id TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+        proof_hash TEXT NOT NULL, created_at INTEGER NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS solo_records (
+        profile_id TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+        pairs INTEGER NOT NULL, best_attempts INTEGER NOT NULL,
+        PRIMARY KEY(profile_id,pairs)
       );`);
     // Forward-only additions also accommodate an interrupted pre-release setup.
     if (!this.db.prepare('PRAGMA table_info(requests)').all().some(c => c.name === 'created_at'))
@@ -171,11 +189,13 @@ export class EconomyStore {
     const arenaIds = unlockedArenas(row.peak_crowns).map(arena => arena.id);
     const availableFree = this.catalog.decks.filter(deck => deck.contentReady && deck.price === 0 &&
       (deck.id === 'paola' || arenaIds.includes(deck.arenaId))).map(deck => deck.id);
+    const soloBestAttempts = Object.fromEntries(this.db.prepare('SELECT pairs,best_attempts FROM solo_records WHERE profile_id=? ORDER BY pairs')
+      .all(id).map(record => [String(record.pairs), record.best_attempts]));
     return { id: row.id, displayName: row.display_name, activated: Boolean(row.activated),
       recoveryEnabled: Boolean(row.activated), avatarId: row.avatar_id, accentId: row.accent_id, linkedProviders,
       recoveryVersion: row.recovery_version, gems: row.gems, ownedDecks: [...new Set([...availableFree, ...legacyDecks, ...owned])], legacyDecks, revision: row.revision,
       crowns: row.crowns, peakCrowns: row.peak_crowns, currentArenaId: arenaForCrowns(row.crowns).id,
-      unlockedArenaIds: unlockedArenas(row.peak_crowns).map(arena => arena.id) };
+      unlockedArenaIds: unlockedArenas(row.peak_crowns).map(arena => arena.id), soloBestAttempts };
   }
   hasProfile(id) { return Boolean(this.db.prepare('SELECT 1 FROM profiles WHERE id=?').get(id)); }
   authenticate(token) {
@@ -213,6 +233,41 @@ export class EconomyStore {
       this.db.prepare('INSERT INTO ledger(profile_id,source,delta,created_at) VALUES(?,?,?,?)')
         .run(id, 'welcome', RULES.welcomeGems, this.now());
       return { token: this.issueToken(id), profile: this.profile(id) };
+    });
+  }
+  hasBootstrap(bootstrapToken) {
+    return typeof bootstrapToken === 'string' && /^[A-Za-z0-9_-]{43}$/.test(bootstrapToken) &&
+      Boolean(this.db.prepare('SELECT 1 FROM offline_bootstraps WHERE hash=?').get(digest(bootstrapToken)));
+  }
+  bootstrapGuest({ bootstrapToken }) {
+    if (typeof bootstrapToken !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(bootstrapToken))
+      fail('INVALID_BOOTSTRAP', 'Credenziale del profilo locale non valida.');
+    const hash = digest(bootstrapToken);
+    return this.transaction(() => {
+      const prior = this.db.prepare('SELECT profile_id FROM offline_bootstraps WHERE hash=?').get(hash);
+      if (prior) {
+        if (!this.hasProfile(prior.profile_id)) fail('PROFILE_DELETED', 'Questo profilo è stato eliminato.', 401);
+        // A lost registration response can be retried, but cannot revive a
+        // session revoked by logout, device management, or account expiry.
+        const id = this.authenticate(bootstrapToken);
+        if (id !== prior.profile_id) fail('INVALID_BOOTSTRAP', 'Credenziale del profilo locale non valida.', 401);
+        return { token: bootstrapToken, profile: this.profile(id) };
+      }
+      if (this.db.prepare('SELECT 1 FROM deleted_tokens WHERE hash=? AND expires_at>?').get(hash, this.now()))
+        fail('PROFILE_DELETED', 'Questo profilo è stato eliminato.', 401);
+      if (this.db.prepare('SELECT 1 FROM tokens WHERE hash=?').get(hash))
+        fail('INVALID_BOOTSTRAP', 'Credenziale del profilo locale non valida.', 401);
+      if (this.db.prepare('SELECT COUNT(*) AS count FROM profiles').get().count >= this.maxProfiles)
+        fail('CAPACITY', 'Il servizio è occupato. Riprova più tardi.', 503);
+      const id = randomBytes(18).toString('base64url');
+      this.db.prepare('INSERT INTO profiles(id,gems,created_at) VALUES(?,?,?)').run(id, RULES.welcomeGems, this.now());
+      this.db.prepare('INSERT INTO ledger(profile_id,source,delta,created_at) VALUES(?,?,?,?)')
+        .run(id, 'welcome', RULES.welcomeGems, this.now());
+      this.db.prepare('INSERT INTO offline_bootstraps(hash,profile_id,created_at) VALUES(?,?,?)').run(hash, id, this.now());
+      this.db.prepare('INSERT INTO tokens(hash,profile_id,created_at,id,last_used_at) VALUES(?,?,?,?,?)')
+        .run(hash, id, this.now(), randomBytes(18).toString('base64url'), this.now());
+      this.markActive(id);
+      return { token: bootstrapToken, profile: this.profile(id) };
     });
   }
   updateProfile(id, input) {
@@ -257,6 +312,8 @@ export class EconomyStore {
       beforeDelete();
       this.db.prepare('INSERT OR REPLACE INTO deleted_tokens(hash,expires_at) SELECT hash,? FROM tokens WHERE profile_id=?')
         .run(this.now() + 31 * DAY, id);
+      this.db.prepare('INSERT OR REPLACE INTO deleted_tokens(hash,expires_at) SELECT hash,? FROM offline_bootstraps WHERE profile_id=?')
+        .run(this.now() + 31 * DAY, id);
       this.db.prepare('DELETE FROM profiles WHERE id=?').run(id);
       for (const round of this.db.prepare('SELECT id,participants FROM online_rounds').all()) {
         const ids = JSON.parse(round.participants);
@@ -287,18 +344,69 @@ export class EconomyStore {
     const deck = this.catalog.decks.find(d => d.id === deckId && d.contentReady);
     if (!deck) fail('INVALID_DECK', 'Collezione non valida.');
     return this.transaction(() => {
-      const result = this.idempotent(id, 'unlock', requestId, { deckId }, () => {
-        const profile = this.profile(id);
-        if (this.ownsDeck(id, deckId)) return { unlocked: false, alreadyOwned: true, deckId };
-        if (!profile.unlockedArenaIds.includes(deck.arenaId)) fail('ARENA_LOCKED', 'Raggiungi questa arena prima di sbloccare la collezione.', 403);
-        if (profile.gems < deck.price) fail('INSUFFICIENT_GEMS', 'Non hai ancora abbastanza gemme.', 409);
-        this.db.prepare('UPDATE profiles SET gems=gems-?,revision=revision+1 WHERE id=?').run(deck.price, id);
-        this.db.prepare('INSERT INTO owned_decks(profile_id,deck_id) VALUES(?,?)').run(id, deckId);
-        this.db.prepare('INSERT INTO ledger(profile_id,source,delta,created_at) VALUES(?,?,?,?)')
-          .run(id, `unlock:${deckId}`, -deck.price, this.now());
-        return { unlocked: true, alreadyOwned: false, deckId };
-      });
+      const result = this.idempotent(id, 'unlock', requestId, { deckId }, () => this.unlockDeck(id, deck));
       return { ...result, profile: this.profile(id) };
+    });
+  }
+  unlockDeck(id, deck) {
+    const deckId = deck.id, profile = this.profile(id);
+    if (profile.ownedDecks.includes(deckId)) return { unlocked: false, alreadyOwned: true, deckId };
+    if (!profile.unlockedArenaIds.includes(deck.arenaId)) fail('ARENA_LOCKED', 'Raggiungi questa arena prima di sbloccare la collezione.', 403);
+    if (profile.gems < deck.price) fail('INSUFFICIENT_GEMS', 'Non hai ancora abbastanza gemme.', 409);
+    this.db.prepare('UPDATE profiles SET gems=gems-?,revision=revision+1 WHERE id=?').run(deck.price, id);
+    this.db.prepare('INSERT INTO owned_decks(profile_id,deck_id) VALUES(?,?)').run(id, deckId);
+    this.db.prepare('INSERT INTO ledger(profile_id,source,delta,created_at) VALUES(?,?,?,?)')
+      .run(id, `unlock:${deckId}`, -deck.price, this.now());
+    return { unlocked: true, alreadyOwned: false, deckId };
+  }
+  soloOperation(id, input) {
+    const { requestId, kind } = input;
+    requestKey(requestId);
+    let payload;
+    if (kind === 'complete') {
+      const { gameId, theme, pairs, board, moves } = input;
+      requestKey(gameId);
+      if (![6, 8, 12, 18].includes(pairs) || !this.catalog.decks.some(d => d.id === theme && d.contentReady) ||
+          !Array.isArray(board) || board.length !== pairs * 2 ||
+          board.some(card => !Number.isInteger(card) || card < 0 || card >= pairs) ||
+          Array.from({ length: pairs }, (_, card) => board.filter(value => value === card).length).some(count => count !== 2))
+        fail('INVALID_GAME', 'Opzioni della partita non valide.');
+      this.validateTranscript({ pairs, board: json(board) }, moves);
+      payload = { kind, gameId, theme, pairs, board, moves };
+    } else if (kind === 'unlock') {
+      const { deckId } = input;
+      if (!this.catalog.decks.some(d => d.id === deckId && d.contentReady)) fail('INVALID_DECK', 'Collezione non valida.');
+      payload = { kind, deckId };
+    } else fail('INVALID_OPERATION', 'Operazione di avanzamento non valida.');
+    const hash = digest(json(payload));
+    return this.transaction(() => {
+      this.profile(id);
+      const prior = this.db.prepare('SELECT payload_hash,result FROM solo_operations WHERE profile_id=? AND request_id=?').get(id, requestId);
+      if (prior) {
+        if (prior.payload_hash !== hash) fail('IDEMPOTENCY_CONFLICT', 'Identificativo già usato per una richiesta diversa.', 409);
+        return { profile: this.profile(id), operation: JSON.parse(prior.result) };
+      }
+      let result;
+      if (kind === 'complete') {
+        const { gameId, theme, pairs, board, moves } = payload;
+        const proofHash = digest(json({ theme, pairs, board, moves }));
+        const played = this.db.prepare('SELECT profile_id,proof_hash FROM solo_games WHERE game_id=?').get(gameId);
+        if (played && played.profile_id !== id) fail('GAME_ALREADY_CLAIMED', 'Questa partita appartiene a un altro profilo.', 409);
+        if (played && played.proof_hash !== proofHash) fail('IDEMPOTENCY_CONFLICT', 'Identificativo già usato per una partita diversa.', 409);
+        if (!this.ownsDeck(id, theme)) fail('DECK_LOCKED', 'Sblocca questa collezione prima di giocare.', 403);
+        this.db.prepare('INSERT OR IGNORE INTO solo_games(game_id,profile_id,proof_hash,created_at) VALUES(?,?,?,?)')
+          .run(gameId, id, proofHash, this.now());
+        this.recordSolo(id, pairs, moves.length / 2);
+        result = { reward: { gameId, gems: RULES.completionGems, granted: this.grant(id, `solo:${gameId}`) } };
+      } else {
+        result = this.unlockDeck(id, this.catalog.decks.find(d => d.id === payload.deckId));
+      }
+      const operation = { requestId, kind, ...result };
+      // These receipts do not expire with prepared tickets. A device can come
+      // back online months later or retry after a committed response was lost.
+      this.db.prepare('INSERT INTO solo_operations(profile_id,request_id,payload_hash,result,created_at) VALUES(?,?,?,?,?)')
+        .run(id, requestId, hash, json(operation), this.now());
+      return { profile: this.profile(id), operation };
     });
   }
   guestToken(ticketId) { return createHmac('sha256', this.capabilityKey).update(`bluetooth-guest:${ticketId}`).digest('base64url'); }
@@ -353,6 +461,11 @@ export class EconomyStore {
     }
     if (first !== null || matched.size !== board.length) fail('INVALID_TRANSCRIPT', 'La partita non risulta completa.');
   }
+  recordSolo(id, pairs, attempts) {
+    this.db.prepare(`INSERT INTO solo_records(profile_id,pairs,best_attempts) VALUES(?,?,?)
+      ON CONFLICT(profile_id,pairs) DO UPDATE SET best_attempts=MIN(best_attempts,excluded.best_attempts)`)
+      .run(id, pairs, attempts);
+  }
   grant(id, source) {
     if (!this.db.prepare('SELECT id FROM profiles WHERE id=?').get(id)) return false;
     const prior = this.db.prepare('SELECT 1 FROM ledger WHERE profile_id=? AND source=?').get(id, source);
@@ -376,6 +489,7 @@ export class EconomyStore {
       }
       const result = this.idempotent(id, 'claim', requestId, { ticketId, moves }, () => {
         this.validateTranscript(row, moves);
+        if (row.mode === 'solo' && row.owner_id === id) this.recordSolo(id, row.pairs, moves.length / 2);
         if (row.owner_id !== id) this.db.prepare('UPDATE tickets SET guest_id=?,guest_claimed=1 WHERE id=?').run(id, ticketId);
         return { reward: { gameId: ticketId, gems: RULES.completionGems, granted: this.grant(id, `game:${ticketId}`) } };
       });

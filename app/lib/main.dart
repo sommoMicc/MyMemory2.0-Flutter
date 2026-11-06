@@ -12,6 +12,7 @@ import 'decks.dart';
 import 'economy.dart';
 import 'arenas.dart';
 import 'invite_links.dart';
+import 'network_reconnect.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'ui/collection_shop.dart';
 import 'ui/arena_picker.dart';
@@ -28,6 +29,7 @@ Future<void> main() async {
   await registerDeckLicenses();
   final prefs = await SharedPreferences.getInstance();
   final economy = EconomyController(prefs: prefs);
+  await economy.localReady;
   unawaited(economy.initialize());
   runApp(MyMemory(prefs: prefs, economy: economy, invites: invites));
 }
@@ -90,7 +92,7 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Home> with WidgetsBindingObserver {
   PlayMode mode = PlayMode.solo;
   int pairs = 8;
   String theme = 'garden';
@@ -105,12 +107,14 @@ class _HomeState extends State<Home> {
   bool handlingInvite = false;
   String? queuedInvite;
   StreamSubscription<String>? inviteSubscription;
+  StreamSubscription<void>? networkSubscription;
   final activeGameKey = GlobalKey<_GameScreenState>();
   late final TextEditingController name;
   final room = TextEditingController();
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final initialProfile = widget.economy?.profile;
     final pendingName =
         widget.prefs.getBool('name.localPending') == true &&
@@ -130,6 +134,9 @@ class _HomeState extends State<Home> {
     observedProfileName = widget.economy?.profile?.displayName;
     arenaId = widget.economy?.profile?.currentArenaId ?? 'wild_valley';
     widget.economy?.addListener(economyChanged);
+    networkSubscription = networkReconnects().listen((_) {
+      if (widget.economy != null) unawaited(widget.economy!.sync());
+    });
     final savedPairs = widget.prefs.getInt('game.pairs');
     if ([6, 8, 12, 18].contains(savedPairs)) pairs = savedPairs!;
     final savedTheme = widget.prefs.getString('game.collection');
@@ -311,11 +318,20 @@ class _HomeState extends State<Home> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     widget.economy?.removeListener(economyChanged);
     unawaited(inviteSubscription?.cancel());
+    unawaited(networkSubscription?.cancel());
     name.dispose();
     room.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && widget.economy != null) {
+      unawaited(widget.economy!.sync());
+    }
   }
 
   void start({bool join = false, bool resume = false}) async {
@@ -650,6 +666,7 @@ class _HomeState extends State<Home> {
       context,
       selectedArenaId: arenaId,
       unlockedArenaIds: unlockedArenaIds,
+      crowns: widget.economy?.profile?.crowns ?? 0,
     );
     if (!mounted || selected == null) return;
     setState(() => _selectFriendlyArena(selected));
@@ -1079,14 +1096,12 @@ class _HomeState extends State<Home> {
                                         style: TextStyle(color: muted),
                                       ),
                                     if (!ranked) ...[
-                                      _OptionRow(
-                                        icon: Icons.flag_rounded,
+                                      ArenaJourneyTile(
+                                        arenaId: arenaId,
                                         label: 'Arena amichevole',
-                                        value: ArenaCatalog.instance.arenas
-                                            .firstWhere((a) => a.id == arenaId)
-                                            .name,
                                         onTap: chooseArena,
                                       ),
+                                      const SizedBox(height: 8),
                                       _CollectionTile(
                                         theme: theme,
                                         onTap: chooseTheme,
@@ -1125,6 +1140,11 @@ class _HomeState extends State<Home> {
                                         ),
                                       ),
                                   ] else ...[
+                                    ArenaJourneyTile(
+                                      arenaId: arenaId,
+                                      onTap: chooseArena,
+                                    ),
+                                    const SizedBox(height: 8),
                                     _OptionRow(
                                       icon: Icons.grid_view_rounded,
                                       label: 'Coppie',
@@ -1157,6 +1177,41 @@ class _HomeState extends State<Home> {
                                       child: Text(
                                         'Record sul dispositivo: ${widget.prefs.getInt('best.$pairs')} tentativi',
                                         style: const TextStyle(color: muted),
+                                      ),
+                                    ),
+                                  if (mode == PlayMode.solo &&
+                                      widget.economy != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 12),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            widget.economy!.offline
+                                                ? Icons.offline_pin_outlined
+                                                : Icons.cloud_done_outlined,
+                                            size: 16,
+                                            color: muted,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Flexible(
+                                            child: Text(
+                                              widget.economy!.offline ||
+                                                      widget
+                                                              .economy!
+                                                              .pendingChanges >
+                                                          0
+                                                  ? 'Progressi salvati sul dispositivo · sincronizzazione automatica'
+                                                  : 'Gemme e collezioni disponibili anche offline',
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: muted,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                 ],

@@ -1,0 +1,97 @@
+{
+  "verifiedAt": "2026-11-06T06:35:50.112618+00:00",
+  "brand": "SommoMemory",
+  "version": "3.1.0",
+  "build": 30014,
+  "packageName": "cc.sommomi.mymemory",
+  "source": {
+    "baseCommit": "a16cb143a2bb71d441bf1db458d1993bbbc9c661",
+    "appRuntimeFiles": 433,
+    "appRuntimeTreeSha256": "b0432dc7362041e423d4e0e2a0c50d4d00f8f9704fa7ed7e5cf765709a5fdd2f",
+    "iosIsolatedSnapshotMatchesRuntime": true,
+    "nativeBuildsUsedIsolatedCopies": true
+  },
+  "artifacts": {
+    "androidBundle": {
+      "path": "artifacts/SommoMemory-3.1.0-30014.aab",
+      "bytes": 90219639,
+      "sha256": "8f2419f3ab78cdfb97a23b1e48e7efe46c65d8b6b7ee986ecc1cbefbd15357cc"
+    },
+    "ios": {
+      "path": "artifacts/SommoMemory-3.1.0-30014.ipa",
+      "bytes": 57141847,
+      "sha256": "40e80b1d9372e988d63b9b7cef165f53c811e44d14c7a9eab7c309f356d9b4d5"
+    }
+  },
+  "androidVerification": {
+    "report": "artifacts/play-internal-30014.json",
+    "bundletool": "passed",
+    "signature": "jarsigner verified",
+    "certificateSha256": "404D6F54025C024007E37F2A25352CB84471268A1C6C0D78C17A9565E12BED67",
+    "mappingOutputIgnoredByGit": true
+  },
+  "iosVerification": {
+    "report": "artifacts/ios-native-verification-30014.json",
+    "deepStrictCodesign": true,
+    "appleSignInEntitlement": true,
+    "googleURLSchemePresent": true,
+    "bundledDeckPngs": 378,
+    "bundledPythonFiles": 0
+  },
+  "distribution": {
+    "googlePlay": {
+      "appId": "4972469070574777722",
+      "internalTrackId": "4700857721365894827",
+      "releaseId": 12,
+      "status": "active",
+      "testers": "existing audience unchanged",
+      "productionRelease": false,
+      "releaseTitle": "Viaggio e partite offline",
+      "publishedAt": "2026-11-06 07:30 Europe/Rome",
+      "testerAudience": "existing internal tester audience retained"
+    },
+    "testFlight": {
+      "buildId": "77362c17-8639-4967-a6ba-69f46d62db84",
+      "processingState": "COMPLETE",
+      "buildProcessingState": "VALID",
+      "internalBuildState": "IN_BETA_TESTING",
+      "betaGroupId": "d811d09d-3800-4275-b5c3-8a9773439b1d",
+      "betaGroupName": "SommoMemory Internal",
+      "internalTesterCount": 2,
+      "notesLocale": "it",
+      "finalizedAt": "2026-11-06T06:29:26.600Z"
+    },
+    "productionStoreRelease": false
+  },
+  "deployment": {
+    "release": "20261106-journey-offline-30014",
+    "health": "healthy",
+    "report": "artifacts/deployment-30014.json",
+    "profilesPreserved": 48,
+    "preexistingRowsMissing": 0,
+    "gemBalancesUnchanged": true,
+    "capabilityKeyPreserved": true,
+    "privateConsistentBackup": true,
+    "publicRuntimeAndWorkerMatchLocal": true,
+    "precacheResources": 412
+  },
+  "validation": {
+    "flutterSdk": "3.47.9",
+    "flutterAnalysis": "passed",
+    "flutterTests": 166,
+    "nodeTests": 99,
+    "realClientServerOfflineReplay": "passed",
+    "browserOfflineReloadAndSoloStart": "passed",
+    "signedIosArchiveAndIpa": "passed",
+    "signedAndroidBundle": "passed",
+    "productionWebBuild": "passed",
+    "publicHttpsCatalogProvidersAssetsAndWebSocket": "passed"
+  },
+  "scope": {
+    "storeAudience": "existing internal testers",
+    "testFlightTesterCount": 2,
+    "googlePlayAudienceChanged": false,
+    "publicStoreSubmission": false,
+    "credentialsAndNativeBinariesInGit": false
+  }
+}

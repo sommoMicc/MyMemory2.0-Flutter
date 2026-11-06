@@ -1,8 +1,27 @@
 # Sommonas deployment verification
 
-Current release: **30011**, served only at <https://sommomemory.sommomi.cc>.
-See the final section for current verification. Earlier sections preserve the
-restoration history and contain superseded domains/builds.
+Current release: **30014**, served only at <https://sommomemory.sommomi.cc>.
+
+## 6 November 2026 — journey and offline solo
+
+Release **20261106-journey-offline-30014** is current and the container is
+healthy. A consistent SQLite backup and capability-key copy were retained
+privately before applying the additive migration. Integrity is `ok`; all 48
+profiles, 48 tokens, 84 ledger entries, two linked identities, two admin passkeys,
+nine online rounds, 192 prepared tickets and the other compared rows remain.
+No preexisting gem balance or capability key changed. The four new solo tables
+were created without modifying existing records.
+
+Public HTTPS health, the four-arena catalog, Apple/Google discovery, privacy and
+support pages, representative deck images, and WSS ping/pong passed. The published
+entrypoint `main.8e9c80597aa6cf9c.dart.js` and custom offline worker match the local
+release bytes. The worker precaches 412 game resources. The accounts override,
+private Apple key mount, persistent data volume, existing Caddy route and previous
+release directory are retained. Sanitized evidence:
+`artifacts/deployment-30014.json`.
+
+The sections below preserve the restoration history and contain superseded
+domains and builds.
 
 Initial verification: 2026-11-05 at the former hostname.
 

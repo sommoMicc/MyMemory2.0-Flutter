@@ -1,0 +1,81 @@
+{
+  "release": "20261106-journey-offline-30014",
+  "version": "3.1.0",
+  "build": 30014,
+  "verifiedAt": "2026-11-06T06:30:55Z",
+  "baseUrl": "https://sommomemory.sommomi.cc",
+  "deployment": {
+    "transport": "owner-confirmed NAS LAN SSH with strict trusted host-key alias",
+    "sshHost": "michele@192.168.0.126",
+    "sshPort": 22,
+    "strictTrustedHostKeyAlias": "192.168.0.164",
+    "previousRelease": "20261105-arenas-30013",
+    "previousReleaseDirectoryRetained": true,
+    "currentRelease": "20261106-journey-offline-30014",
+    "imageId": "sha256:27886375377376d6a5e4e307dd5ed0c8127a8069543e5c5ac7b26c6ac077e661",
+    "health": "healthy",
+    "persistentVolume": "mymemory-data",
+    "volumeReset": false,
+    "privateAccountsComposeOverridePreserved": true,
+    "publicRouteConfigChanged": false
+  },
+  "preservation": {
+    "backupPath": "/data/backups/20261106-journey-offline-30014-pre-migration",
+    "backupMethod": "Node SQLite backup API while the service was running with WAL enabled",
+    "backupFiles": ["economy.sqlite", "economy-capability.key", "preservation.json", "post-migration.json"],
+    "backupFileMode": "0600",
+    "integrityBeforeMigration": "ok",
+    "integrityAfterMigration": "ok",
+    "preMigrationCounts": {
+      "profiles": 48,
+      "tokens": 48,
+      "ledger": 84,
+      "ownedDecks": 0,
+      "authIdentities": 2,
+      "adminPasskeys": 2,
+      "adminSessions": 0,
+      "adminUsedEnrollments": 1,
+      "onlineRounds": 9,
+      "adminActivity": 10,
+      "adminMatches": 3,
+      "adminMatchPlayers": 6,
+      "requests": 210,
+      "tickets": 192,
+      "totalProfileGems": 5520
+    },
+    "preexistingRowsMissing": 0,
+    "preexistingRowsAddedDuringMigration": 0,
+    "profileGemBalancesUnchanged": true,
+    "capabilityKeyPreserved": true,
+    "postMigrationTables": {
+      "offline_bootstraps": 0,
+      "solo_operations": 0,
+      "solo_games": 0,
+      "solo_records": 0
+    },
+    "note": "The 30013 report recorded 43 profiles; the live pre-migration snapshot had 48. All 48 live profiles and associated existing rows were preserved."
+  },
+  "web": {
+    "flutterSdk": "3.47.9",
+    "entrypoint": "main.8e9c80597aa6cf9c.dart.js",
+    "entrypointSha256": "8e9c80597aa6cf9c91cc7d5dd533b8d33568657a02a19af6403dcbc12402d11f",
+    "offlineWorker": "memory_service_worker.js",
+    "offlineWorkerRevision": "8ba7a97a83a00ea4e8a3",
+    "offlineWorkerSha256": "487267982aba2390c17122b704c558ea9ab92ea0327a5ab234d60092946b50c1",
+    "precacheResources": 412,
+    "precachePngs": 384,
+    "allPrecacheResourcesExist": true
+  },
+  "checks": {
+    "publicHealthz": "HTTP 200; service mymemory; protocol 1; 4 existing rooms",
+    "profileCatalog": "HTTP 200; 22 decks; 4 arenas; ranked enabled",
+    "authProviders": "HTTP 200; Apple and Google configured for web",
+    "webIndex": "HTTP 200; custom memory service worker registration present",
+    "workerFingerprint": "HTTP 200; byte-identical to local release build",
+    "entrypointFingerprint": "HTTP 200; byte-identical to local release build",
+    "arenaDeckAssets": "4 representative assets HTTP 200 image/png and byte-identical to local build",
+    "privacyPage": "HTTP 200; byte-identical to updated source",
+    "supportPage": "HTTP 200; byte-identical to updated source",
+    "websocket": "Public WSS handshake and ping/pong passed; no room or profile created"
+  }
+}

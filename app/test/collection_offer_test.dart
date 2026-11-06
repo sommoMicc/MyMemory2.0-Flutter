@@ -57,7 +57,7 @@ void main() {
   for (final example in [
     (500, false, null, true),
     (100, false, 'Gemme insufficienti', false),
-    (500, true, 'Disponibile online', false),
+    (500, true, null, true),
   ]) {
     testWidgets(
       'reached arena offer separates ownership from wallet: $example',

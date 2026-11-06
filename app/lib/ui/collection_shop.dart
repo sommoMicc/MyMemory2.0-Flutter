@@ -41,13 +41,17 @@ class GemBalance extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              if (economy.pendingRewards > 0)
+              if (economy.pendingChanges > 0)
                 const Padding(
                   padding: EdgeInsets.only(left: 5),
-                  child: Icon(
-                    Icons.cloud_upload_outlined,
-                    size: 14,
-                    color: ink,
+                  child: Tooltip(
+                    message:
+                        'Progressi salvati sul dispositivo, da sincronizzare',
+                    child: Icon(
+                      Icons.cloud_upload_outlined,
+                      size: 14,
+                      color: ink,
+                    ),
                   ),
                 ),
             ],
@@ -101,7 +105,6 @@ class _CollectionShopState extends State<CollectionShop> {
       deck.contentReady &&
       deck.price > 0 &&
       widget.economy?.profile != null &&
-      !widget.economy!.offline &&
       !widget.economy!.busy &&
       widget.economy!.gems >= deck.price &&
       ArenaProgress(
@@ -119,7 +122,6 @@ class _CollectionShopState extends State<CollectionShop> {
     }
     if (deck.price > 0) {
       if (profile == null) return 'Profilo richiesto';
-      if (widget.economy!.offline) return 'Disponibile online';
       if (widget.economy!.gems < deck.price) return 'Gemme insufficienti';
     }
     return null;
@@ -346,7 +348,7 @@ class _CollectionShopState extends State<CollectionShop> {
                             builder: (context) => AlertDialog(
                               title: const Text('Gemme'),
                               content: const Text(
-                                '100 gemme iniziali e 20 per ogni partita completata e verificata. Le collezioni sbloccate restano tue.\n\nNon è possibile acquistare gemme con denaro.',
+                                '100 gemme iniziali e 20 per ogni partita completata e verificata. In individuale guadagni e sblocchi anche offline: i progressi vengono salvati sul dispositivo e sincronizzati automaticamente quando torna Internet. Le collezioni sbloccate restano tue.\n\nNon è possibile acquistare gemme con denaro.',
                               ),
                               actions: [
                                 TextButton(
@@ -361,9 +363,10 @@ class _CollectionShopState extends State<CollectionShop> {
                         const Spacer(),
                       ],
                     ),
-                    if (economy?.offline == true)
+                    if (economy?.offline == true ||
+                        (economy?.pendingChanges ?? 0) > 0)
                       const Text(
-                        'Offline · sblocchi disponibili alla riconnessione',
+                        'Progressi salvati sul dispositivo · sincronizzazione automatica al ritorno della rete',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 12, color: ink),
                       ),

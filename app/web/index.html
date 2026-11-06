@@ -42,5 +42,16 @@
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
   <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // The release preparation step generates an atomic cache of the game and
+    // all bundled collections. Account/API responses never enter this cache.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('memory_service_worker.js', {
+          updateViaCache: 'none'
+        }).catch(() => { /* Online play remains available if storage is full. */ });
+      });
+    }
+  </script>
 </body>
 </html>
