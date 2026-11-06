@@ -1,8 +1,8 @@
 {
-  "verifiedAt": "2026-11-06T10:07:16.783Z",
+  "verifiedAt": "2026-11-06T10:42:23.841Z",
   "appId": "6831015201",
   "versionId": "df818c27-8b5a-4244-9563-e92168e59552",
-  "state": "PREPARE_FOR_SUBMISSION",
+  "state": "WAITING_FOR_REVIEW",
   "categories": {
     "primaryCategory": "GAMES",
     "primarySubcategoryOne": "GAMES_CARD",
@@ -17,7 +17,7 @@
     "notesReadbackVerified": true,
     "notes": "SommoMemory is a memory matching game with an English and Italian interface, selected automatically from the device language and changeable in Settings (Impostazioni). No registration or demo account is required: launch the app and choose Solo (Singolo in Italian) to play, including offline from the first launch. A guest profile is created automatically with in-game gems, which cannot be bought or exchanged for money. Optional Apple/Google sign-in and a recovery code synchronize the same profile. Online matches are private rooms entered by invitation code; there is no automatic matchmaking or chat. Ranked matches require two profiles in the same arena and compare attempts over three rounds. Bluetooth play needs two physical supported devices with both apps in the foreground. No advertising or real-money purchases. Profile deletion is available in Profile (Profilo) and https://sommomemory.sommomi.cc/en/delete-account."
   },
-  "productionSubmitted": false,
+  "productionSubmitted": true,
   "ageRating": {
     "attributes": {
       "advertising": false,
@@ -196,5 +196,14 @@
       "apple-listing-en-GB-ready.jpg"
     ],
     "knownPending": []
+  },
+  "productionPublished": false,
+  "reviewSubmission": {
+    "id": "926ae804-5184-40db-a8d6-614c992244be",
+    "state": "WAITING_FOR_REVIEW",
+    "submittedDate": "2026-11-06T10:42:23.841Z",
+    "version": "3.1.0",
+    "build": "30017",
+    "itemCount": 1
   }
 }

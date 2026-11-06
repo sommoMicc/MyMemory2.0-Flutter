@@ -1,0 +1,29 @@
+{
+  "verifiedAt": "2026-11-06T10:46:58Z",
+  "version": "3.1.0",
+  "build": "30017",
+  "apple": {
+    "appId": "6831015201",
+    "submissionId": "926ae804-5184-40db-a8d6-614c992244be",
+    "state": "WAITING_FOR_REVIEW",
+    "submittedDate": "2026-11-06T10:42:23.841Z",
+    "releaseType": "AFTER_APPROVAL",
+    "itemCount": 1,
+    "publiclyReleased": false
+  },
+  "googlePlay": {
+    "appId": "4972469070574777722",
+    "packageName": "cc.sommomi.mymemory",
+    "releaseId": 2,
+    "track": "production",
+    "state": "IN_REVIEW",
+    "submittedAt": "2026-11-06T10:46:00Z",
+    "changesSubmitted": 13,
+    "versionCode": 30017,
+    "markets": 28,
+    "managedPublishing": false,
+    "automaticRolloutAfterApproval": true,
+    "publiclyReleased": false,
+    "notes": "Submission includes the saved closed Alpha tester mailing list and feedback URL along with production release, markets, listing and declarations."
+  }
+}

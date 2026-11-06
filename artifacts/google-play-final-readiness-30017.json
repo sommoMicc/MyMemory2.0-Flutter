@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-11-06T10:01:33.771984+00:00",
+  "verifiedAt": "2026-11-06T10:46:58Z",
   "packageName": "cc.sommomi.mymemory",
   "appId": "4972469070574777722",
   "versionName": "3.1.0",
@@ -36,16 +36,19 @@
     "receipt": "store-30017/play-listing.json"
   },
   "publishing": {
-    "pendingChanges": 13,
-    "sendForReviewEnabled": true,
-    "automaticChecks": "passed",
-    "managedPublishing": "disabled (unchanged)",
-    "observedCheckResult": "Ora le modifiche possono essere inviate per la revisione. Potremmo rilevare ulteriori problemi durante la revisione dell\u2019app.",
-    "proofScreenshot": "google-play-final-ready-30017.jpg"
+    "pendingChanges": 0,
+    "sendForReviewEnabled": false,
+    "automaticChecks": "passed before submission",
+    "managedPublishing": "disabled",
+    "observedCheckResult": "All 13 pending changes submitted; Google Play Console shows changes in review.",
+    "proofScreenshot": "google-play-final-ready-30017.jpg",
+    "changesInReview": 13,
+    "reviewState": "IN_REVIEW",
+    "automaticPublishingAfterApproval": true
   },
-  "reviewSubmitted": false,
+  "reviewSubmitted": true,
   "productionPublished": false,
   "contractsAccepted": false,
   "blockersObserved": [],
-  "scope": "Final read-only readiness check completed. User may submit13pending changes manually. No review submission/publication performed."
+  "scope": "All 13 pending changes were submitted in Google Play Console; review is in progress and no public rollout has occurred."
 }

@@ -16,17 +16,21 @@ signatures, package/version and bundletool validation passed; receipts are
 `958acdacdbdd8eb4c039098c425afd06195398016785df909e22f78a4503d80b`.
 
 Italian, en-US and en-GB listing texts are saved and reread; availability changes
-for exactly **27 EU states + USA** are saved in Publishing Overview, not submitted.
+for exactly **27 EU states + USA** are included in the production review submission.
 The final 30017 capture set includes four Italian and four English phone images
 at 1080×1920, with PNG CRC/sBIT and RGB pixel hashes verified. All four images are
 saved and reread for each of the three listing locales, together with the shared
-icon and feature graphic. Console reports the draft ready to send for review.
+icon and feature graphic. Console's pre-submission checks passed.
 Receipts are in `artifacts/store-30017/`, including `play-listing.json`,
-`play-localizations.json`, `play-markets.json` and `screenshots.json`. The production draft now contains only build 30017 in the same 28 countries;
-automatic checks passed and Console enables sending the **13 pending changes**
-for review, with no blocker observed. Evidence:
-`artifacts/google-play-final-readiness-30017.json`. Internal release activation
-does not publish the production draft, and the user retains the submission step.
+`play-localizations.json`, `play-markets.json` and `screenshots.json`. The
+production change set contains only build 30017 in the same 28 countries;
+automatic checks passed and all **13 changes** were submitted for review.
+The changes include the production full rollout, markets and required listing and
+declaration setup; they also include the already-saved closed Alpha tester list
+and feedback URL. Review is in progress. Managed publishing is disabled, so the
+release may roll out automatically after approval. Evidence:
+`artifacts/google-play-final-readiness-30017.json` and
+`artifacts/store-30017/production-submission.json`.
 
 ## 30016 — Sala giochi pop (previous internal release)
 
@@ -73,7 +77,7 @@ testing, and deletion of the historical app. The new Console record is created:
 | Binary | **3.1.0 (30017)** uploaded and accepted |
 | Track status | **Attivo** |
 | App signing | Releases signed by Google Play; no new terms prompt appeared |
-| Production | Build 30017 draft prepared for 28 countries; not submitted or published |
+| Production | Build 30017 submitted for review for 28 countries; rollout awaits approval |
 
 [New app dashboard](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/app-dashboard)
 and [internal release details](https://play.google.com/console/u/0/developers/5468026965874523214/app/4972469070574777722/tracks/4700857721365894827/releases/15/details).
@@ -90,7 +94,8 @@ Its local JAR signature check reports verified; Play release 15 is active on the
 existing internal track. The upload/activation receipt is
 `artifacts/play-internal-30017.json`. Localized listing and market preparation is
 tracked in `artifacts/store-30017/`; listing changes remain separate from internal
-testing and do not establish that all public-review setup declarations are complete. No production review submission or rollout was performed.
+testing. Production review submission is now in progress; no public rollout has
+occurred yet.
 
 Google temporarily displays the unreviewed package name instead of the eventual
 store name for this new internal app. This release is **internal only**, not a

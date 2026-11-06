@@ -54,16 +54,15 @@ completed. The three `apple-metadata*.json` receipts record the final readback.
 Google Play's three localized galleries, icon and feature graphic are saved and
 reread in `play-listing.json`.
 
-The production Play draft contains only build 30017 for the same 28 countries.
-All automatic checks passed; **13 pending changes** can be sent for review, and
-no blocker was observed. Evidence:
-`artifacts/google-play-final-readiness-30017.json`. Apple remains in
-`PREPARE_FOR_SUBMISSION`, with build 30017 linked, review contact/notes, published
-privacy and English beta notes verified. Its current-OS UI reports a **13+**
-global rating; legacy/regional API rating values are recorded in
-`artifacts/store-30017/apple-readiness.json`. No production App Review submission
-or Google Play production rollout has been performed. The user retains the
-submission step. Store details are in `docs/STORE_METADATA_3_1_IT.md`.
+The production submissions use build **30017** on both stores. Apple’s App Store
+Connect API confirms version 3.1.0 is **WAITING_FOR_REVIEW**, with exactly one
+submission item and release after approval. Google Play confirms all **13**
+pending changes are **in review**: the production full rollout, EU27+USA markets,
+store setup and the saved Alpha test-channel settings. Managed publishing is
+disabled, so Google may begin the rollout after approval without another manual
+publish step. Neither store has approved or publicly released the build yet.
+Submission receipt: `artifacts/store-30017/production-submission.json`. Store
+details are in `docs/STORE_METADATA_3_1_IT.md`.
 
 ## 30016 — Sala giochi pop (previous internal release)
 
