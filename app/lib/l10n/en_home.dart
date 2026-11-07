@@ -1,4 +1,5 @@
 const enHomeStrings = <String, String>{
+  'Porta SommoMemory con te': 'Take SommoMemory with you',
   'Singolo': 'Solo',
   'Un giocatore': 'One player',
   'In due': 'Two players',

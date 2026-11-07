@@ -22,6 +22,7 @@ import 'ui/profile_panel.dart';
 import 'ui/profile_appearance.dart';
 import 'ui/deck_art.dart';
 import 'ui/game_world.dart';
+import 'ui/store_links.dart';
 import 'bluetooth/bluetooth_controller.dart';
 
 const _systemFontFallback = ['Apple Color Emoji', 'Noto Color Emoji'];
@@ -1016,73 +1017,92 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                               final sceneHeight = showScene ? 120.0 : 0.0;
                               final tileWidth =
                                   (c.maxWidth - (columns - 1) * 12) / columns;
-                              final tileHeight = math.min(
-                                180.0,
-                                (c.maxHeight - sceneHeight - (rows - 1) * 12) /
-                                    rows,
+                              // Reserve space for the web store panel; scroll rather
+                              // than compress the game cards on small viewports.
+                              final tileHeight = math.max(
+                                kIsWeb ? 132.0 : 0.0,
+                                math.min(
+                                  180.0,
+                                  (c.maxHeight -
+                                          sceneHeight -
+                                          (rows - 1) * 12 -
+                                          (kIsWeb ? 140 : 0)) /
+                                      rows,
+                                ),
+                              );
+                              final content = Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (showScene)
+                                    SizedBox(
+                                      height: sceneHeight,
+                                      child: CollectionScene(
+                                        collection: theme,
+                                      ),
+                                    ),
+                                  Wrap(
+                                    spacing: 12,
+                                    runSpacing: 12,
+                                    children: [
+                                      for (final m in modes)
+                                        SizedBox(
+                                          width: tileWidth,
+                                          height: tileHeight,
+                                          child: ModeTile(
+                                            icon: m.$2,
+                                            title: m.$3,
+                                            subtitle: m.$4,
+                                            selected: false,
+                                            onTap: () => setState(() {
+                                              mode = m.$1;
+                                              ranked = false;
+                                              creatingBluetoothGame = false;
+                                              if (m.$1 == PlayMode.online) {
+                                                final legacyThemeArena =
+                                                    _arenaDeck(
+                                                          theme,
+                                                        )?.arenaId ==
+                                                        arenaId &&
+                                                    widget.economy?.ownsDeck(
+                                                          theme,
+                                                        ) ==
+                                                        true;
+                                                final preferredArena =
+                                                    unlockedArenaIds.contains(
+                                                          arenaId,
+                                                        ) ||
+                                                        legacyThemeArena
+                                                    ? arenaId
+                                                    : widget
+                                                              .economy
+                                                              ?.profile
+                                                              ?.currentArenaId ??
+                                                          'wild_valley';
+                                                _selectFriendlyArena(
+                                                  preferredArena,
+                                                );
+                                              }
+                                              configuring = true;
+                                              prefetch();
+                                            }),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  if (kIsWeb)
+                                    const Padding(
+                                      padding: EdgeInsets.only(
+                                        top: 20,
+                                        bottom: 4,
+                                      ),
+                                      child: StoreLinks(),
+                                    ),
+                                ],
                               );
                               return Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (showScene)
-                                      SizedBox(
-                                        height: sceneHeight,
-                                        child: CollectionScene(
-                                          collection: theme,
-                                        ),
-                                      ),
-                                    Wrap(
-                                      spacing: 12,
-                                      runSpacing: 12,
-                                      children: [
-                                        for (final m in modes)
-                                          SizedBox(
-                                            width: tileWidth,
-                                            height: tileHeight,
-                                            child: ModeTile(
-                                              icon: m.$2,
-                                              title: m.$3,
-                                              subtitle: m.$4,
-                                              selected: false,
-                                              onTap: () => setState(() {
-                                                mode = m.$1;
-                                                ranked = false;
-                                                creatingBluetoothGame = false;
-                                                if (m.$1 == PlayMode.online) {
-                                                  final legacyThemeArena =
-                                                      _arenaDeck(
-                                                            theme,
-                                                          )?.arenaId ==
-                                                          arenaId &&
-                                                      widget.economy?.ownsDeck(
-                                                            theme,
-                                                          ) ==
-                                                          true;
-                                                  final preferredArena =
-                                                      unlockedArenaIds.contains(
-                                                            arenaId,
-                                                          ) ||
-                                                          legacyThemeArena
-                                                      ? arenaId
-                                                      : widget
-                                                                .economy
-                                                                ?.profile
-                                                                ?.currentArenaId ??
-                                                            'wild_valley';
-                                                  _selectFriendlyArena(
-                                                    preferredArena,
-                                                  );
-                                                }
-                                                configuring = true;
-                                                prefetch();
-                                              }),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                                child: kIsWeb
+                                    ? SingleChildScrollView(child: content)
+                                    : content,
                               );
                             },
                           ),
